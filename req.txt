@@ -1,0 +1,107 @@
+Okay, this sounds like a fantastic and innovative direction! Here's a Product Requirements Document (PRD) draft based on our discussion. I've aimed for simplicity and clarity, focusing on what's needed to build your "vibe-coded" document tool.
+
+Product Requirements Document: VibeDoc (Working Title)
+
+1. Introduction
+
+VibeDoc is a next-generation, minimalist document tool designed to make content creation intuitive, fast, and intelligent. It re-imagines the document editor by empowering users to create and modify content blocks – from simple text to complex charts and tables – using natural language prompts. This "vibe coding" approach, combined with a clean interface and reactive capabilities, aims to remove the friction inherent in traditional document software.
+
+2. Goals
+
+To provide a highly intuitive and efficient way for users to create rich, structured documents.
+To significantly reduce the time and effort spent on formatting and content structuring by leveraging AI.
+To offer a focused, minimalist alternative to feature-laden traditional word processors, prioritizing user experience and core modern needs.
+To enable dynamic and "live" document elements that can react to and reflect the content around them.
+3. Target Audience
+
+Individuals: Writers, students, researchers, knowledge workers, and anyone who frequently creates documents and seeks a more streamlined, AI-assisted process.
+Teams (future focus): Small teams needing a quick way to draft, share, and iterate on documents like notes, proposals, and simple reports.
+Primary User Profile: Tech-savvy or adaptable users comfortable with new interaction paradigms (like prompt-based interfaces) and who value efficiency and modern design.
+4. Core Product Principles
+
+Vibe Coding First: Natural language prompts are the primary method for creating, formatting, and transforming content within blocks.
+Aggressive Minimalism: The UI will be clean, uncluttered, and free of unnecessary features. Focus is on the content and the prompt interaction.
+Block-Based Everything: All content is structured as discrete, manageable, and AI-addressable blocks.
+Intelligent & Reactive: Documents are not static. AI assists in content generation, and specific blocks can dynamically update based on document context.
+5. Key Features & Requirements
+
+5.1. Core Block-Based Editor
+* [R1.1] Users must be able to add new blocks to the document (e.g., via slash command /, contextual button, or pressing Enter).
+* [R1.2] Users must be able to delete blocks.
+* [R1.3] Users must be able to reorder blocks (e.g., via drag-and-drop or keyboard shortcuts).
+* [R1.4] The editor must support intuitive keyboard navigation between and within blocks.
+* [R1.5] A persistent, easily accessible prompt interface (e.g., a command palette or contextual input) for "vibe coding" blocks.
+
+5.2. Foundational "Vibe Coded" Content Blocks
+* [R2.1] Text & Headings:
+* Support for paragraph text and H1-H6 level headings.
+* Creation and styling via prompt (e.g., "/h1 Main Title," select text -> "make heading 2").
+* [R2.2] Lists:
+* Support for bulleted, numbered, and checklist/to-do lists (interactive checkboxes).
+* Creation and population via prompt (e.g., "/todo Action items from meeting notes...").
+* [R2.3] Quotes & Callouts:
+* Support for blockquotes and distinct callout boxes (e.g., info, warning, tip).
+* Creation via prompt (e.g., "/quote [text]" or "/infobox Key takeaway: ...").
+* [R2.4] Code Snippets:
+* Display code with syntax highlighting for common programming languages.
+* Creation via prompt (e.g., "/code python function for API call") or by pasting code and prompting for formatting/language.
+* AI assistance: Prompt for comments, explanations, or simple refactoring of selected code block.
+* [R2.5] Interactive Tables:
+* Creation from prompt describing structure or from selected unstructured text (e.g., "/table 3 columns: Product, Price, Stock").
+* AI-assisted population based on document context or further prompts.
+* Basic frontend interactivity (e.g., column sorting).
+* [R2.6] Interactive Graphs/Charts:
+* Support for common chart types (bar, line, pie).
+* Generation via prompt with inline data or referencing data elsewhere in the document (e.g., "/barchart Data: A=10, B=20, C=15").
+* Basic frontend interactivity (e.g., tooltips on hover).
+* [R2.7] Mathematical Equations:
+* Display well-rendered math equations (e.g., using LaTeX).
+* Creation via prompt (e.g., "/math E=mc^2").
+* [R2.8] Dividers:
+* Simple visual separator line, creatable via prompt (e.g., "/divider").
+
+5.3. AI-Powered & Reactive Block Capabilities
+* [R3.1] Smart Summaries: Generate concise summaries of selected text, sections, or the entire document via prompt (e.g., "/summarize section above").
+* [R3.2] Content Transformation:
+* Rephrase selected text (formal, casual, concise, expand) via prompt.
+* Translate selected text to specified languages via prompt.
+* [R3.3] Content Generation: Generate text for common needs (e.g., "/write intro paragraph for [topic]," "/brainstorm ideas for [subject]").
+* [R3.4] Live Reactive Lists:
+* Blocks that automatically populate and update based on the entire document's content.
+* Examples: "List of sources and citations referenced," "List of all action items (@todo)," "List of questions raised."
+* The prompt defines the "query" for the block (e.g., "/live_list all H2 headings").
+* [R3.5] Document Q&A: Allow users to ask questions about the current document's content, with AI providing answers based on the text (e.g., "/ask What is the deadline for Project X?").
+
+5.4. Document Management & Application Basics (Minimalist)
+* [R4.1] Ability to create new documents, save documents, and open existing documents.
+* [R4.2] AI-assisted document titling based on content.
+* [R4.3] Simple list view for documents.
+* [R4.4] Semantic search within a document and across all user documents (AI-powered).
+* [R4.5] Export documents to Markdown and PDF formats.
+* [R4.6] Basic user authentication and account management.
+
+6. High-Level Technical Considerations
+
+Framework: Likely Next.js for a unified frontend and backend (API routes) experience in TypeScript.
+AI/LLM Integration:
+Secure API integration with one or more LLM providers.
+Robust prompt engineering and context management strategies.
+Block Editor Engine: Selection or development of a block-based editor foundation (e.g., leveraging libraries like Tiptap/ProseMirror, Slate.js, or the open-source core of BlockNote.js, if suitable, or a well-scoped custom solution if absolutely necessary).
+Document Model: A clear, serializable (likely JSON) structure for documents and blocks.
+Reactivity System: A mechanism to detect document changes and trigger updates for reactive blocks.
+Persistence: Database solution for storing user accounts and documents.
+7. Success Metrics (How We'll Measure Success - Initial Thoughts)
+
+User Adoption: Number of registered users and active users (daily/weekly/monthly).
+Engagement: Average number of blocks created per session, average document length, frequency of "vibe-coded" block usage vs. manual methods (if any).
+Task Completion Rate: Ability of users to successfully create desired document structures using prompts.
+User Satisfaction: Qualitative feedback through surveys, interviews, and support channels.
+Performance: Editor responsiveness, speed of AI-generated block rendering.
+8. Out of Scope (For Initial Version - Maintaining Focus & Minimalism)
+
+Real-time multi-user collaboration (e.g., Google Docs-style simultaneous editing).
+Complex folder structures or advanced file organization features.
+Extensive third-party app integrations.
+Advanced document layout and print design options (beyond clean PDF export).
+Offline mode.
+Public API for third-party developers.
