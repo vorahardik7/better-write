@@ -44,10 +44,7 @@ export async function POST(req: NextRequest) {
     // Prepare messages for the AI
     const aiMessages = [
       { role: 'system', content: systemPrompt },
-      ...messages.map((msg: any) => ({
-        role: msg.role,
-        content: msg.content
-      }))
+      ...messages
     ];
 
     // Generate streaming response

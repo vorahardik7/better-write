@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { useEditorStore } from '@/lib/store/editor-store';
 import { Send, MessageSquare, Minimize2, Bot, User, GripVertical } from 'lucide-react';
 import { useChat } from '@ai-sdk/react';

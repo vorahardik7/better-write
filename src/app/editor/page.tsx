@@ -1,9 +1,9 @@
 'use client';
 
 import { motion } from 'motion/react';
-import { TextEditor } from '@/components/editor/text-editor';
+import { RichTextEditor } from '@/components/editor/rich-text-editor';
 import { DocumentChat } from '@/components/editor/document-chat';
-import { Sparkles, FileText, Zap } from 'lucide-react';
+import { FileText, Zap } from 'lucide-react';
 
 export default function EditorPage() {
   return (
@@ -81,7 +81,7 @@ export default function EditorPage() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="flex-1 flex flex-col bg-white"
         >
-          <TextEditor />
+          <RichTextEditor />
         </motion.div>
 
         {/* Document Chat Sidebar - Clean blue */}

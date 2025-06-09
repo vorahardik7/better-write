@@ -86,7 +86,7 @@ export function HeroSection() {
             { icon: Edit3, text: "Smart Editing" },
             { icon: Zap, text: "Instant AI" },
             { icon: Sparkles, text: "Document Chat" }
-          ].map((feature, index) => (
+          ].map((feature) => (
             <motion.div
               key={feature.text}
               className="flex items-center gap-2 px-4 py-2 bg-white/60 backdrop-blur-sm rounded-full border border-gray-200/50 cursor-pointer"

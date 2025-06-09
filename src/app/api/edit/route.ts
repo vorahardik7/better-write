@@ -25,7 +25,11 @@ export async function POST(req: NextRequest) {
     - If the instruction is unclear, make your best interpretation
     - For formatting requests (formal/casual), adjust tone appropriately
     - For grammar fixes, correct errors while preserving style
-    - For summarization, create a concise version of the main points`;
+    - For summarization, create a concise version of the main points
+    - For table requests, create HTML tables with proper structure
+    - For lists, use clean markdown-style formatting with proper indentation (- for bullets, 1. 2. 3. for numbered, proper spacing for nested items)
+    - For code examples, use markdown code blocks with language specification when possible
+    - Always return content that preserves natural formatting and spacing`;
 
     // Create the user prompt with context
     const userPrompt = `Document context: ${documentContext ? documentContext.slice(0, 500) + '...' : 'No additional context'}
@@ -50,7 +54,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       originalText: selectedText,
-      suggestedText: text.trim().replace(/^"|\s+"/g, ''),
+      suggestedText: text.trim().replace(/^["']|["']$/g, ''),
       prompt: prompt
     });
 

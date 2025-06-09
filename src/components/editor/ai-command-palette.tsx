@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useEditorStore } from '@/lib/store/editor-store';
-import { X, Sparkles, Zap, Edit, Type, FileText, Brain } from 'lucide-react';
+import { X, Sparkles, Zap, Edit, Type, FileText, Brain, Table, List, Code } from 'lucide-react';
 
 interface AICommandPaletteProps {
   isOpen: boolean;
@@ -11,7 +11,7 @@ interface AICommandPaletteProps {
   selectedText: string;
 }
 
-const QUICK_PROMPTS = [
+const TEXT_PROMPTS = [
   { 
     label: 'Make formal', 
     prompt: 'make this text more formal and professional',
@@ -40,6 +40,29 @@ const QUICK_PROMPTS = [
   { 
     label: 'Summarize', 
     prompt: 'create a brief summary of this text',
+    icon: FileText,
+  },
+];
+
+const CONTENT_PROMPTS = [
+  { 
+    label: 'Create table', 
+    prompt: 'create a relevant table based on this text with appropriate columns and sample data',
+    icon: Table,
+  },
+  { 
+    label: 'Make list', 
+    prompt: 'convert this text into a well-organized bullet point list',
+    icon: List,
+  },
+  { 
+    label: 'Add examples', 
+    prompt: 'add relevant examples and code snippets to illustrate this text',
+    icon: Code,
+  },
+  { 
+    label: 'Make outline', 
+    prompt: 'create a detailed outline or structure from this text',
     icon: FileText,
   },
 ];
@@ -116,17 +139,35 @@ export function AICommandPalette({ isOpen, onClose, selectedText }: AICommandPal
                 <div className="flex-1 min-w-0">
                   <span className="text-xs font-medium text-gray-600 block mb-1">Selected Text</span>
                   <p className="text-sm text-gray-800 truncate">
-                    "{selectedText.slice(0, 80)}{selectedText.length > 80 ? '...' : ''}"
+                    &quot;{selectedText.slice(0, 80)}{selectedText.length > 80 ? '...' : ''}&quot;
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Quick actions */}
+            {/* Text Editing */}
             <div>
-              <h4 className="font-medium text-gray-800 mb-2 text-sm">Quick Actions</h4>
+              <h4 className="font-medium text-gray-800 mb-2 text-sm">Text Editing</h4>
               <div className="grid grid-cols-2 gap-2">
-                {QUICK_PROMPTS.map((item) => (
+                {TEXT_PROMPTS.map((item) => (
+                  <button
+                    key={item.label}
+                    onClick={() => handleQuickPrompt(item.prompt)}
+                    disabled={isProcessing}
+                    className="flex items-center gap-2 p-2.5 text-left border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50 transition-colors text-sm cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    <item.icon className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                    <span className="text-gray-700 truncate">{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Content Generation */}
+            <div>
+              <h4 className="font-medium text-gray-800 mb-2 text-sm">Content Generation</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {CONTENT_PROMPTS.map((item) => (
                   <button
                     key={item.label}
                     onClick={() => handleQuickPrompt(item.prompt)}

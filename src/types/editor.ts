@@ -1,3 +1,5 @@
+import type { Editor } from '@tiptap/react';
+
 export interface TextSelection {
     start: number;
     end: number;
@@ -17,10 +19,12 @@ export interface EditorState {
     selection: TextSelection | null;
     aiSuggestion: AISuggestion | null;
     isProcessing: boolean;
+    editorRef: Editor | null; // TipTap editor instance
     
     // Actions
     setContent: (content: string) => void;
     setSelection: (selection: TextSelection | null) => void;
+    setEditorRef: (editor: Editor) => void;
     requestAISuggestion: (prompt: string) => Promise<void>;
     acceptSuggestion: () => void;
     rejectSuggestion: () => void;

@@ -4,7 +4,6 @@ import { motion } from 'motion/react';
 import { 
   MessageSquare, 
   Zap, 
-  Sparkles, 
   Edit3, 
   FileText, 
   Code, 

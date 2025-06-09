@@ -194,7 +194,7 @@ export function DemoSection() {
                           >
                             <div className="text-gray-500 mb-2">Your instruction:</div>
                             <div className="bg-gray-50 p-4 rounded-lg text-gray-700">
-                              "{step.prompt}"
+                              &quot;{step.prompt}&quot;
                             </div>
                           </motion.div>
                         )}

@@ -1,38 +1,48 @@
 import { create } from 'zustand';
 import { nanoid } from 'nanoid';
+import type { Editor } from '@tiptap/react';
 import type { TextSelection, AISuggestion, EditorState } from '@/types/editor';
 
 export const useEditorStore = create<EditorState>((set, get) => ({
   // Initial state
-  content: "Welcome to VibeDoc! Start typing or select text and press Cmd+K to get AI suggestions.\n\nTry selecting this text and asking AI to make it more formal, or to summarize it.\n\nThis is the future of document editing - where AI understands your intent and helps you write better.",
+  content: "<h1>Welcome to VibeDoc!</h1><p>Start writing your document with rich formatting, tables, images, and AI assistance.</p><p>Select any text and press <kbd>⌘K</kbd> to get instant AI suggestions for improvement.</p><blockquote><p>This is the future of document editing - where AI understands your intent and helps you write better.</p></blockquote>",
   selection: null,
   aiSuggestion: null,
   isProcessing: false,
+  editorRef: null,
 
   // Actions
   setContent: (content: string) => {
-    console.log('📝 Content updated');
+    
     set({ content });
   },
   
   setSelection: (selection: TextSelection | null) => {
-    console.log('🎯 Selection changed:', selection?.text || 'none');
+    
     set({ selection });
   },
 
+  setEditorRef: (editor: Editor) => {
+    
+    set({ editorRef: editor });
+  },
+
   requestAISuggestion: async (prompt: string) => {
-    const { selection, content } = get();
-    if (!selection) {
-      console.log('❌ No text selected');
+    const { selection, editorRef } = get();
+    if (!selection || !editorRef) {
+      
       return;
     }
 
-    console.log('🤖 Requesting AI suggestion for:', selection.text);
-    console.log('📝 Prompt:', prompt);
+    
+    
     
     set({ isProcessing: true });
 
     try {
+      // Get plain text context for the API
+      const documentContext = editorRef.getText();
+      
       // Try real API first
       const response = await fetch('/api/edit', {
         method: 'POST',
@@ -42,7 +52,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         body: JSON.stringify({
           selectedText: selection.text,
           prompt: prompt,
-          documentContext: content
+          documentContext: documentContext
         }),
       });
 
@@ -60,106 +70,105 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         reasoning: `Applied: "${prompt}"`
       };
 
-      console.log('✅ AI suggestion received:', data.suggestedText);
+      
       set({ aiSuggestion: suggestion });
       
     } catch (error) {
-      console.warn('⚠️ API failed, using mock response:', error);
-      
-      // Fallback to mock response
-      try {
-        const suggestedText = await mockAIResponse(selection.text, prompt);
-        
-        const suggestion: AISuggestion = {
-          id: nanoid(),
-          originalText: selection.text,
-          suggestedText,
-          selection,
-          reasoning: `Applied: "${prompt}" (Mock)`
-        };
-
-        console.log('✅ Mock AI suggestion received:', suggestedText);
-        set({ aiSuggestion: suggestion });
-        
-      } catch (mockError) {
-        console.error('❌ Both API and mock failed:', mockError);
-      }
+      console.error('API request failed:', error);
+      throw error;
     } finally {
       set({ isProcessing: false });
     }
   },
 
   acceptSuggestion: () => {
-    const { content, aiSuggestion } = get();
-    if (!aiSuggestion) return;
+    const { editorRef, aiSuggestion } = get();
+    if (!aiSuggestion || !editorRef) return;
 
-    console.log('✅ Accepting suggestion');
+    
     
     const { selection, suggestedText } = aiSuggestion;
-    const newContent = 
-      content.slice(0, selection.start) + 
-      suggestedText + 
-      content.slice(selection.end);
+    
+    // Clear current selection first
+    editorRef
+      .chain()
+      .focus()
+      .setTextSelection({ from: selection.start, to: selection.end })
+      .deleteSelection()
+      .run();
+    
+    // Convert markdown to HTML for TipTap
+    const htmlContent = convertMarkdownToHTML(suggestedText);
+    
+    editorRef
+      .chain()
+      .focus()
+      .insertContent(htmlContent, {
+        parseOptions: {
+          preserveWhitespace: 'full',
+        },
+      })
+      .run();
 
     set({ 
-      content: newContent, 
       aiSuggestion: null, 
       selection: null 
     });
   },
 
   rejectSuggestion: () => {
-    console.log('❌ Rejecting suggestion');
     set({ aiSuggestion: null });
   },
 }));
 
-// Mock AI function - simulates OpenAI/Claude responses
-async function mockAIResponse(selectedText: string, prompt: string): Promise<string> {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
+
+// Convert markdown to HTML for TipTap
+function convertMarkdownToHTML(markdown: string): string {
+  let html = markdown;
+
+  // Bold text
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+  // Italic text
+  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+  // Headers
+  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+  // Unordered lists
+  html = html.replace(/^(\s*)- (.+)$/gm, (match, indent, text) => {
+    const level = indent.length / 2;
+    return `${'  '.repeat(level)}<li>${text}</li>`;
+  });
+
+  // Wrap consecutive list items in <ul> tags
+  html = html.replace(/((?:\s*<li>.*<\/li>\s*)+)/g, '<ul>$1</ul>');
+
+  // Ordered lists
+  html = html.replace(/^(\s*)\d+\. (.+)$/gm, (match, indent, text) => {
+    const level = indent.length / 2;
+    return `${'  '.repeat(level)}<li>${text}</li>`;
+  });
+
+  // Wrap consecutive ordered list items in <ol> tags
+  html = html.replace(/((?:\s*<li>.*<\/li>\s*)+)/g, (match) => {
+    // Check if this was from numbered lists (this is a simplified approach)
+    return match.includes('1.') ? `<ol>${match}</ol>` : `<ul>${match}</ul>`;
+  });
+
+  // Paragraphs (convert double line breaks to paragraphs)
+  html = html.replace(/\n\n+/g, '</p><p>');
   
-  console.log('🤖 Mock AI processing:', { selectedText, prompt });
-  
-  const lowerPrompt = prompt.toLowerCase();
-  
-  if (lowerPrompt.includes('formal')) {
-    return selectedText
-      .replace(/\b(cool|awesome|great|nice)\b/gi, 'excellent')
-      .replace(/\b(hey|hi|yo)\b/gi, 'Hello')
-      .replace(/!/g, '.')
-      .replace(/\b(gonna|wanna|gotta)\b/gi, (match) => {
-        const replacements = { gonna: 'going to', wanna: 'want to', gotta: 'have to' };
-        return replacements[match.toLowerCase() as keyof typeof replacements];
-      });
+  // Wrap content in paragraph tags if it doesn't start with a block element
+  if (!html.match(/^<(h[1-6]|ul|ol|pre|blockquote)/)) {
+    html = `<p>${html}</p>`;
   }
-  
-  if (lowerPrompt.includes('casual')) {
-    return selectedText
-      .replace(/\b(Hello|Greetings|Good day)\b/gi, 'Hey')
-      .replace(/excellent/gi, 'awesome')
-      .replace(/\b(going to)\b/gi, 'gonna')
-      .replace(/\./g, '!');
-  }
-  
-  if (lowerPrompt.includes('shorter') || lowerPrompt.includes('concise')) {
-    const words = selectedText.split(' ');
-    return words.slice(0, Math.ceil(words.length / 2)).join(' ') + '...';
-  }
-  
-  if (lowerPrompt.includes('longer') || lowerPrompt.includes('expand')) {
-    return `${selectedText} This expanded version provides additional context and elaboration to give readers a more comprehensive understanding of the subject matter.`;
-  }
-  
-  if (lowerPrompt.includes('summary') || lowerPrompt.includes('summarize')) {
-    const words = selectedText.split(' ');
-    return `Summary: ${words.slice(0, Math.min(15, words.length)).join(' ')}${words.length > 15 ? '...' : ''}`;
-  }
-  
-  if (lowerPrompt.includes('question')) {
-    return `${selectedText} What are your thoughts on this?`;
-  }
-  
-  // Default enhancement
-  return `${selectedText.trim()} [Enhanced with AI based on: "${prompt}"]`;
-} 
+
+  // Clean up extra paragraph tags around block elements
+  html = html.replace(/<p>(<(h[1-6]|ul|ol|pre|blockquote)[^>]*>.*?<\/\2>)<\/p>/g, '$1');
+
+  return html;
+}
+
