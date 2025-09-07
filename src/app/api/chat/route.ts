@@ -52,10 +52,10 @@ export async function POST(req: NextRequest) {
       model: openai('gpt-4o-mini'),
       messages: aiMessages,
       temperature: 0.7,
-      maxTokens: 800,
+      maxOutputTokens: 800,
     });
 
-    return result.toDataStreamResponse();
+    return result.toTextStreamResponse();
 
   } catch (error) {
     console.error('Chat API Error:', error);

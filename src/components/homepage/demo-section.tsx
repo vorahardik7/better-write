@@ -205,7 +205,7 @@ export function DemoSection() {
                             "Fix grammar", 
                             "Summarize",
                             "Add details"
-                          ].map((action, i) => (
+                          ].map((action) => (
                             <motion.button
                               key={action}
                               className={`text-xs p-2 rounded border-2 border-black transition-all duration-200 cursor-pointer ${

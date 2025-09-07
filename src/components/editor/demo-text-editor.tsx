@@ -20,7 +20,7 @@ import { AICommandPalette } from './ai-command-palette';
 import { AISuggestionOverlay } from './ai-suggestion-overlay';
 import { Sparkles, Zap, Type, MousePointer, Bold, Italic, List, ListOrdered, Quote, Table as TableIcon, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight, Heading1, Heading2, Heading3, AlertCircle, X } from 'lucide-react';
 
-export function RichTextEditor() {
+export function DemoTextEditor() {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const { 
@@ -118,7 +118,7 @@ export function RichTextEditor() {
 
   // Toolbar actions
   const addTable = () => {
-    (editor as any)?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+    editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
   };
 
   const addImage = () => {
@@ -142,7 +142,7 @@ export function RichTextEditor() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3"
+            className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 shadow-sm"
           >
             <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
             <span className="text-sm text-red-700 flex-1">{error}</span>
@@ -165,22 +165,22 @@ export function RichTextEditor() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="flex items-center justify-between px-8 py-3 bg-blue-50/80 backdrop-blur-sm border-b border-blue-100"
+        className="flex items-center justify-between px-8 py-3 bg-white/90 backdrop-blur-sm border-b border-gray-100"
       >
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-3 py-1 bg-white rounded-md shadow-sm border border-blue-100">
+          <div className="flex items-center gap-2 px-3 py-1 bg-white rounded-md shadow-sm border border-gray-200">
             <Type className="w-3 h-3 text-blue-600" />
-            <span className="text-xs font-medium text-blue-900">Rich Document</span>
+            <span className="text-xs font-medium text-gray-900">Demo Document</span>
           </div>
           
           <motion.div
-            className="text-xs text-blue-700 flex items-center gap-3"
+            className="text-xs text-gray-600 flex items-center gap-3"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
             <span>{editor?.getText().length || 0} characters</span>
-            <span className="text-blue-400">•</span>
+            <span className="text-gray-300">•</span>
             <span>{editor?.getText().split(/\s+/).filter(w => w.length > 0).length || 0} words</span>
           </motion.div>
         </div>
@@ -191,7 +191,7 @@ export function RichTextEditor() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="flex items-center gap-2 text-xs text-blue-700 bg-white px-3 py-1 rounded-md shadow-sm border border-blue-100"
+              className="flex items-center gap-2 text-xs text-gray-700 bg-white px-3 py-1 rounded-md shadow-sm border border-gray-200"
             >
               <MousePointer className="w-3 h-3" />
               <span>Select text for AI assistance</span>
@@ -205,12 +205,12 @@ export function RichTextEditor() {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
-        className="flex items-center gap-2 px-6 py-3 bg-white border-b border-gray-200 overflow-x-auto"
+        className="flex items-center gap-2 px-6 py-3 bg-white/90 backdrop-blur-sm border-b border-gray-100 overflow-x-auto"
       >
         {/* Text Formatting */}
         <div className="flex items-center gap-1 border-r border-gray-200 pr-3">
           <button
-            onClick={() => (editor as any)?.chain().focus().toggleBold().run()}
+            onClick={() => editor?.chain().focus().toggleBold().run()}
             className={`btn-toolbar ${editor?.isActive('bold') ? 'btn-active' : ''}`}
             title="Bold"
           >
@@ -221,7 +221,7 @@ export function RichTextEditor() {
             </div>
           </button>
           <button
-            onClick={() => (editor as any)?.chain().focus().toggleItalic().run()}
+            onClick={() => editor?.chain().focus().toggleItalic().run()}
             className={`btn-toolbar ${editor?.isActive('italic') ? 'btn-active' : ''}`}
             title="Italic"
           >
@@ -232,7 +232,7 @@ export function RichTextEditor() {
             </div>
           </button>
           <button
-            onClick={() => (editor as any)?.chain().focus().toggleUnderline().run()}
+            onClick={() => editor?.chain().focus().toggleUnderline().run()}
             className={`btn-toolbar ${editor?.isActive('underline') ? 'btn-active' : ''}`}
             title="Underline"
           >
@@ -247,7 +247,7 @@ export function RichTextEditor() {
         {/* Headings */}
         <div className="flex items-center gap-1 border-r border-gray-200 pr-3">
           <button
-            onClick={() => (editor as any)?.chain().focus().toggleHeading({ level: 1 }).run()}
+            onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
             className={`btn-toolbar ${editor?.isActive('heading', { level: 1 }) ? 'btn-active' : ''}`}
             title="Heading 1"
           >
@@ -258,7 +258,7 @@ export function RichTextEditor() {
             </div>
           </button>
           <button
-            onClick={() => (editor as any)?.chain().focus().toggleHeading({ level: 2 }).run()}
+            onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
             className={`btn-toolbar ${editor?.isActive('heading', { level: 2 }) ? 'btn-active' : ''}`}
             title="Heading 2"
           >
@@ -269,7 +269,7 @@ export function RichTextEditor() {
             </div>
           </button>
           <button
-            onClick={() => (editor as any)?.chain().focus().toggleHeading({ level: 3 }).run()}
+            onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
             className={`btn-toolbar ${editor?.isActive('heading', { level: 3 }) ? 'btn-active' : ''}`}
             title="Heading 3"
           >
@@ -284,7 +284,7 @@ export function RichTextEditor() {
         {/* Lists */}
         <div className="flex items-center gap-1 border-r border-gray-200 pr-3">
           <button
-            onClick={() => (editor as any)?.chain().focus().toggleBulletList().run()}
+            onClick={() => editor?.chain().focus().toggleBulletList().run()}
             className={`btn-toolbar ${editor?.isActive('bulletList') ? 'btn-active' : ''}`}
             title="Bullet List"
           >
@@ -295,7 +295,7 @@ export function RichTextEditor() {
             </div>
           </button>
           <button
-            onClick={() => (editor as any)?.chain().focus().toggleOrderedList().run()}
+            onClick={() => editor?.chain().focus().toggleOrderedList().run()}
             className={`btn-toolbar ${editor?.isActive('orderedList') ? 'btn-active' : ''}`}
             title="Numbered List"
           >
@@ -306,7 +306,7 @@ export function RichTextEditor() {
             </div>
           </button>
           <button
-            onClick={() => (editor as any)?.chain().focus().toggleBlockquote().run()}
+            onClick={() => editor?.chain().focus().toggleBlockquote().run()}
             className={`btn-toolbar ${editor?.isActive('blockquote') ? 'btn-active' : ''}`}
             title="Quote"
           >
@@ -321,7 +321,7 @@ export function RichTextEditor() {
         {/* Alignment */}
         <div className="flex items-center gap-1 border-r border-gray-200 pr-3">
           <button
-            onClick={() => (editor as any)?.chain().focus().setTextAlign('left').run()}
+            onClick={() => editor?.chain().focus().setTextAlign('left').run()}
             className={`btn-toolbar ${editor?.isActive({ textAlign: 'left' }) ? 'btn-active' : ''}`}
             title="Align Left"
           >
@@ -332,7 +332,7 @@ export function RichTextEditor() {
             </div>
           </button>
           <button
-            onClick={() => (editor as any)?.chain().focus().setTextAlign('center').run()}
+            onClick={() => editor?.chain().focus().setTextAlign('center').run()}
             className={`btn-toolbar ${editor?.isActive({ textAlign: 'center' }) ? 'btn-active' : ''}`}
             title="Align Center"
           >
@@ -343,7 +343,7 @@ export function RichTextEditor() {
             </div>
           </button>
           <button
-            onClick={() => (editor as any)?.chain().focus().setTextAlign('right').run()}
+            onClick={() => editor?.chain().focus().setTextAlign('right').run()}
             className={`btn-toolbar ${editor?.isActive({ textAlign: 'right' }) ? 'btn-active' : ''}`}
             title="Align Right"
           >
@@ -385,7 +385,7 @@ export function RichTextEditor() {
         {editor?.isActive('table') && (
           <div className="flex items-center gap-1 border-l border-gray-200 pl-3">
             <button
-              onClick={() => (editor as any)?.chain().focus().addColumnBefore().run()}
+              onClick={() => editor?.chain().focus().addColumnBefore().run()}
               className="btn-toolbar"
               title="Add Column Before"
             >
@@ -396,7 +396,7 @@ export function RichTextEditor() {
               </div>
             </button>
             <button
-              onClick={() => (editor as any)?.chain().focus().addRowBefore().run()}
+              onClick={() => editor?.chain().focus().addRowBefore().run()}
               className="btn-toolbar"
               title="Add Row Before"
             >
@@ -407,7 +407,7 @@ export function RichTextEditor() {
               </div>
             </button>
             <button
-              onClick={() => (editor as any)?.chain().focus().deleteColumn().run()}
+              onClick={() => editor?.chain().focus().deleteColumn().run()}
               className="btn-toolbar"
               title="Delete Column"
             >
@@ -418,7 +418,7 @@ export function RichTextEditor() {
               </div>
             </button>
             <button
-              onClick={() => (editor as any)?.chain().focus().deleteRow().run()}
+              onClick={() => editor?.chain().focus().deleteRow().run()}
               className="btn-toolbar"
               title="Delete Row"
             >
@@ -429,7 +429,7 @@ export function RichTextEditor() {
               </div>
             </button>
             <button
-              onClick={() => (editor as any)?.chain().focus().deleteTable().run()}
+              onClick={() => editor?.chain().focus().deleteTable().run()}
               className="btn-toolbar"
               title="Delete Table"
             >
@@ -464,25 +464,25 @@ export function RichTextEditor() {
               exit={{ opacity: 0, y: -20 }}
               className="absolute top-8 left-8 right-8 max-w-4xl mx-auto pointer-events-none"
             >
-              <div className="bg-blue-50 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-blue-200">
+              <div className="bg-blue-50/60 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-blue-100">
                 <div className="flex items-start gap-4">
-                  <div className="bg-blue-600 p-2 rounded-lg flex-shrink-0 shadow-sm">
+                  <div className="bg-blue-600/90 p-2 rounded-lg flex-shrink-0 shadow-sm">
                     <Sparkles className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-slate-800 mb-2">Welcome to VibeDoc!</h3>
-                    <p className="text-slate-600 text-sm leading-relaxed mb-3">
+                    <h3 className="font-semibold text-gray-900 mb-2">Welcome to VibeDoc!</h3>
+                    <p className="text-gray-700 text-sm leading-relaxed mb-3">
                       Create professional documents with rich formatting, tables, and images. 
                       Need AI help? Just select any text and press <kbd className="px-2 py-1 bg-white border border-blue-200 rounded text-xs font-mono shadow-sm text-blue-800">⌘K</kbd> for instant suggestions.
                     </p>
-                    <div className="flex items-center gap-4 text-xs text-slate-500">
+                    <div className="flex items-center gap-4 text-xs text-gray-600">
                       <span className="flex items-center gap-1">
                         <Zap className="w-3 h-3 text-blue-600" />
                         Smart editing
                       </span>
-                      <span className="text-slate-300">•</span>
+                      <span className="text-gray-300">•</span>
                       <span>Rich formatting</span>
-                      <span className="text-slate-300">•</span>
+                      <span className="text-gray-300">•</span>
                       <span>AI assistance</span>
                     </div>
                   </div>
@@ -504,4 +504,6 @@ export function RichTextEditor() {
       <AISuggestionOverlay />
     </div>
   );
-} 
+}
+
+

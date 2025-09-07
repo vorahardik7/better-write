@@ -101,7 +101,7 @@ export function AICommandPalette({ isOpen, onClose, selectedText }: AICommandPal
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 cursor-pointer"
+        className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 cursor-pointer"
         onClick={onClose}
       >
         <motion.div
@@ -119,8 +119,8 @@ export function AICommandPalette({ isOpen, onClose, selectedText }: AICommandPal
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-800">AI Assistant</h3>
-                <p className="text-xs text-gray-500">Transform your text</p>
+                <h3 className="font-bold text-gray-900">AI Assistant</h3>
+                <p className="text-xs text-gray-700">Transform your text</p>
               </div>
             </div>
             <button
@@ -137,11 +137,11 @@ export function AICommandPalette({ isOpen, onClose, selectedText }: AICommandPal
 
           <div className="p-4 space-y-4">
             {/* Selected text preview */}
-            <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
               <div className="flex items-start gap-2">
                 <Type className="w-4 h-4 text-gray-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <span className="text-xs font-medium text-gray-600 block mb-1">Selected Text</span>
+                  <span className="text-xs font-medium text-gray-800 block mb-1">Selected Text</span>
                   <p className="text-sm text-gray-800 truncate">
                     &quot;{selectedText.slice(0, 80)}{selectedText.length > 80 ? '...' : ''}&quot;
                   </p>
@@ -151,7 +151,7 @@ export function AICommandPalette({ isOpen, onClose, selectedText }: AICommandPal
 
             {/* Text Editing */}
             <div>
-              <h4 className="font-medium text-gray-800 mb-2 text-sm">Text Editing</h4>
+              <h4 className="font-semibold text-gray-900 mb-2 text-sm">Text Editing</h4>
               <div className="grid grid-cols-2 gap-2">
                 {TEXT_PROMPTS.map((item) => (
                   <button
@@ -163,8 +163,8 @@ export function AICommandPalette({ isOpen, onClose, selectedText }: AICommandPal
                     <div className="btn-shadow"></div>
                     <div className="btn-edge"></div>
                     <div className="btn-front flex items-center gap-2 p-2.5">
-                      <item.icon className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                      <span className="text-gray-700 truncate">{item.label}</span>
+                      <item.icon className="w-4 h-4 text-gray-700 flex-shrink-0" />
+                      <span className="text-gray-800 truncate">{item.label}</span>
                     </div>
                   </button>
                 ))}
@@ -173,7 +173,7 @@ export function AICommandPalette({ isOpen, onClose, selectedText }: AICommandPal
 
             {/* Content Generation */}
             <div>
-              <h4 className="font-medium text-gray-800 mb-2 text-sm">Content Generation</h4>
+              <h4 className="font-semibold text-gray-900 mb-2 text-sm">Content Generation</h4>
               <div className="grid grid-cols-2 gap-2">
                 {CONTENT_PROMPTS.map((item) => (
                   <button
@@ -185,8 +185,8 @@ export function AICommandPalette({ isOpen, onClose, selectedText }: AICommandPal
                     <div className="btn-shadow"></div>
                     <div className="btn-edge"></div>
                     <div className="btn-front flex items-center gap-2 p-2.5">
-                      <item.icon className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                      <span className="text-gray-700 truncate">{item.label}</span>
+                      <item.icon className="w-4 h-4 text-gray-700 flex-shrink-0" />
+                      <span className="text-gray-800 truncate">{item.label}</span>
                     </div>
                   </button>
                 ))}
@@ -195,14 +195,14 @@ export function AICommandPalette({ isOpen, onClose, selectedText }: AICommandPal
 
             {/* Custom instruction */}
             <div className="space-y-4">
-              <label className="font-medium text-gray-800 text-sm mb-3">Custom Instructions</label>
+              <label className="font-semibold text-gray-900 text-sm mb-3">Custom Instructions</label>
               <input
                 type="text"
                 value={customPrompt}
                 onChange={(e) => setCustomPrompt(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Describe what you want..."
-                className="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm shadow-sm"
                 autoFocus
                 disabled={isProcessing}
               />

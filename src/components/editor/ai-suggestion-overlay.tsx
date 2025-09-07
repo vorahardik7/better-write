@@ -71,8 +71,8 @@ export function AISuggestionOverlay() {
       >
         <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-lg max-w-sm">
           <div className="flex items-center gap-3">
-            <div className="bg-blue-600 p-2 rounded-lg">
-              <Brain className="w-5 h-5 text-white" />
+            <div className="bg-blue-50 border border-blue-100 p-2 rounded-lg shadow-sm">
+              <Brain className="w-5 h-5 text-blue-700" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -93,7 +93,7 @@ export function AISuggestionOverlay() {
                 </div>
                 <span className="text-sm font-medium text-gray-700">AI is thinking...</span>
               </div>
-              <p className="text-xs text-gray-500 mt-1">Processing your request</p>
+              <p className="text-xs text-gray-600 mt-1">Processing your request</p>
             </div>
           </div>
         </div>
@@ -112,17 +112,17 @@ export function AISuggestionOverlay() {
         transition={{ duration: 0.2 }}
         className="fixed bottom-8 left-8 z-50 max-w-md"
       >
-        <div className="bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
           {/* Header */}
           <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
             <div className="flex items-center gap-2">
-              <div className="bg-blue-600 p-1.5 rounded-lg">
-                <Sparkles className="w-4 h-4 text-white" />
+              <div className="bg-blue-50 border border-blue-100 p-1.5 rounded-lg shadow-sm">
+                <Sparkles className="w-4 h-4 text-blue-700" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-800 text-sm">AI Suggestion</h3>
+                <h3 className="font-semibold text-gray-900 text-sm">AI Suggestion</h3>
                 {aiSuggestion.reasoning && (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-600">
                     {aiSuggestion.reasoning}
                   </p>
                 )}
@@ -137,10 +137,10 @@ export function AISuggestionOverlay() {
               <div>
                 <div className="flex items-center gap-1 mb-1">
                   <X className="w-3 h-3 text-red-500" />
-                  <span className="text-xs font-medium text-red-600 uppercase tracking-wide">Original</span>
+                  <span className="text-xs font-semibold text-red-600 uppercase tracking-wide">Original</span>
                 </div>
                 <div className="p-2.5 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-700 line-through">
+                  <p className="text-sm text-gray-800 line-through">
                     {aiSuggestion.originalText}
                   </p>
                 </div>
@@ -150,16 +150,16 @@ export function AISuggestionOverlay() {
               <div>
                 <div className="flex items-center gap-1 mb-1">
                   <Check className="w-3 h-3 text-green-500" />
-                  <span className="text-xs font-medium text-green-600 uppercase tracking-wide">Suggested</span>
+                  <span className="text-xs font-semibold text-green-600 uppercase tracking-wide">Suggested</span>
                   {suggestionPreview && suggestionPreview.type !== 'text' && (
                     <div className="flex items-center gap-1 ml-2">
-                      <suggestionPreview.icon className="w-3 h-3 text-green-600" />
-                      <span className="text-xs text-green-600 capitalize">{suggestionPreview.type}</span>
+                      <suggestionPreview.icon className="w-3 h-3 text-gray-700" />
+                      <span className="text-xs text-gray-700 capitalize">{suggestionPreview.type}</span>
                     </div>
                   )}
                 </div>
-                <div className="p-2.5 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-sm text-green-700">
+                <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg">
+                  <p className="text-sm text-gray-800">
                     {suggestionPreview?.preview || aiSuggestion.suggestedText}
                   </p>
                 </div>
@@ -170,11 +170,9 @@ export function AISuggestionOverlay() {
             <div className="flex gap-2">
               <button
                 onClick={acceptSuggestion}
-                className="btn-3d btn-success btn-small flex-1 font-medium"
+                className="flex-1 font-semibold bg-emerald-600 text-white rounded-lg shadow-sm px-3 py-2 hover:bg-emerald-700 transition-colors"
               >
-                <div className="btn-shadow"></div>
-                <div className="btn-edge"></div>
-                <div className="btn-front flex items-center justify-center gap-1.5 px-3 py-2">
+                <div className="flex items-center justify-center gap-1.5">
                   <Check className="w-4 h-4" />
                   <span>Accept</span>
                 </div>
@@ -182,11 +180,9 @@ export function AISuggestionOverlay() {
 
               <button
                 onClick={rejectSuggestion}
-                className="btn-3d btn-secondary btn-small flex-1 font-medium"
+                className="flex-1 font-semibold bg-white border border-gray-300 rounded-lg shadow-sm px-3 py-2 hover:bg-gray-50 transition-colors"
               >
-                <div className="btn-shadow"></div>
-                <div className="btn-edge"></div>
-                <div className="btn-front flex items-center justify-center gap-1.5 px-3 py-2">
+                <div className="flex items-center justify-center gap-1.5">
                   <X className="w-4 h-4" />
                   <span>Reject</span>
                 </div>
@@ -194,7 +190,7 @@ export function AISuggestionOverlay() {
             </div>
 
             {/* Quick stats */}
-            <div className="flex items-center justify-center gap-3 text-xs text-gray-500 pt-2 border-t border-gray-200">
+            <div className="flex items-center justify-center gap-3 text-xs text-gray-600 pt-2 border-t border-gray-200">
               <div className="flex items-center gap-1">
                 <RefreshCw className="w-3 h-3" />
                 <span>
