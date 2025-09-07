@@ -10,40 +10,43 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   aiSuggestion: null,
   isProcessing: false,
   editorRef: null,
+  error: null,
 
   // Actions
   setContent: (content: string) => {
-    
     set({ content });
   },
   
   setSelection: (selection: TextSelection | null) => {
-    
     set({ selection });
   },
 
   setEditorRef: (editor: Editor) => {
-    
     set({ editorRef: editor });
+  },
+
+  clearError: () => {
+    set({ error: null });
   },
 
   requestAISuggestion: async (prompt: string) => {
     const { selection, editorRef } = get();
     if (!selection || !editorRef) {
-      
+      set({ error: 'Please select text before requesting AI assistance' });
       return;
     }
 
-    
-    
-    
-    set({ isProcessing: true });
+    // Clear any previous errors
+    set({ isProcessing: true, error: null });
 
     try {
       // Get plain text context for the API
       const documentContext = editorRef.getText();
       
-      // Try real API first
+      // Create AbortController for request cancellation
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+      
       const response = await fetch('/api/edit', {
         method: 'POST',
         headers: {
@@ -54,13 +57,21 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           prompt: prompt,
           documentContext: documentContext
         }),
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `API error: ${response.status}`);
       }
 
       const data = await response.json();
+      
+      if (!data.suggestedText) {
+        throw new Error('Invalid response from AI service');
+      }
       
       const suggestion: AISuggestion = {
         id: nanoid(),
@@ -70,12 +81,26 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         reasoning: `Applied: "${prompt}"`
       };
 
-      
-      set({ aiSuggestion: suggestion });
+      set({ aiSuggestion: suggestion, error: null });
       
     } catch (error) {
-      console.error('API request failed:', error);
-      throw error;
+      console.error('AI suggestion request failed:', error);
+      
+      let errorMessage = 'Failed to get AI suggestion. Please try again.';
+      
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          errorMessage = 'Request timed out. Please try again.';
+        } else if (error.message.includes('API key')) {
+          errorMessage = 'AI service is not configured. Please contact support.';
+        } else if (error.message.includes('rate limit')) {
+          errorMessage = 'Too many requests. Please wait a moment and try again.';
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+      }
+      
+      set({ error: errorMessage });
     } finally {
       set({ isProcessing: false });
     }
@@ -85,39 +110,43 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     const { editorRef, aiSuggestion } = get();
     if (!aiSuggestion || !editorRef) return;
 
-    
-    
-    const { selection, suggestedText } = aiSuggestion;
-    
-    // Clear current selection first
-    editorRef
-      .chain()
-      .focus()
-      .setTextSelection({ from: selection.start, to: selection.end })
-      .deleteSelection()
-      .run();
-    
-    // Convert markdown to HTML for TipTap
-    const htmlContent = convertMarkdownToHTML(suggestedText);
-    
-    editorRef
-      .chain()
-      .focus()
-      .insertContent(htmlContent, {
-        parseOptions: {
-          preserveWhitespace: 'full',
-        },
-      })
-      .run();
+    try {
+      const { selection, suggestedText } = aiSuggestion;
+      
+      // Clear current selection first
+      editorRef
+        .chain()
+        .focus()
+        .setTextSelection({ from: selection.start, to: selection.end })
+        .deleteSelection()
+        .run();
+      
+      // Convert markdown to HTML for TipTap
+      const htmlContent = convertMarkdownToHTML(suggestedText);
+      
+      editorRef
+        .chain()
+        .focus()
+        .insertContent(htmlContent, {
+          parseOptions: {
+            preserveWhitespace: 'full',
+          },
+        })
+        .run();
 
-    set({ 
-      aiSuggestion: null, 
-      selection: null 
-    });
+      set({ 
+        aiSuggestion: null, 
+        selection: null,
+        error: null 
+      });
+    } catch (error) {
+      console.error('Failed to apply suggestion:', error);
+      set({ error: 'Failed to apply suggestion. Please try again.' });
+    }
   },
 
   rejectSuggestion: () => {
-    set({ aiSuggestion: null });
+    set({ aiSuggestion: null, error: null });
   },
 }));
 

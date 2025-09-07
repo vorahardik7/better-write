@@ -20,11 +20,13 @@ export interface EditorState {
     aiSuggestion: AISuggestion | null;
     isProcessing: boolean;
     editorRef: Editor | null; // TipTap editor instance
+    error: string | null;
     
     // Actions
     setContent: (content: string) => void;
     setSelection: (selection: TextSelection | null) => void;
     setEditorRef: (editor: Editor) => void;
+    clearError: () => void;
     requestAISuggestion: (prompt: string) => Promise<void>;
     acceptSuggestion: () => void;
     rejectSuggestion: () => void;

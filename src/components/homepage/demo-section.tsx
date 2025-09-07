@@ -7,50 +7,64 @@ import { Command, Sparkles, Check, X } from 'lucide-react';
 const demoSteps = [
   {
     id: 1,
-    action: "Select text",
-    originalText: "Hey there! This is some casual text that needs improvement.",
-    selectedText: "Hey there! This is some casual text",
+    action: "Start writing",
+    originalText: "Our new product launch went well last month.",
+    selectedText: "",
     prompt: "",
-    suggestion: ""
+    suggestion: "",
+    showPalette: false
   },
   {
     id: 2,
-    action: "Press ⌘K",
-    originalText: "Hey there! This is some casual text that needs improvement.",
-    selectedText: "Hey there! This is some casual text",
+    action: "Select text",
+    originalText: "Our new product launch went well last month.",
+    selectedText: "Our new product launch went well last month.",
     prompt: "",
-    suggestion: ""
+    suggestion: "",
+    showPalette: false
   },
   {
     id: 3,
-    action: "Type instruction",
-    originalText: "Hey there! This is some casual text that needs improvement.",
-    selectedText: "Hey there! This is some casual text",
-    prompt: "make this more formal and professional",
-    suggestion: ""
+    action: "Press ⌘K for AI",
+    originalText: "Our new product launch went well last month.",
+    selectedText: "Our new product launch went well last month.",
+    prompt: "",
+    suggestion: "",
+    showPalette: true
   },
   {
     id: 4,
-    action: "AI suggests",
-    originalText: "Hey there! This is some casual text that needs improvement.",
-    selectedText: "Hey there! This is some casual text",
-    prompt: "make this more formal and professional",
-    suggestion: "Good morning. This is professional content"
+    action: "Tell AI what you want",
+    originalText: "Our new product launch went well last month.",
+    selectedText: "Our new product launch went well last month.",
+    prompt: "make this more professional with specific results",
+    suggestion: "",
+    showPalette: true
   },
   {
     id: 5,
-    action: "Accept changes",
-    originalText: "Good morning. This is professional content that needs improvement.",
+    action: "AI suggests improvements",
+    originalText: "Our new product launch went well last month.",
+    selectedText: "Our new product launch went well last month.",
+    prompt: "make this more professional with specific results",
+    suggestion: "Our Q3 product launch exceeded expectations, achieving 150% of projected sales targets and securing 2,847 new customers in the first 30 days.",
+    showPalette: true
+  },
+  {
+    id: 6,
+    action: "Accept and continue writing",
+    originalText: "Our Q3 product launch exceeded expectations, achieving 150% of projected sales targets and securing 2,847 new customers in the first 30 days.",
     selectedText: "",
     prompt: "",
-    suggestion: ""
+    suggestion: "",
+    showPalette: false
   }
 ];
 
 export function DemoSection() {
   const [currentStep, setCurrentStep] = useState(0);
 
-  // Auto-play continuously
+  // Auto-play continuously with faster timing
   useEffect(() => {
     const timer = setTimeout(() => {
       if (currentStep < demoSteps.length - 1) {
@@ -58,7 +72,7 @@ export function DemoSection() {
       } else {
         setCurrentStep(0);
       }
-    }, 2500);
+    }, currentStep === 4 ? 2500 : 1800); // Faster transitions
 
     return () => clearTimeout(timer);
   }, [currentStep]);
@@ -66,7 +80,7 @@ export function DemoSection() {
   const step = demoSteps[currentStep];
 
   return (
-    <section className="py-24 bg-gradient-to-br from-gray-50 to-gray-100">
+    <section className="py-24 bg-pattern">
       <div className="max-w-7xl mx-auto px-6">
         {/* Section Header */}
         <motion.div
@@ -77,7 +91,7 @@ export function DemoSection() {
           className="text-center mb-16"
         >
           <motion.div
-            className="inline-flex items-center gap-2 px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-sm font-medium mb-4 cursor-pointer"
+            className="inline-flex items-center gap-2 px-3 py-1 bg-white border-2 border-black text-black rounded-full text-sm font-semibold mb-4 cursor-pointer shadow-[3px_3px_0_#000]"
             whileHover={{ scale: 1.05 }}
           >
             <Sparkles className="w-4 h-4" />
@@ -101,16 +115,16 @@ export function DemoSection() {
         >
           <div className="flex gap-6 h-[500px]">
             {/* Editor Mock - Left Side */}
-            <div className="flex-1 bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+            <div className="flex-1 bg-white rounded-xl shadow-[6px_6px_0_#000] overflow-hidden border-2 border-black">
               {/* Editor Header */}
-              <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between p-4 border-b-2 border-black bg-neutral-100">
                 <div className="flex items-center gap-3">
                   <div className="flex gap-2">
                     <div className="w-3 h-3 bg-red-400 rounded-full cursor-pointer"></div>
                     <div className="w-3 h-3 bg-yellow-400 rounded-full cursor-pointer"></div>
                     <div className="w-3 h-3 bg-green-400 rounded-full cursor-pointer"></div>
                   </div>
-                  <span className="text-sm font-medium text-gray-600">VibeDoc Editor</span>
+                  <span className="text-sm font-semibold text-black">VibeDoc Editor</span>
                 </div>
                 <div className="text-xs text-gray-500">
                   Step {currentStep + 1} of {demoSteps.length}: {step.action}
@@ -120,31 +134,35 @@ export function DemoSection() {
               {/* Editor Content */}
               <div className="p-8 h-[calc(100%-4rem)] flex flex-col">
                 <div className="prose max-w-none flex-1">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={currentStep}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.5 }}
-                      className="text-lg leading-relaxed"
-                    >
-                      {step.selectedText ? (
-                        <>
-                          <span 
-                            className="bg-blue-200 border-2 border-blue-400 rounded px-1 cursor-pointer"
-                          >
-                            {step.selectedText}
-                          </span>
-                          <span className="text-gray-700">
-                            {step.originalText.slice(step.selectedText.length)}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-gray-700">{step.originalText}</span>
-                      )}
-                    </motion.div>
-                  </AnimatePresence>
+                  <motion.div
+                    className="text-lg leading-relaxed"
+                    layout
+                  >
+                    {step.selectedText ? (
+                      <>
+                        <motion.span 
+                          className="bg-yellow-200 border-2 border-black rounded px-1 cursor-pointer"
+                          initial={{ backgroundColor: "#fef3c7" }}
+                          animate={{ backgroundColor: step.selectedText ? "#fde047" : "#fef3c7" }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          {step.selectedText}
+                        </motion.span>
+                        <span className="text-gray-700">
+                          {step.originalText.slice(step.selectedText.length)}
+                        </span>
+                      </>
+                    ) : (
+                      <motion.span 
+                        className="text-gray-700"
+                        initial={{ opacity: 0.8 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        {step.originalText}
+                      </motion.span>
+                    )}
+                  </motion.div>
                 </div>
 
                 {/* Selection Indicator */}
@@ -167,88 +185,111 @@ export function DemoSection() {
 
             {/* Command Palette - Right Side */}
             <div className="w-96">
-              <AnimatePresence mode="wait">
-                {(step.prompt || step.suggestion) ? (
-                  <motion.div
-                    key="palette"
-                    initial={{ opacity: 0, scale: 0.9, x: 20 }}
-                    animate={{ opacity: 1, scale: 1, x: 0 }}
-                    exit={{ opacity: 0, scale: 0.9, x: 20 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    className="h-full"
-                  >
-                    <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 h-full overflow-hidden">
-                      <div className="p-4 border-b border-gray-100">
-                        <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                          <Command className="w-4 h-4" />
-                          AI Command Palette
+              <div className="h-full">
+                <div className="bg-white rounded-xl shadow-[6px_6px_0_#000] border-2 border-black h-full overflow-hidden">
+                  <div className="p-4 border-b-2 border-black">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-black">
+                      <Command className="w-4 h-4" />
+                      AI Assistant
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col h-[calc(100%-4rem)]">
+                    <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                      {/* Quick Actions */}
+                      <div>
+                        <div className="text-xs font-medium text-gray-600 mb-2 uppercase tracking-wide">Quick Actions</div>
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            "Make formal",
+                            "Fix grammar", 
+                            "Summarize",
+                            "Add details"
+                          ].map((action, i) => (
+                            <motion.button
+                              key={action}
+                              className={`text-xs p-2 rounded border-2 border-black transition-all duration-200 cursor-pointer ${
+                                step.prompt?.includes(action.toLowerCase()) 
+                                  ? 'bg-blue-100 shadow-[2px_2px_0_#000]' 
+                                  : 'bg-gray-50 hover:bg-gray-100'
+                              }`}
+                              animate={{
+                                scale: step.prompt?.includes(action.toLowerCase()) ? 1.02 : 1
+                              }}
+                            >
+                              {action}
+                            </motion.button>
+                          ))}
                         </div>
                       </div>
-                      
-                      <div className="p-6 space-y-6 h-[calc(100%-4rem)] overflow-y-auto">
-                        {step.prompt && (
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="text-sm"
+
+                      {/* Custom Input */}
+                      <div>
+                        <div className="text-xs font-medium text-gray-600 mb-2 uppercase tracking-wide">Custom Instruction</div>
+                        <motion.div 
+                          className="bg-gray-50 border-2 border-black rounded-lg p-3 text-sm min-h-[60px] flex items-center"
+                          animate={{
+                            backgroundColor: step.prompt ? "#dbeafe" : "#f9fafb"
+                          }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <motion.span
+                            className="text-gray-700"
+                            animate={{ opacity: step.prompt ? 1 : 0.5 }}
                           >
-                            <div className="text-gray-500 mb-2">Your instruction:</div>
-                            <div className="bg-gray-50 p-4 rounded-lg text-gray-700">
-                              &quot;{step.prompt}&quot;
-                            </div>
-                          </motion.div>
-                        )}
-                        
+                            {step.prompt || "Describe what you want to do..."}
+                          </motion.span>
+                        </motion.div>
+                      </div>
+                      
+                      {/* AI Response */}
+                      <AnimatePresence>
                         {step.suggestion && (
                           <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.5 }}
-                            className="text-sm"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.4 }}
                           >
-                            <div className="text-gray-500 mb-2">AI Suggestion:</div>
-                            <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
-                              <div className="text-green-700">{step.suggestion}</div>
-                            </div>
-                            
-                            <div className="flex gap-3 mt-4">
-                              <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition-colors cursor-pointer"
-                              >
-                                <Check className="w-4 h-4" />
-                                Accept
-                              </motion.button>
-                              <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="flex items-center gap-2 px-4 py-2 bg-gray-500 text-white rounded-lg text-sm hover:bg-gray-600 transition-colors cursor-pointer"
-                              >
-                                <X className="w-4 h-4" />
-                                Reject
-                              </motion.button>
+                            <div className="text-xs font-medium text-gray-600 mb-2 uppercase tracking-wide">AI Enhancement</div>
+                            <div className="bg-emerald-50 border-2 border-black p-3 rounded-lg">
+                              <div className="text-sm text-emerald-800 leading-relaxed">{step.suggestion}</div>
                             </div>
                           </motion.div>
                         )}
+                      </AnimatePresence>
+                    </div>
+
+                    {/* Bottom Action Bar - always visible when suggestion exists */}
+                    {step.suggestion && (
+                      <div className="border-t-2 border-black p-3 bg-white shrink-0">
+                        <div className="flex gap-2">
+                          <motion.button 
+                            className="bg-emerald-100 border-2 border-black rounded-lg shadow-[3px_3px_0_#000] px-6 py-3 font-bold text-black hover:shadow-[4px_4px_0_#000] transition-all duration-200 cursor-pointer w-1/2 text-sm min-w-[160px]"
+                            whileHover={{ y: -1 }}
+                            whileTap={{ y: 0 }}
+                          >
+                            <div className="flex items-center gap-1 justify-center">
+                              <Check className="w-3 h-3" />
+                              Accept
+                            </div>
+                          </motion.button>
+                          <motion.button 
+                            className="bg-red-100 border-2 border-black rounded-lg shadow-[3px_3px_0_#000] px-6 py-3 font-bold text-black hover:shadow-[4px_4px_0_#000] transition-all duration-200 cursor-pointer w-1/2 text-sm min-w-[160px]"
+                            whileHover={{ y: -1 }}
+                            whileTap={{ y: 0 }}
+                          >
+                            <div className="flex items-center gap-1 justify-center">
+                              <X className="w-3 h-3" />
+                              Reject
+                            </div>
+                          </motion.button>
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="placeholder"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="h-full flex items-center justify-center"
-                  >
-                    <div className="text-center text-gray-400">
-                      <Command className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                      <p className="text-sm">Select text and press ⌘K<br />to see AI in action</p>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </motion.div>

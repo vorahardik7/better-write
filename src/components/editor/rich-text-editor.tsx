@@ -1,14 +1,12 @@
-'use client';
-
 import { useCallback, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import TextStyle from '@tiptap/extension-text-style';
+import { TextStyle } from '@tiptap/extension-text-style/text-style';
 import FontFamily from '@tiptap/extension-font-family';
 import Color from '@tiptap/extension-color';
 import TextAlign from '@tiptap/extension-text-align';
-import Table from '@tiptap/extension-table';
+import { Table } from '@tiptap/extension-table';
 import TableRow from '@tiptap/extension-table-row';
 import TableHeader from '@tiptap/extension-table-header';
 import TableCell from '@tiptap/extension-table-cell';
@@ -20,7 +18,7 @@ import Link from '@tiptap/extension-link';
 import { useEditorStore } from '@/lib/store/editor-store';
 import { AICommandPalette } from './ai-command-palette';
 import { AISuggestionOverlay } from './ai-suggestion-overlay';
-import { Sparkles, Zap, Type, MousePointer, Bold, Italic, List, ListOrdered, Quote, Table as TableIcon, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight, Heading1, Heading2, Heading3 } from 'lucide-react';
+import { Sparkles, Zap, Type, MousePointer, Bold, Italic, List, ListOrdered, Quote, Table as TableIcon, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight, Heading1, Heading2, Heading3, AlertCircle, X } from 'lucide-react';
 
 export function RichTextEditor() {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
@@ -30,24 +28,21 @@ export function RichTextEditor() {
     setContent, 
     setSelection, 
     setEditorRef,
-    selection 
+    selection,
+    error,
+    clearError
   } = useEditorStore();
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({
-        codeBlock: false,
-        code: false,
-      }),
+      StarterKit,
       TextStyle,
       FontFamily,
       Color,
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),
-      Table.configure({
-        resizable: true,
-      }),
+      Table,
       TableRow,
       TableHeader,
       TableCell,
@@ -65,6 +60,7 @@ export function RichTextEditor() {
       }),
     ],
     content: content,
+    immediatelyRender: false,
     onUpdate: ({ editor }) => {
       setContent(editor.getHTML());
     },
@@ -122,13 +118,14 @@ export function RichTextEditor() {
 
   // Toolbar actions
   const addTable = () => {
-    editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+    (editor as any)?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
   };
 
   const addImage = () => {
     const url = window.prompt('Enter image URL:');
-    if (url) {
-      editor?.chain().focus().setImage({ src: url }).run();
+    if (url && editor) {
+      // Simple image insertion
+      editor.chain().focus().insertContent(`<img src="${url}" alt="Image" class="rounded-lg shadow-sm max-w-full h-auto" />`).run();
     }
   };
 
@@ -138,6 +135,31 @@ export function RichTextEditor() {
 
   return (
     <div className="h-full flex flex-col">
+      {/* Error Display */}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3"
+          >
+            <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+            <span className="text-sm text-red-700 flex-1">{error}</span>
+            <button
+              onClick={clearError}
+              className="btn-toolbar"
+            >
+              <div className="btn-shadow"></div>
+              <div className="btn-edge"></div>
+              <div className="btn-front">
+                <X className="w-3 h-3 text-red-600" />
+              </div>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Document Stats Bar */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -157,9 +179,9 @@ export function RichTextEditor() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            <span>{editor.getText().length} characters</span>
+            <span>{editor?.getText().length || 0} characters</span>
             <span className="text-blue-400">•</span>
-            <span>{editor.getText().split(/\s+/).filter(w => w.length > 0).length} words</span>
+            <span>{editor?.getText().split(/\s+/).filter(w => w.length > 0).length || 0} words</span>
           </motion.div>
         </div>
 
@@ -188,124 +210,148 @@ export function RichTextEditor() {
         {/* Text Formatting */}
         <div className="flex items-center gap-1 border-r border-gray-200 pr-3">
           <button
-            onClick={() => editor.chain().focus().toggleBold().run()}
-            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${
-              editor.isActive('bold') ? 'bg-blue-100 text-blue-700' : 'text-gray-600'
-            }`}
+            onClick={() => (editor as any)?.chain().focus().toggleBold().run()}
+            className={`btn-toolbar ${editor?.isActive('bold') ? 'btn-active' : ''}`}
             title="Bold"
           >
-            <Bold className="w-4 h-4" />
+            <div className="btn-shadow"></div>
+            <div className="btn-edge"></div>
+            <div className="btn-front">
+              <Bold className="w-4 h-4" />
+            </div>
           </button>
           <button
-            onClick={() => editor.chain().focus().toggleItalic().run()}
-            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${
-              editor.isActive('italic') ? 'bg-blue-100 text-blue-700' : 'text-gray-600'
-            }`}
+            onClick={() => (editor as any)?.chain().focus().toggleItalic().run()}
+            className={`btn-toolbar ${editor?.isActive('italic') ? 'btn-active' : ''}`}
             title="Italic"
           >
-            <Italic className="w-4 h-4" />
+            <div className="btn-shadow"></div>
+            <div className="btn-edge"></div>
+            <div className="btn-front">
+              <Italic className="w-4 h-4" />
+            </div>
           </button>
           <button
-            onClick={() => editor.chain().focus().toggleUnderline().run()}
-            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${
-              editor.isActive('underline') ? 'bg-blue-100 text-blue-700' : 'text-gray-600'
-            }`}
+            onClick={() => (editor as any)?.chain().focus().toggleUnderline().run()}
+            className={`btn-toolbar ${editor?.isActive('underline') ? 'btn-active' : ''}`}
             title="Underline"
           >
-            <Type className="w-4 h-4" />
+            <div className="btn-shadow"></div>
+            <div className="btn-edge"></div>
+            <div className="btn-front">
+              <Type className="w-4 h-4" />
+            </div>
           </button>
         </div>
 
         {/* Headings */}
         <div className="flex items-center gap-1 border-r border-gray-200 pr-3">
           <button
-            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${
-              editor.isActive('heading', { level: 1 }) ? 'bg-blue-100 text-blue-700' : 'text-gray-600'
-            }`}
+            onClick={() => (editor as any)?.chain().focus().toggleHeading({ level: 1 }).run()}
+            className={`btn-toolbar ${editor?.isActive('heading', { level: 1 }) ? 'btn-active' : ''}`}
             title="Heading 1"
           >
-            <Heading1 className="w-4 h-4" />
+            <div className="btn-shadow"></div>
+            <div className="btn-edge"></div>
+            <div className="btn-front">
+              <Heading1 className="w-4 h-4" />
+            </div>
           </button>
           <button
-            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${
-              editor.isActive('heading', { level: 2 }) ? 'bg-blue-100 text-blue-700' : 'text-gray-600'
-            }`}
+            onClick={() => (editor as any)?.chain().focus().toggleHeading({ level: 2 }).run()}
+            className={`btn-toolbar ${editor?.isActive('heading', { level: 2 }) ? 'btn-active' : ''}`}
             title="Heading 2"
           >
-            <Heading2 className="w-4 h-4" />
+            <div className="btn-shadow"></div>
+            <div className="btn-edge"></div>
+            <div className="btn-front">
+              <Heading2 className="w-4 h-4" />
+            </div>
           </button>
           <button
-            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${
-              editor.isActive('heading', { level: 3 }) ? 'bg-blue-100 text-blue-700' : 'text-gray-600'
-            }`}
+            onClick={() => (editor as any)?.chain().focus().toggleHeading({ level: 3 }).run()}
+            className={`btn-toolbar ${editor?.isActive('heading', { level: 3 }) ? 'btn-active' : ''}`}
             title="Heading 3"
           >
-            <Heading3 className="w-4 h-4" />
+            <div className="btn-shadow"></div>
+            <div className="btn-edge"></div>
+            <div className="btn-front">
+              <Heading3 className="w-4 h-4" />
+            </div>
           </button>
         </div>
 
         {/* Lists */}
         <div className="flex items-center gap-1 border-r border-gray-200 pr-3">
           <button
-            onClick={() => editor.chain().focus().toggleBulletList().run()}
-            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${
-              editor.isActive('bulletList') ? 'bg-blue-100 text-blue-700' : 'text-gray-600'
-            }`}
+            onClick={() => (editor as any)?.chain().focus().toggleBulletList().run()}
+            className={`btn-toolbar ${editor?.isActive('bulletList') ? 'btn-active' : ''}`}
             title="Bullet List"
           >
-            <List className="w-4 h-4" />
+            <div className="btn-shadow"></div>
+            <div className="btn-edge"></div>
+            <div className="btn-front">
+              <List className="w-4 h-4" />
+            </div>
           </button>
           <button
-            onClick={() => editor.chain().focus().toggleOrderedList().run()}
-            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${
-              editor.isActive('orderedList') ? 'bg-blue-100 text-blue-700' : 'text-gray-600'
-            }`}
+            onClick={() => (editor as any)?.chain().focus().toggleOrderedList().run()}
+            className={`btn-toolbar ${editor?.isActive('orderedList') ? 'btn-active' : ''}`}
             title="Numbered List"
           >
-            <ListOrdered className="w-4 h-4" />
+            <div className="btn-shadow"></div>
+            <div className="btn-edge"></div>
+            <div className="btn-front">
+              <ListOrdered className="w-4 h-4" />
+            </div>
           </button>
           <button
-            onClick={() => editor.chain().focus().toggleBlockquote().run()}
-            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${
-              editor.isActive('blockquote') ? 'bg-blue-100 text-blue-700' : 'text-gray-600'
-            }`}
+            onClick={() => (editor as any)?.chain().focus().toggleBlockquote().run()}
+            className={`btn-toolbar ${editor?.isActive('blockquote') ? 'btn-active' : ''}`}
             title="Quote"
           >
-            <Quote className="w-4 h-4" />
+            <div className="btn-shadow"></div>
+            <div className="btn-edge"></div>
+            <div className="btn-front">
+              <Quote className="w-4 h-4" />
+            </div>
           </button>
         </div>
 
         {/* Alignment */}
         <div className="flex items-center gap-1 border-r border-gray-200 pr-3">
           <button
-            onClick={() => editor.chain().focus().setTextAlign('left').run()}
-            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${
-              editor.isActive({ textAlign: 'left' }) ? 'bg-blue-100 text-blue-700' : 'text-gray-600'
-            }`}
+            onClick={() => (editor as any)?.chain().focus().setTextAlign('left').run()}
+            className={`btn-toolbar ${editor?.isActive({ textAlign: 'left' }) ? 'btn-active' : ''}`}
             title="Align Left"
           >
-            <AlignLeft className="w-4 h-4" />
+            <div className="btn-shadow"></div>
+            <div className="btn-edge"></div>
+            <div className="btn-front">
+              <AlignLeft className="w-4 h-4" />
+            </div>
           </button>
           <button
-            onClick={() => editor.chain().focus().setTextAlign('center').run()}
-            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${
-              editor.isActive({ textAlign: 'center' }) ? 'bg-blue-100 text-blue-700' : 'text-gray-600'
-            }`}
+            onClick={() => (editor as any)?.chain().focus().setTextAlign('center').run()}
+            className={`btn-toolbar ${editor?.isActive({ textAlign: 'center' }) ? 'btn-active' : ''}`}
             title="Align Center"
           >
-            <AlignCenter className="w-4 h-4" />
+            <div className="btn-shadow"></div>
+            <div className="btn-edge"></div>
+            <div className="btn-front">
+              <AlignCenter className="w-4 h-4" />
+            </div>
           </button>
           <button
-            onClick={() => editor.chain().focus().setTextAlign('right').run()}
-            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${
-              editor.isActive({ textAlign: 'right' }) ? 'bg-blue-100 text-blue-700' : 'text-gray-600'
-            }`}
+            onClick={() => (editor as any)?.chain().focus().setTextAlign('right').run()}
+            className={`btn-toolbar ${editor?.isActive({ textAlign: 'right' }) ? 'btn-active' : ''}`}
             title="Align Right"
           >
-            <AlignRight className="w-4 h-4" />
+            <div className="btn-shadow"></div>
+            <div className="btn-edge"></div>
+            <div className="btn-front">
+              <AlignRight className="w-4 h-4" />
+            </div>
           </button>
         </div>
 
@@ -313,19 +359,88 @@ export function RichTextEditor() {
         <div className="flex items-center gap-1">
           <button
             onClick={addTable}
-            className="p-2 rounded-md hover:bg-gray-100 transition-colors text-gray-600"
+            className="btn-toolbar"
             title="Insert Table"
           >
-            <TableIcon className="w-4 h-4" />
+            <div className="btn-shadow"></div>
+            <div className="btn-edge"></div>
+            <div className="btn-front">
+              <TableIcon className="w-4 h-4" />
+            </div>
           </button>
           <button
             onClick={addImage}
-            className="p-2 rounded-md hover:bg-gray-100 transition-colors text-gray-600"
+            className="btn-toolbar"
             title="Insert Image"
           >
-            <ImageIcon className="w-4 h-4" />
+            <div className="btn-shadow"></div>
+            <div className="btn-edge"></div>
+            <div className="btn-front">
+              <ImageIcon className="w-4 h-4" />
+            </div>
           </button>
         </div>
+
+        {/* Table Controls - Show only when inside a table */}
+        {editor?.isActive('table') && (
+          <div className="flex items-center gap-1 border-l border-gray-200 pl-3">
+            <button
+              onClick={() => (editor as any)?.chain().focus().addColumnBefore().run()}
+              className="btn-toolbar"
+              title="Add Column Before"
+            >
+              <div className="btn-shadow"></div>
+              <div className="btn-edge"></div>
+              <div className="btn-front">
+                <span className="text-xs font-medium">Col+</span>
+              </div>
+            </button>
+            <button
+              onClick={() => (editor as any)?.chain().focus().addRowBefore().run()}
+              className="btn-toolbar"
+              title="Add Row Before"
+            >
+              <div className="btn-shadow"></div>
+              <div className="btn-edge"></div>
+              <div className="btn-front">
+                <span className="text-xs font-medium">Row+</span>
+              </div>
+            </button>
+            <button
+              onClick={() => (editor as any)?.chain().focus().deleteColumn().run()}
+              className="btn-toolbar"
+              title="Delete Column"
+            >
+              <div className="btn-shadow"></div>
+              <div className="btn-edge"></div>
+              <div className="btn-front text-red-600">
+                <span className="text-xs font-medium">Col-</span>
+              </div>
+            </button>
+            <button
+              onClick={() => (editor as any)?.chain().focus().deleteRow().run()}
+              className="btn-toolbar"
+              title="Delete Row"
+            >
+              <div className="btn-shadow"></div>
+              <div className="btn-edge"></div>
+              <div className="btn-front text-red-600">
+                <span className="text-xs font-medium">Row-</span>
+              </div>
+            </button>
+            <button
+              onClick={() => (editor as any)?.chain().focus().deleteTable().run()}
+              className="btn-toolbar"
+              title="Delete Table"
+            >
+              <div className="btn-shadow"></div>
+              <div className="btn-edge"></div>
+              <div className="btn-front text-red-600">
+                <span className="text-xs font-medium">Del</span>
+              </div>
+            </button>
+          </div>
+        )}
       </motion.div>
 
       {/* Rich Text Editor */}

@@ -123,11 +123,15 @@ export function AICommandPalette({ isOpen, onClose, selectedText }: AICommandPal
                 <p className="text-xs text-gray-500">Transform your text</p>
               </div>
             </div>
-            <button 
+            <button
               onClick={onClose}
-              className="p-1 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+              className="btn-toolbar"
             >
-              <X className="w-4 h-4 text-gray-500" />
+              <div className="btn-shadow"></div>
+              <div className="btn-edge"></div>
+              <div className="btn-front">
+                <X className="w-4 h-4 text-gray-500" />
+              </div>
             </button>
           </div>
 
@@ -154,10 +158,14 @@ export function AICommandPalette({ isOpen, onClose, selectedText }: AICommandPal
                     key={item.label}
                     onClick={() => handleQuickPrompt(item.prompt)}
                     disabled={isProcessing}
-                    className="flex items-center gap-2 p-2.5 text-left border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50 transition-colors text-sm cursor-pointer disabled:cursor-not-allowed"
+                    className="btn-toolbar w-full text-left disabled:opacity-50"
                   >
-                    <item.icon className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                    <span className="text-gray-700 truncate">{item.label}</span>
+                    <div className="btn-shadow"></div>
+                    <div className="btn-edge"></div>
+                    <div className="btn-front flex items-center gap-2 p-2.5">
+                      <item.icon className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                      <span className="text-gray-700 truncate">{item.label}</span>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -172,10 +180,14 @@ export function AICommandPalette({ isOpen, onClose, selectedText }: AICommandPal
                     key={item.label}
                     onClick={() => handleQuickPrompt(item.prompt)}
                     disabled={isProcessing}
-                    className="flex items-center gap-2 p-2.5 text-left border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50 transition-colors text-sm cursor-pointer disabled:cursor-not-allowed"
+                    className="btn-toolbar w-full text-left disabled:opacity-50"
                   >
-                    <item.icon className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                    <span className="text-gray-700 truncate">{item.label}</span>
+                    <div className="btn-shadow"></div>
+                    <div className="btn-edge"></div>
+                    <div className="btn-front flex items-center gap-2 p-2.5">
+                      <item.icon className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                      <span className="text-gray-700 truncate">{item.label}</span>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -198,19 +210,23 @@ export function AICommandPalette({ isOpen, onClose, selectedText }: AICommandPal
               <button
                 onClick={handleCustomPrompt}
                 disabled={!customPrompt.trim() || isProcessing}
-                className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors text-sm cursor-pointer"
+                className="btn-3d btn-primary btn-small w-full font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isProcessing ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Sparkles className="w-4 h-4 animate-spin" />
-                    Processing...
-                  </span>
-                ) : (
-                  <span className="flex items-center justify-center gap-2">
-                    <Zap className="w-4 h-4" />
-                    Apply AI
-                  </span>
-                )}
+                <div className="btn-shadow"></div>
+                <div className="btn-edge"></div>
+                <div className="btn-front flex items-center justify-center gap-2 py-2.5">
+                  {isProcessing ? (
+                    <>
+                      <Sparkles className="w-4 h-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-4 h-4" />
+                      Apply AI
+                    </>
+                  )}
+                </div>
               </button>
             </div>
           </div>

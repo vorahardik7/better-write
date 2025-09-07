@@ -170,18 +170,26 @@ export function AISuggestionOverlay() {
             <div className="flex gap-2">
               <button
                 onClick={acceptSuggestion}
-                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors text-sm cursor-pointer"
+                className="btn-3d btn-success btn-small flex-1 font-medium"
               >
-                <Check className="w-4 h-4" />
-                <span>Accept</span>
+                <div className="btn-shadow"></div>
+                <div className="btn-edge"></div>
+                <div className="btn-front flex items-center justify-center gap-1.5 px-3 py-2">
+                  <Check className="w-4 h-4" />
+                  <span>Accept</span>
+                </div>
               </button>
-              
+
               <button
                 onClick={rejectSuggestion}
-                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors text-sm cursor-pointer"
+                className="btn-3d btn-secondary btn-small flex-1 font-medium"
               >
-                <X className="w-4 h-4" />
-                <span>Reject</span>
+                <div className="btn-shadow"></div>
+                <div className="btn-edge"></div>
+                <div className="btn-front flex items-center justify-center gap-1.5 px-3 py-2">
+                  <X className="w-4 h-4" />
+                  <span>Reject</span>
+                </div>
               </button>
             </div>
 

@@ -79,29 +79,23 @@ export function DocumentChat() {
   const [isExpanded, setIsExpanded] = useState(true);
   const [chatWidth, setChatWidth] = useState(320); // 80 * 4 = 320px (w-80)
   const [isResizing, setIsResizing] = useState(false);
+  const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const { content } = useEditorStore();
 
-  const { messages, input, handleInputChange, handleSubmit, status } = useChat({
-    api: '/api/chat',
-    body: {
-      documentContent: content
-    },
-    initialMessages: [
-      {
-        id: '1',
-        role: 'assistant',
-        content: "Hi! I'm your AI document assistant. I can help you improve your writing, answer questions about your content, or suggest new ideas. What would you like to work on together?"
-      }
-    ],
-    onError: (error) => {
-      console.error('Chat error:', error);
-    }
-  });
+  const chatHelpers = useChat();
 
-  // Check if AI is currently responding
-  const isLoading = status === 'streaming' || status === 'submitted';
+  // Add initial welcome message if no messages exist
+  const displayMessages = (chatHelpers.messages || []).length === 0 ? [
+    {
+      id: '1',
+      role: 'assistant' as const,
+      content: "Hi! I'm your AI document assistant. I can help you improve your writing, answer questions about your content, or suggest new ideas. What would you like to work on together?"
+    }
+  ] : (chatHelpers.messages || []);
+
+  // isLoading is already provided by useChat hook
 
   // Auto-scroll to bottom when new messages arrive or when typing
   useEffect(() => {
@@ -111,7 +105,7 @@ export function DocumentChat() {
         block: 'end'
       });
     }
-  }, [messages, isLoading]);
+  }, [displayMessages, (chatHelpers as any).isLoading]);
 
   // Handle mouse resize
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -142,10 +136,12 @@ export function DocumentChat() {
       <div className="w-16 bg-transparent flex flex-col items-center py-6">
         <button
           onClick={() => setIsExpanded(true)}
-          className="p-3 hover:bg-white rounded-xl transition-all duration-200 group cursor-pointer shadow-sm bg-white/80 backdrop-blur-sm border border-blue-200"
+          className="btn-toolbar p-3"
           title="Open document chat"
         >
-          <div className="relative">
+          <div className="btn-shadow"></div>
+          <div className="btn-edge"></div>
+          <div className="btn-front relative p-3">
             <MessageSquare className="w-5 h-5 text-blue-700" />
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-600 rounded-full shadow-sm" />
           </div>
@@ -187,10 +183,14 @@ export function DocumentChat() {
             </div>
             <button
               onClick={() => setIsExpanded(false)}
-              className="p-1.5 hover:bg-blue-50 rounded-lg transition-all duration-200 cursor-pointer shadow-sm bg-white border border-blue-100"
+              className="btn-toolbar"
               title="Minimize chat"
             >
-              <Minimize2 className="w-4 h-4 text-blue-600" />
+              <div className="btn-shadow"></div>
+              <div className="btn-edge"></div>
+              <div className="btn-front">
+                <Minimize2 className="w-4 h-4 text-blue-600" />
+              </div>
             </button>
           </div>
         </div>
@@ -200,7 +200,7 @@ export function DocumentChat() {
           ref={chatContainerRef}
           className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-blue-50/40 backdrop-blur-sm"
         >
-          {messages.map((message) => (
+          {displayMessages.map((message) => (
             <div
               key={message.id}
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -229,11 +229,11 @@ export function DocumentChat() {
                 } ${message.role === 'user' ? 'rounded-br-sm' : 'rounded-bl-sm'}`}>
                   {message.role === 'assistant' ? (
                     <div className="text-sm leading-relaxed">
-                      {formatAIMessage(message.content)}
+                      {formatAIMessage((message as any).content || '')}
                     </div>
                   ) : (
                     <p className="text-sm whitespace-pre-wrap leading-relaxed">
-                      {message.content}
+                      {(message as any).content || ''}
                     </p>
                   )}
                 </div>
@@ -242,7 +242,7 @@ export function DocumentChat() {
           ))}
           
           {/* Typing indicator */}
-          {isLoading && (
+          {(chatHelpers as any).isLoading && (
             <div className="flex justify-start">
               <div className="flex items-start gap-2">
                 <div className="bg-blue-600 p-1.5 rounded-lg flex-shrink-0 shadow-sm">
@@ -278,23 +278,43 @@ export function DocumentChat() {
 
         {/* Clean Input Area */}
         <div className="px-4 py-4 bg-white/95 backdrop-blur-sm border-t border-blue-100">
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            if (inputValue.trim()) {
+              const append = (chatHelpers as any).append;
+              if (append) {
+                await append({
+                  role: 'user',
+                  content: inputValue,
+                }, {
+                  body: {
+                    documentContent: content
+                  }
+                });
+              }
+              setInputValue('');
+            }
+          }} className="space-y-3">
             <div className="flex gap-2">
               <input
                 type="text"
-                value={input}
-                onChange={handleInputChange}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Ask about your document..."
                 className="flex-1 px-3 py-2 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 text-sm shadow-sm transition-all duration-200 text-slate-800 placeholder-blue-400"
-                disabled={isLoading}
+                disabled={(chatHelpers as any).isLoading || false}
               />
-              
+
               <button
                 type="submit"
-                disabled={!input.trim() || isLoading}
-                className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer shadow-sm"
+                disabled={!inputValue.trim() || (chatHelpers as any).isLoading || false}
+                className="btn-3d btn-primary btn-small disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Send className="w-4 h-4" />
+                <div className="btn-shadow"></div>
+                <div className="btn-edge"></div>
+                <div className="btn-front px-3 py-2">
+                  <Send className="w-4 h-4" />
+                </div>
               </button>
             </div>
           </form>
