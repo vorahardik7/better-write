@@ -77,8 +77,9 @@ const formatInlineText = (text: string) => {
 
 export function DocumentChat() {
   const [isExpanded, setIsExpanded] = useState(true);
-  const [chatWidth, setChatWidth] = useState(320); // 80 * 4 = 320px (w-80)
+  const [chatWidth, setChatWidth] = useState(320); // Always start with same value on server and client
   const [isResizing, setIsResizing] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -123,6 +124,29 @@ export function DocumentChat() {
     }
   }, [displayMessages, isLoading]);
 
+  // Set initial responsive width after mount to avoid hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+    // Set responsive width only after component mounts on client
+    const responsiveWidth = Math.min(400, Math.max(300, window.innerWidth * 0.25));
+    setChatWidth(responsiveWidth);
+  }, []);
+
+  // Handle window resize to maintain responsive chat width
+  useEffect(() => {
+    if (!isMounted) return; // Only run after mount
+    
+    const handleResize = () => {
+      const maxWidth = Math.min(600, window.innerWidth * 0.5);
+      if (chatWidth > maxWidth) {
+        setChatWidth(maxWidth);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [chatWidth, isMounted]);
+
   // Handle mouse resize
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -132,8 +156,10 @@ export function DocumentChat() {
     const startWidth = chatWidth;
 
     const handleMouseMove = (e: MouseEvent) => {
+      if (!isMounted) return; // Ensure we're mounted before calculating based on window
       const diff = startX - e.clientX;
-      const newWidth = Math.max(280, Math.min(600, startWidth + diff));
+      const maxWidth = Math.min(600, window.innerWidth * 0.5); // Max 50% of viewport
+      const newWidth = Math.max(280, Math.min(maxWidth, startWidth + diff));
       setChatWidth(newWidth);
     };
 
@@ -184,9 +210,9 @@ export function DocumentChat() {
       </div>
 
       {/* Chat Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         {/* Chat Header - minimal */}
-        <div className="px-6 py-4 bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm">
+        <div className="px-6 py-4 bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="bg-blue-50 p-1.5 rounded-lg shadow-sm border border-blue-100">
@@ -214,7 +240,7 @@ export function DocumentChat() {
         {/* Messages */}
         <div 
           ref={chatContainerRef}
-          className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-white"
+          className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-white min-h-0"
         >
           {displayMessages.map((message) => (
             <div
@@ -289,7 +315,7 @@ export function DocumentChat() {
         </div>
 
         {/* Input Area */}
-        <div className="px-4 py-4 bg-white/95 backdrop-blur-sm border-t border-gray-100">
+        <div className="px-4 py-4 bg-white/95 backdrop-blur-sm border-t border-gray-100 flex-shrink-0">
           <form onSubmit={async (e) => {
             e.preventDefault();
             if (inputValue.trim()) {

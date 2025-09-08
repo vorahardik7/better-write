@@ -109,7 +109,7 @@ export function AICommandPalette({ isOpen, onClose, selectedText }: AICommandPal
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
           transition={{ duration: 0.2 }}
-          className="bg-white rounded-xl shadow-xl w-full max-w-md border border-gray-200 cursor-default"
+          className="bg-white rounded-xl shadow-xl w-full max-w-lg border border-gray-200 cursor-default"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -152,7 +152,7 @@ export function AICommandPalette({ isOpen, onClose, selectedText }: AICommandPal
             {/* Text Editing */}
             <div>
               <h4 className="font-semibold text-gray-900 mb-2 text-sm">Text Editing</h4>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-3">
                 {TEXT_PROMPTS.map((item) => (
                   <button
                     key={item.label}
@@ -162,9 +162,9 @@ export function AICommandPalette({ isOpen, onClose, selectedText }: AICommandPal
                   >
                     <div className="btn-shadow"></div>
                     <div className="btn-edge"></div>
-                    <div className="btn-front flex items-center gap-2 p-2.5">
+                    <div className="btn-front flex items-center gap-2 p-3">
                       <item.icon className="w-4 h-4 text-gray-700 flex-shrink-0" />
-                      <span className="text-gray-800 truncate">{item.label}</span>
+                      <span className="text-sm text-gray-800 truncate">{item.label}</span>
                     </div>
                   </button>
                 ))}
@@ -174,7 +174,7 @@ export function AICommandPalette({ isOpen, onClose, selectedText }: AICommandPal
             {/* Content Generation */}
             <div>
               <h4 className="font-semibold text-gray-900 mb-2 text-sm">Content Generation</h4>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-3">
                 {CONTENT_PROMPTS.map((item) => (
                   <button
                     key={item.label}
@@ -184,9 +184,9 @@ export function AICommandPalette({ isOpen, onClose, selectedText }: AICommandPal
                   >
                     <div className="btn-shadow"></div>
                     <div className="btn-edge"></div>
-                    <div className="btn-front flex items-center gap-2 p-2.5">
+                    <div className="btn-front flex items-center gap-2 p-3">
                       <item.icon className="w-4 h-4 text-gray-700 flex-shrink-0" />
-                      <span className="text-gray-800 truncate">{item.label}</span>
+                      <span className="text-sm text-gray-800 truncate">{item.label}</span>
                     </div>
                   </button>
                 ))}
@@ -202,7 +202,7 @@ export function AICommandPalette({ isOpen, onClose, selectedText }: AICommandPal
                 onChange={(e) => setCustomPrompt(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Describe what you want..."
-                className="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm shadow-sm"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm shadow-sm"
                 autoFocus
                 disabled={isProcessing}
               />
@@ -210,11 +210,11 @@ export function AICommandPalette({ isOpen, onClose, selectedText }: AICommandPal
               <button
                 onClick={handleCustomPrompt}
                 disabled={!customPrompt.trim() || isProcessing}
-                className="btn-3d btn-primary btn-small w-full font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-3d btn-primary w-full font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="btn-shadow"></div>
                 <div className="btn-edge"></div>
-                <div className="btn-front flex items-center justify-center gap-2 py-2.5">
+                <div className="btn-front flex items-center justify-center gap-2 py-3">
                   {isProcessing ? (
                     <>
                       <Sparkles className="w-4 h-4 animate-spin" />

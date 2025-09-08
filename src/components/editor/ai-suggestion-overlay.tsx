@@ -110,7 +110,7 @@ export function AISuggestionOverlay() {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 10 }}
         transition={{ duration: 0.2 }}
-        className="fixed bottom-8 left-8 z-50 max-w-md"
+        className="fixed bottom-8 left-8 z-50 w-[min(32rem,90vw)]"
       >
         <div className="bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
           {/* Header */}
@@ -139,7 +139,7 @@ export function AISuggestionOverlay() {
                   <X className="w-3 h-3 text-red-500" />
                   <span className="text-xs font-semibold text-red-600 uppercase tracking-wide">Original</span>
                 </div>
-                <div className="p-2.5 bg-red-50 border border-red-200 rounded-lg">
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                   <p className="text-sm text-gray-800 line-through">
                     {aiSuggestion.originalText}
                   </p>
@@ -158,7 +158,7 @@ export function AISuggestionOverlay() {
                     </div>
                   )}
                 </div>
-                <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
                   <p className="text-sm text-gray-800">
                     {suggestionPreview?.preview || aiSuggestion.suggestedText}
                   </p>
@@ -167,10 +167,10 @@ export function AISuggestionOverlay() {
             </div>
 
             {/* Action buttons */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 pt-1">
               <button
                 onClick={acceptSuggestion}
-                className="flex-1 font-semibold bg-emerald-600 text-white rounded-lg shadow-sm px-3 py-2 hover:bg-emerald-700 transition-colors"
+                className="flex-1 font-semibold bg-emerald-600 text-white rounded-lg shadow-sm px-3 py-2.5 hover:bg-emerald-700 transition-colors"
               >
                 <div className="flex items-center justify-center gap-1.5">
                   <Check className="w-4 h-4" />
@@ -180,7 +180,7 @@ export function AISuggestionOverlay() {
 
               <button
                 onClick={rejectSuggestion}
-                className="flex-1 font-semibold bg-white border border-gray-300 rounded-lg shadow-sm px-3 py-2 hover:bg-gray-50 transition-colors"
+                className="flex-1 font-semibold bg-white border border-gray-300 rounded-lg shadow-sm px-3 py-2.5 hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-center justify-center gap-1.5">
                   <X className="w-4 h-4" />

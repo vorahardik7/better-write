@@ -1,8 +1,10 @@
+'use client';
+
 import { useCallback, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { TextStyle } from '@tiptap/extension-text-style/text-style';
+import { TextStyle } from '@tiptap/extension-text-style';
 import FontFamily from '@tiptap/extension-font-family';
 import Color from '@tiptap/extension-color';
 import TextAlign from '@tiptap/extension-text-align';
@@ -18,7 +20,7 @@ import Link from '@tiptap/extension-link';
 import { useEditorStore } from '@/lib/store/editor-store';
 import { AICommandPalette } from './ai-command-palette';
 import { AISuggestionOverlay } from './ai-suggestion-overlay';
-import { Sparkles, Zap, Type, MousePointer, Bold, Italic, List, ListOrdered, Quote, Table as TableIcon, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight, Heading1, Heading2, Heading3, AlertCircle, X } from 'lucide-react';
+import { Sparkles, Zap, Type, MousePointer, Bold, Italic, List, ListOrdered, Quote, Table as TableIcon, Image as ImageIcon, Heading1, Heading2, Heading3, AlertCircle, X, AlignLeft, AlignCenter, AlignRight, AlignJustify } from 'lucide-react';
 
 export function DemoTextEditor() {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
@@ -41,6 +43,8 @@ export function DemoTextEditor() {
       Color,
       TextAlign.configure({
         types: ['heading', 'paragraph'],
+        alignments: ['left', 'center', 'right', 'justify'],
+        defaultAlignment: 'left',
       }),
       Table,
       TableRow,
@@ -95,6 +99,28 @@ export function DemoTextEditor() {
     }
   }, [content, editor]);
 
+  // Text alignment helper functions
+  const setTextAlignment = useCallback((alignment: 'left' | 'center' | 'right' | 'justify') => {
+    if (!editor) return;
+    try {
+      // Type assertion for TipTap TextAlign extension commands
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (editor.chain().focus() as any).setTextAlign(alignment).run();
+    } catch {
+      console.warn('Text alignment not supported');
+    }
+  }, [editor]);
+
+  const canSetTextAlignment = useCallback((alignment: 'left' | 'center' | 'right' | 'justify') => {
+    if (!editor) return false;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (editor.can() as any).setTextAlign(alignment);
+    } catch {
+      return false;
+    }
+  }, [editor]);
+
   // Handle keyboard shortcuts
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     // Cmd+K or Ctrl+K to open AI command palette
@@ -105,11 +131,33 @@ export function DemoTextEditor() {
       }
     }
     
+    // Text alignment shortcuts
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && editor) {
+      switch (e.key.toLowerCase()) {
+        case 'l':
+          e.preventDefault();
+          setTextAlignment('left');
+          break;
+        case 'e':
+          e.preventDefault();
+          setTextAlignment('center');
+          break;
+        case 'r':
+          e.preventDefault();
+          setTextAlignment('right');
+          break;
+        case 'j':
+          e.preventDefault();
+          setTextAlignment('justify');
+          break;
+      }
+    }
+    
     // Escape to close command palette
     if (e.key === 'Escape') {
       setShowCommandPalette(false);
     }
-  }, [selection]);
+  }, [selection, editor, setTextAlignment]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -185,19 +233,12 @@ export function DemoTextEditor() {
           </motion.div>
         </div>
 
-        <AnimatePresence>
-          {isFocused && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="flex items-center gap-2 text-xs text-gray-700 bg-white px-3 py-1 rounded-md shadow-sm border border-gray-200"
-            >
-              <MousePointer className="w-3 h-3" />
-              <span>Select text for AI assistance</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <div className="flex items-center gap-2 text-xs text-gray-700 bg-white px-3 py-1 rounded-md shadow-sm border border-gray-200">
+          <MousePointer className="w-3 h-3" />
+          <span>Select text and press</span>
+          <kbd className="px-1.5 py-0.5 bg-blue-50 border border-blue-200 rounded text-[10px] font-mono shadow-sm text-blue-800">⌘K</kbd>
+          <span>for AI suggestions</span>
+        </div>
       </motion.div>
 
       {/* Formatting Toolbar */}
@@ -205,7 +246,7 @@ export function DemoTextEditor() {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
-        className="flex items-center gap-2 px-6 py-3 bg-white/90 backdrop-blur-sm border-b border-gray-100 overflow-x-auto"
+        className="flex items-center gap-2 px-4 sm:px-6 py-3 bg-white/90 backdrop-blur-sm border-b border-gray-100 overflow-x-auto"
       >
         {/* Text Formatting */}
         <div className="flex items-center gap-1 border-r border-gray-200 pr-3">
@@ -232,7 +273,16 @@ export function DemoTextEditor() {
             </div>
           </button>
           <button
-            onClick={() => editor?.chain().focus().toggleUnderline().run()}
+            onClick={() => {
+              if (editor) {
+                try {
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  (editor.chain().focus() as any).toggleUnderline().run();
+                } catch {
+                  console.warn('Underline not supported');
+                }
+              }
+            }}
             className={`btn-toolbar ${editor?.isActive('underline') ? 'btn-active' : ''}`}
             title="Underline"
           >
@@ -321,9 +371,10 @@ export function DemoTextEditor() {
         {/* Alignment */}
         <div className="flex items-center gap-1 border-r border-gray-200 pr-3">
           <button
-            onClick={() => editor?.chain().focus().setTextAlign('left').run()}
+            onClick={() => setTextAlignment('left')}
             className={`btn-toolbar ${editor?.isActive({ textAlign: 'left' }) ? 'btn-active' : ''}`}
-            title="Align Left"
+            title="Align Left (Cmd+Shift+L)"
+            disabled={!canSetTextAlignment('left')}
           >
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
@@ -332,9 +383,10 @@ export function DemoTextEditor() {
             </div>
           </button>
           <button
-            onClick={() => editor?.chain().focus().setTextAlign('center').run()}
+            onClick={() => setTextAlignment('center')}
             className={`btn-toolbar ${editor?.isActive({ textAlign: 'center' }) ? 'btn-active' : ''}`}
-            title="Align Center"
+            title="Align Center (Cmd+Shift+E)"
+            disabled={!canSetTextAlignment('center')}
           >
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
@@ -343,14 +395,27 @@ export function DemoTextEditor() {
             </div>
           </button>
           <button
-            onClick={() => editor?.chain().focus().setTextAlign('right').run()}
+            onClick={() => setTextAlignment('right')}
             className={`btn-toolbar ${editor?.isActive({ textAlign: 'right' }) ? 'btn-active' : ''}`}
-            title="Align Right"
+            title="Align Right (Cmd+Shift+R)"
+            disabled={!canSetTextAlignment('right')}
           >
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
             <div className="btn-front">
               <AlignRight className="w-4 h-4" />
+            </div>
+          </button>
+          <button
+            onClick={() => setTextAlignment('justify')}
+            className={`btn-toolbar ${editor?.isActive({ textAlign: 'justify' }) ? 'btn-active' : ''}`}
+            title="Justify (Cmd+Shift+J)"
+            disabled={!canSetTextAlignment('justify')}
+          >
+            <div className="btn-shadow"></div>
+            <div className="btn-edge"></div>
+            <div className="btn-front">
+              <AlignJustify className="w-4 h-4" />
             </div>
           </button>
         </div>
@@ -445,12 +510,12 @@ export function DemoTextEditor() {
 
       {/* Rich Text Editor */}
       <div className="flex-1 relative bg-white overflow-auto">
-        <div className="max-w-4xl mx-auto px-8 py-6">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full">
           <EditorContent 
             editor={editor}
-            className="prose prose-lg max-w-none focus:outline-none"
+            className="prose prose-lg max-w-none focus:outline-none h-full"
             style={{
-              minHeight: 'calc(100vh - 200px)',
+              minHeight: '100%',
             }}
           />
         </div>
