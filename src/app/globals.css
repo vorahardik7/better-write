@@ -5,6 +5,7 @@
 /* Global font family using Next Font variable */
 html {
   font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  overscroll-behavior: none;
 }
 
 /* Background Pattern */
@@ -15,7 +16,7 @@ html {
   background-size: 20px 20px;
 }
 
-/* 3D Button Styles */
+/* 3D Button Styles - Used in document-chat.tsx */
 .btn-3d {
   position: relative;
   border: none;
@@ -91,7 +92,7 @@ html {
   outline: none;
 }
 
-/* Button Variants */
+/* Button Variants - Only keeping what's used */
 .btn-primary .btn-edge {
   background: linear-gradient(
     to left,
@@ -104,46 +105,6 @@ html {
 
 .btn-primary .btn-front {
   background: hsl(221deg 83% 53%);
-}
-
-.btn-secondary .btn-edge {
-  background: linear-gradient(
-    to left,
-    hsl(210deg 20% 96%) 0%,
-    hsl(210deg 20% 92%) 8%,
-    hsl(210deg 20% 92%) 92%,
-    hsl(210deg 20% 96%) 100%
-  );
-}
-
-.btn-secondary .btn-front {
-  background: #ffffff;
-  color: #111827;
-  border: 1px solid #e5e7eb;
-}
-
-/* Google button variant (white with subtle edge) */
-.btn-google .btn-edge {
-  background: linear-gradient(
-    to left,
-    hsl(210deg 20% 96%) 0%,
-    hsl(210deg 20% 92%) 8%,
-    hsl(210deg 20% 92%) 92%,
-    hsl(210deg 20% 96%) 100%
-  );
-}
-
-.btn-google .btn-front {
-  background: #ffffff;
-  color: #111827;
-  border: 1px solid #e5e7eb;
-}
-
-
-/* Large button variant */
-.btn-large .btn-front {
-  padding: 16px 36px;
-  font-size: 1.25rem;
 }
 
 /* Toolbar button variant - smaller and flatter */

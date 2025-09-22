@@ -40,7 +40,7 @@ export function PricingSection() {
             <a href="/editor" className="inline-block bg-white border-2 border-black rounded-xl shadow-[6px_6px_0_#000] px-8 py-4 font-bold text-black hover:shadow-[8px_8px_0_#000] cursor-pointer">
               Start free
             </a>
-            <div className="text-xs text-gray-500 mt-2">* Original pricing $15/mo. Offer available for a limited time.</div>
+            <div className="text-xs text-gray-500 mt-4">* Original pricing $15/mo. Offer available for a limited time.</div>
           </div>
         </motion.div>
       </div>

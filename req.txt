@@ -1,107 +1,156 @@
-Okay, this sounds like a fantastic and innovative direction! Here's a Product Requirements Document (PRD) draft based on our discussion. I've aimed for simplicity and clarity, focusing on what's needed to build your "vibe-coded" document tool.
-
-Product Requirements Document: VibeDoc (Working Title)
+Product Requirements Document: BetterWrite
 
 1. Introduction
 
-VibeDoc is a next-generation, minimalist document tool designed to make content creation intuitive, fast, and intelligent. It re-imagines the document editor by empowering users to create and modify content blocks – from simple text to complex charts and tables – using natural language prompts. This "vibe coding" approach, combined with a clean interface and reactive capabilities, aims to remove the friction inherent in traditional document software.
+BetterWrite is a modern, AI-powered document editor that transforms how people write and edit documents. Unlike traditional word processors, BetterWrite focuses on intelligent text editing through natural language commands and AI assistance. Users select text and tell AI what they want to do with it - make it formal, fix grammar, summarize, or transform it in any way - and get instant, contextually-aware improvements.
 
 2. Goals
 
-To provide a highly intuitive and efficient way for users to create rich, structured documents.
-To significantly reduce the time and effort spent on formatting and content structuring by leveraging AI.
-To offer a focused, minimalist alternative to feature-laden traditional word processors, prioritizing user experience and core modern needs.
-To enable dynamic and "live" document elements that can react to and reflect the content around them.
+To provide a streamlined alternative to Microsoft Word with AI superpowers that actually help users write better.
+To eliminate the learning curve of complex formatting menus by using natural language commands.
+To offer instant, intelligent text transformations that understand document context and user intent.
+To create a modern, minimalist writing experience that prioritizes content over complex features.
+
 3. Target Audience
 
-Individuals: Writers, students, researchers, knowledge workers, and anyone who frequently creates documents and seeks a more streamlined, AI-assisted process.
-Teams (future focus): Small teams needing a quick way to draft, share, and iterate on documents like notes, proposals, and simple reports.
-Primary User Profile: Tech-savvy or adaptable users comfortable with new interaction paradigms (like prompt-based interfaces) and who value efficiency and modern design.
+Primary: Writers, students, researchers, knowledge workers, and professionals who frequently create documents and want AI assistance without complexity.
+Secondary: Teams and individuals who value modern, efficient tools over feature-heavy traditional software.
+User Profile: Tech-comfortable users who appreciate clean interfaces and AI-powered productivity tools.
+
 4. Core Product Principles
 
-Vibe Coding First: Natural language prompts are the primary method for creating, formatting, and transforming content within blocks.
-Aggressive Minimalism: The UI will be clean, uncluttered, and free of unnecessary features. Focus is on the content and the prompt interaction.
-Block-Based Everything: All content is structured as discrete, manageable, and AI-addressable blocks.
-Intelligent & Reactive: Documents are not static. AI assists in content generation, and specific blocks can dynamically update based on document context.
+AI-First Editing: Natural language commands are the primary way to transform and improve text.
+Select-and-Command: Users select text, press ⌘K, and tell AI what they want to do with it.
+Context-Aware Intelligence: AI understands the entire document context for better suggestions.
+Minimalist Design: Clean, uncluttered interface focused on writing, not complex formatting options.
+Instant Results: No menus, no learning curve - just select, command, and get results.
+
 5. Key Features & Requirements
 
-5.1. Core Block-Based Editor
-* [R1.1] Users must be able to add new blocks to the document (e.g., via slash command /, contextual button, or pressing Enter).
-* [R1.2] Users must be able to delete blocks.
-* [R1.3] Users must be able to reorder blocks (e.g., via drag-and-drop or keyboard shortcuts).
-* [R1.4] The editor must support intuitive keyboard navigation between and within blocks.
-* [R1.5] A persistent, easily accessible prompt interface (e.g., a command palette or contextual input) for "vibe coding" blocks.
+5.1. Core Editor Experience
+* [R1.1] Rich text editor built on TipTap/ProseMirror with standard formatting (bold, italic, headings, lists, tables, images, links).
+* [R1.2] Keyboard shortcut ⌘K to open AI command palette when text is selected.
+* [R1.3] Real-time text selection tracking and context awareness.
+* [R1.4] Clean, modern toolbar with essential formatting options.
+* [R1.5] Responsive design that works on desktop and mobile devices.
 
-5.2. Foundational "Vibe Coded" Content Blocks
-* [R2.1] Text & Headings:
-* Support for paragraph text and H1-H6 level headings.
-* Creation and styling via prompt (e.g., "/h1 Main Title," select text -> "make heading 2").
-* [R2.2] Lists:
-* Support for bulleted, numbered, and checklist/to-do lists (interactive checkboxes).
-* Creation and population via prompt (e.g., "/todo Action items from meeting notes...").
-* [R2.3] Quotes & Callouts:
-* Support for blockquotes and distinct callout boxes (e.g., info, warning, tip).
-* Creation via prompt (e.g., "/quote [text]" or "/infobox Key takeaway: ...").
-* [R2.4] Code Snippets:
-* Display code with syntax highlighting for common programming languages.
-* Creation via prompt (e.g., "/code python function for API call") or by pasting code and prompting for formatting/language.
-* AI assistance: Prompt for comments, explanations, or simple refactoring of selected code block.
-* [R2.5] Interactive Tables:
-* Creation from prompt describing structure or from selected unstructured text (e.g., "/table 3 columns: Product, Price, Stock").
-* AI-assisted population based on document context or further prompts.
-* Basic frontend interactivity (e.g., column sorting).
-* [R2.6] Interactive Graphs/Charts:
-* Support for common chart types (bar, line, pie).
-* Generation via prompt with inline data or referencing data elsewhere in the document (e.g., "/barchart Data: A=10, B=20, C=15").
-* Basic frontend interactivity (e.g., tooltips on hover).
-* [R2.7] Mathematical Equations:
-* Display well-rendered math equations (e.g., using LaTeX).
-* Creation via prompt (e.g., "/math E=mc^2").
-* [R2.8] Dividers:
-* Simple visual separator line, creatable via prompt (e.g., "/divider").
+5.2. AI Command Palette
+* [R2.1] Contextual AI command palette that appears when ⌘K is pressed with selected text.
+* [R2.2] Pre-built quick actions: "Make formal", "Fix grammar", "Summarize", "Expand", "Make concise".
+* [R2.3] Custom prompt input for specific user requests.
+* [R2.4] Real-time AI processing with loading states and error handling.
+* [R2.5] Accept/Reject workflow for AI suggestions with visual preview.
 
-5.3. AI-Powered & Reactive Block Capabilities
-* [R3.1] Smart Summaries: Generate concise summaries of selected text, sections, or the entire document via prompt (e.g., "/summarize section above").
-* [R3.2] Content Transformation:
-* Rephrase selected text (formal, casual, concise, expand) via prompt.
-* Translate selected text to specified languages via prompt.
-* [R3.3] Content Generation: Generate text for common needs (e.g., "/write intro paragraph for [topic]," "/brainstorm ideas for [subject]").
-* [R3.4] Live Reactive Lists:
-* Blocks that automatically populate and update based on the entire document's content.
-* Examples: "List of sources and citations referenced," "List of all action items (@todo)," "List of questions raised."
-* The prompt defines the "query" for the block (e.g., "/live_list all H2 headings").
-* [R3.5] Document Q&A: Allow users to ask questions about the current document's content, with AI providing answers based on the text (e.g., "/ask What is the deadline for Project X?").
+5.3. AI Text Transformation Capabilities
+* [R3.1] Tone and Style Changes: Transform text to be more formal, casual, professional, or conversational.
+* [R3.2] Grammar and Language: Fix grammar, spelling, punctuation, and improve clarity.
+* [R3.3] Content Enhancement: Expand ideas, make text more concise, add details, or improve flow.
+* [R3.4] Context-Aware Suggestions: AI considers the entire document context for relevant improvements.
+* [R3.5] Code and Technical Content: Generate code snippets, technical explanations, and examples.
 
-5.4. Document Management & Application Basics (Minimalist)
-* [R4.1] Ability to create new documents, save documents, and open existing documents.
-* [R4.2] AI-assisted document titling based on content.
-* [R4.3] Simple list view for documents.
-* [R4.4] Semantic search within a document and across all user documents (AI-powered).
-* [R4.5] Export documents to Markdown and PDF formats.
-* [R4.6] Basic user authentication and account management.
+5.4. Document Management
+* [R4.1] Create, save, and open documents with auto-save functionality.
+* [R4.2] Export to common formats (PDF, Markdown, HTML).
+* [R4.3] Document sharing via links (future feature).
+* [R4.4] Basic document organization and search.
 
-6. High-Level Technical Considerations
+5.5. User Experience Features
+* [R5.1] Document statistics (word count, reading time, character count).
+* [R5.2] Keyboard shortcuts for common actions and text alignment.
+* [R5.3] Drag-and-drop image insertion with URL input fallback.
+* [R5.4] Table creation and editing with standard table functionality.
+* [R5.5] Link creation and editing with click-to-edit functionality.
 
-Framework: Likely Next.js for a unified frontend and backend (API routes) experience in TypeScript.
-AI/LLM Integration:
-Secure API integration with one or more LLM providers.
-Robust prompt engineering and context management strategies.
-Block Editor Engine: Selection or development of a block-based editor foundation (e.g., leveraging libraries like Tiptap/ProseMirror, Slate.js, or the open-source core of BlockNote.js, if suitable, or a well-scoped custom solution if absolutely necessary).
-Document Model: A clear, serializable (likely JSON) structure for documents and blocks.
-Reactivity System: A mechanism to detect document changes and trigger updates for reactive blocks.
-Persistence: Database solution for storing user accounts and documents.
-7. Success Metrics (How We'll Measure Success - Initial Thoughts)
+6. Technical Architecture
 
-User Adoption: Number of registered users and active users (daily/weekly/monthly).
-Engagement: Average number of blocks created per session, average document length, frequency of "vibe-coded" block usage vs. manual methods (if any).
-Task Completion Rate: Ability of users to successfully create desired document structures using prompts.
-User Satisfaction: Qualitative feedback through surveys, interviews, and support channels.
-Performance: Editor responsiveness, speed of AI-generated block rendering.
-8. Out of Scope (For Initial Version - Maintaining Focus & Minimalism)
+6.1. Frontend
+* Framework: Next.js 14 with TypeScript
+* Editor: TipTap/ProseMirror for rich text editing
+* State Management: Zustand for editor state
+* Styling: Tailwind CSS with custom design system
+* Animations: Framer Motion for smooth interactions
 
-Real-time multi-user collaboration (e.g., Google Docs-style simultaneous editing).
-Complex folder structures or advanced file organization features.
-Extensive third-party app integrations.
-Advanced document layout and print design options (beyond clean PDF export).
-Offline mode.
-Public API for third-party developers.
+6.2. Backend & AI Integration
+* API Routes: Next.js API routes for AI processing
+* AI Provider: Integration with OpenAI or similar LLM provider
+* Prompt Engineering: Optimized prompts for text transformation tasks
+* Context Management: Document-aware AI processing
+
+6.3. Data & Storage
+* Document Storage: JSON-based document format
+* User Data: Basic user accounts and document persistence
+* Real-time Updates: Optimistic updates with error handling
+
+7. User Interface Design
+
+7.1. Design System
+* Neumorphic/3D button design with black borders and shadows
+* Clean typography with Montserrat font family
+* Consistent spacing and layout patterns
+* Accessible color contrast and interactive states
+
+7.2. Key UI Components
+* Fixed top navigation with smooth scroll to sections
+* Hero section with clear value proposition and demo
+* Interactive demo showing the AI editing workflow
+* Feature grid highlighting core capabilities
+* Simple pricing section with clear value proposition
+
+8. Success Metrics
+
+8.1. User Engagement
+* Time spent in editor per session
+* Number of AI commands used per document
+* Document creation and completion rates
+* User retention and return visits
+
+8.2. Product Performance
+* AI response time and accuracy
+* User satisfaction with AI suggestions
+* Feature adoption rates (command palette usage)
+* Error rates and user support requests
+
+9. Current Implementation Status
+
+9.1. Completed Features
+* ✅ Rich text editor with TipTap/ProseMirror
+* ✅ AI command palette with ⌘K shortcut
+* ✅ Text selection and context tracking
+* ✅ AI text transformation API integration
+* ✅ Accept/Reject suggestion workflow
+* ✅ Modern homepage with demo and features
+* ✅ Responsive design and mobile support
+* ✅ Document statistics and formatting tools
+
+9.2. In Development
+* 🔄 Document persistence and user accounts
+* 🔄 Export functionality (PDF, Markdown)
+* 🔄 Enhanced AI prompt engineering
+* 🔄 Document sharing capabilities
+
+9.3. Future Roadmap
+* 📋 Real-time collaboration features
+* 📋 Advanced AI capabilities (document chat, summarization)
+* 📋 Team workspaces and document organization
+* 📋 Third-party integrations and API access
+
+10. Out of Scope (Initial Version)
+
+* Complex document templates and layouts
+* Advanced print design and formatting
+* Real-time multi-user collaboration
+* Offline mode and sync
+* Advanced folder structures
+* Public API for third-party developers
+* Complex media handling beyond basic images
+
+11. Competitive Positioning
+
+BetterWrite positions itself as the modern alternative to Microsoft Word, focusing on:
+* AI-powered editing vs. manual formatting
+* Natural language commands vs. complex menus
+* Context-aware intelligence vs. basic spell-check
+* Modern, clean interface vs. cluttered traditional UI
+* Instant results vs. learning curve
+
+The product targets users who want the power of AI assistance without the complexity of traditional word processors, offering a streamlined writing experience that prioritizes content creation over feature complexity.
