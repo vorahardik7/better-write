@@ -2,7 +2,6 @@
 
 import { motion } from 'motion/react';
 import { DemoTextEditor } from '@/components/editor/demo-text-editor';
-import { FileText } from 'lucide-react';
 
 export default function EditorPage() {
   return (

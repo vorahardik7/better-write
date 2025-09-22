@@ -24,7 +24,6 @@ import { Sparkles, Zap, Type, MousePointer, Bold, Italic, List, ListOrdered, Quo
 
 export function DemoTextEditor() {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
   const [showMobileMore, setShowMobileMore] = useState(false);
   const { 
     content, 
@@ -85,8 +84,6 @@ export function DemoTextEditor() {
         setSelection(null);
       }
     },
-    onFocus: () => setIsFocused(true),
-    onBlur: () => setIsFocused(false),
   });
 
   // Set editor reference in store when editor is ready

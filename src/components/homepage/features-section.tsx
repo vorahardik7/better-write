@@ -1,7 +1,6 @@
 'use client';
 
 import { motion } from 'motion/react';
-import { Wand2 } from 'lucide-react';
 
 const features = [
   {

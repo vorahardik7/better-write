@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'motion/react';
 import { useState, useEffect } from 'react';
-import { Command, Sparkles, Check, X, Pause, Play } from 'lucide-react';
+import { Command, Check, X, Pause, Play } from 'lucide-react';
 
 const demoSteps = [
   {
