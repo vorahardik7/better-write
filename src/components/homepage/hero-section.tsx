@@ -24,7 +24,7 @@ export function HeroSection() {
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
           >
             <Sparkles className="w-5 h-5 text-blue-600" />
-            <span className="font-semibold text-gray-800">VibeDoc</span>
+            <span className="font-semibold text-gray-800">BetterWrite</span>
           </motion.div>
         </motion.div>
 
@@ -65,7 +65,7 @@ export function HeroSection() {
               whileTap={{ y: 0 }}
             >
               <div className="flex items-center gap-2 justify-center">
-                Try VibeDoc
+                Try BetterWrite
                 <motion.span
                   animate={{ x: [0, 5, 0] }}
                   transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}

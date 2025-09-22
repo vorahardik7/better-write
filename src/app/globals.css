@@ -2,6 +2,11 @@
 @import '../styles/_variables.scss';                                       
 @import '../styles/_keyframe-animations.scss';      
 
+/* Global font family using Next Font variable */
+html {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
 /* Background Pattern */
 .bg-pattern {
   background-color: #f8fafc;

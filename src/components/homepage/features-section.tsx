@@ -38,7 +38,7 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section className="py-12 bg-pattern">
+    <section id="features" className="py-12 bg-pattern">
       <div className="max-w-7xl mx-auto px-6">
         {/* Section Header */}
         <motion.div
@@ -48,13 +48,6 @@ export function FeaturesSection() {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <motion.div
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full border-2 border-black bg-white text-black text-sm font-semibold mb-4 cursor-pointer shadow-[3px_3px_0_#000]"
-            whileHover={{ scale: 1.05 }}
-          >
-            <Wand2 className="w-4 h-4" />
-            Features
-          </motion.div>
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
             Document editing, 
             <span className="text-blue-600"> simplified</span>

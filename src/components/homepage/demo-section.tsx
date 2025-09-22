@@ -106,7 +106,7 @@ export function DemoSection() {
   };
 
   return (
-    <section className="py-24 bg-pattern">
+    <section id="demo" className="py-24 bg-pattern">
       <div className="max-w-7xl mx-auto px-6">
         {/* Section Header */}
         <motion.div
@@ -116,18 +116,11 @@ export function DemoSection() {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <motion.div
-            className="inline-flex items-center gap-2 px-3 py-1 bg-white border-2 border-black text-black rounded-full text-sm font-semibold mb-4 cursor-pointer shadow-[3px_3px_0_#000]"
-            whileHover={{ scale: 1.05 }}
-          >
-            <Sparkles className="w-4 h-4" />
-            See It In Action
-          </motion.div>
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
             Watch the magic happen
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            See how VibeDoc transforms your writing with simple, natural instructions
+            See how BetterWrite transforms your writing with simple, natural instructions
           </p>
         </motion.div>
 
@@ -150,7 +143,7 @@ export function DemoSection() {
                     <div className="w-3 h-3 bg-yellow-400 rounded-full cursor-pointer"></div>
                     <div className="w-3 h-3 bg-green-400 rounded-full cursor-pointer"></div>
                   </div>
-                  <span className="text-sm font-semibold text-black">VibeDoc Editor</span>
+                  <span className="text-sm font-semibold text-black">BetterWrite Editor</span>
                 </div>
                 <div className="flex items-center gap-3 w-1/2">
                   <div className="text-xs text-gray-500 whitespace-nowrap">
