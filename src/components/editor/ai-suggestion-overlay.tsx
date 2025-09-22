@@ -69,9 +69,9 @@ export function AISuggestionOverlay() {
         exit={{ opacity: 0, scale: 0.9, y: 10 }}
         className="fixed bottom-8 left-8 z-50"
       >
-        <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-lg max-w-sm">
+        <div className="bg-white border-2 border-black rounded-xl p-4 shadow-[6px_6px_0_#000] max-w-sm">
           <div className="flex items-center gap-3">
-            <div className="bg-blue-50 border border-blue-100 p-2 rounded-lg shadow-sm">
+            <div className="bg-blue-100 border-2 border-black p-2 rounded-lg shadow-[3px_3px_0_#000]">
               <Brain className="w-5 h-5 text-blue-700" />
             </div>
             <div>
@@ -80,20 +80,20 @@ export function AISuggestionOverlay() {
                   {[0, 1, 2].map((i) => (
                     <motion.div
                       key={i}
-                      className="w-1.5 h-1.5 bg-blue-600 rounded-full"
-                      animate={{ opacity: [0.3, 1, 0.3] }}
+                      className="w-2 h-2 bg-black rounded-full"
+                      animate={{ y: [0, -3, 0] }}
                       transition={{
-                        duration: 1.5,
+                        duration: 0.8,
                         repeat: Infinity,
-                        delay: i * 0.2,
+                        delay: i * 0.08,
                         ease: "easeInOut"
                       }}
                     />
                   ))}
                 </div>
-                <span className="text-sm font-medium text-gray-700">AI is thinking...</span>
+                <span className="text-sm font-bold text-gray-900">Thinking…</span>
               </div>
-              <p className="text-xs text-gray-600 mt-1">Processing your request</p>
+              <p className="text-[11px] text-gray-700 mt-1">Preparing a refined suggestion</p>
             </div>
           </div>
         </div>
@@ -112,7 +112,7 @@ export function AISuggestionOverlay() {
         transition={{ duration: 0.2 }}
         className="fixed bottom-8 left-8 z-50 w-[min(32rem,90vw)]"
       >
-        <div className="bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
+        <div className="bg-white border-2 border-black rounded-xl shadow-[6px_6px_0_#000] overflow-hidden">
           {/* Header */}
           <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
             <div className="flex items-center gap-2">
@@ -158,10 +158,10 @@ export function AISuggestionOverlay() {
                     </div>
                   )}
                 </div>
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-                  <p className="text-sm text-gray-800">
-                    {suggestionPreview?.preview || aiSuggestion.suggestedText}
-                  </p>
+                <div className="p-3 bg-emerald-50 border-2 border-black rounded-lg max-h-60 overflow-auto">
+                  <div className="text-sm text-gray-800 whitespace-pre-wrap break-words">
+                    {aiSuggestion.suggestedText}
+                  </div>
                 </div>
               </div>
             </div>
@@ -170,7 +170,7 @@ export function AISuggestionOverlay() {
             <div className="flex gap-2 pt-1">
               <button
                 onClick={acceptSuggestion}
-                className="flex-1 font-semibold bg-emerald-600 text-white rounded-lg shadow-sm px-3 py-2.5 hover:bg-emerald-700 transition-colors"
+                className="flex-1 font-semibold bg-emerald-100 text-black border-2 border-black rounded-lg shadow-[3px_3px_0_#000] px-3 py-2.5 hover:shadow-[4px_4px_0_#000] transition-all cursor-pointer"
               >
                 <div className="flex items-center justify-center gap-1.5">
                   <Check className="w-4 h-4" />
@@ -180,7 +180,7 @@ export function AISuggestionOverlay() {
 
               <button
                 onClick={rejectSuggestion}
-                className="flex-1 font-semibold bg-white border border-gray-300 rounded-lg shadow-sm px-3 py-2.5 hover:bg-gray-50 transition-colors"
+                className="flex-1 font-semibold bg-red-100 text-black border-2 border-black rounded-lg shadow-[3px_3px_0_#000] px-3 py-2.5 hover:shadow-[4px_4px_0_#000] transition-all cursor-pointer"
               >
                 <div className="flex items-center justify-center gap-1.5">
                   <X className="w-4 h-4" />

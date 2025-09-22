@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -20,11 +20,12 @@ import Link from '@tiptap/extension-link';
 import { useEditorStore } from '@/lib/store/editor-store';
 import { AICommandPalette } from './ai-command-palette';
 import { AISuggestionOverlay } from './ai-suggestion-overlay';
-import { Sparkles, Zap, Type, MousePointer, Bold, Italic, List, ListOrdered, Quote, Table as TableIcon, Image as ImageIcon, Heading1, Heading2, Heading3, AlertCircle, X, AlignLeft, AlignCenter, AlignRight, AlignJustify } from 'lucide-react';
+import { Sparkles, Zap, Type, MousePointer, Bold, Italic, List, ListOrdered, Quote, Table as TableIcon, Image as ImageIcon, Heading1, Heading2, Heading3, AlertCircle, X, AlignLeft, AlignCenter, AlignRight, AlignJustify, Undo2, Redo2, Underline as UnderlineIcon, Link2, Link2Off, Eraser, MoreHorizontal } from 'lucide-react';
 
 export function DemoTextEditor() {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const [showMobileMore, setShowMobileMore] = useState(false);
   const { 
     content, 
     setContent, 
@@ -61,6 +62,9 @@ export function DemoTextEditor() {
       Underline,
       Link.configure({
         openOnClick: false,
+        HTMLAttributes: {
+          class: 'text-blue-600 underline underline-offset-2 hover:text-blue-700 cursor-pointer',
+        },
       }),
     ],
     content: content,
@@ -99,6 +103,12 @@ export function DemoTextEditor() {
     }
   }, [content, editor]);
 
+  // Derived stats
+  const plainText = editor?.getText() || '';
+  const words = plainText.split(/\s+/).filter(w => w.length > 0).length;
+  const readingTimeMin = Math.max(1, Math.ceil(words / 200));
+  const selectedChars = selection?.text?.length || 0;
+
   // Text alignment helper functions
   const setTextAlignment = useCallback((alignment: 'left' | 'center' | 'right' | 'justify') => {
     if (!editor) return;
@@ -120,6 +130,81 @@ export function DemoTextEditor() {
       return false;
     }
   }, [editor]);
+
+  // Toolbar and formatting actions
+  const handleUndo = () => editor?.chain().focus().undo().run();
+  const handleRedo = () => editor?.chain().focus().redo().run();
+  const handleToggleUnderline = () => {
+    if (editor) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (editor.chain().focus() as any).toggleUnderline().run();
+      } catch {
+        console.warn('Underline not supported');
+      }
+    }
+  };
+  const handleToggleLink = () => {
+    if (!editor) return;
+    if (editor.isActive('link')) {
+      editor.chain().focus().unsetLink().run();
+      return;
+    }
+    const previousUrl = (editor.getAttributes('link')?.href as string | undefined) ?? undefined;
+    const url = window.prompt('Enter URL', previousUrl ?? 'https://');
+    if (!url) return;
+    try {
+      editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    } catch {
+      console.warn('Link not supported');
+    }
+  };
+  const handleClearFormatting = () => {
+    if (!editor) return;
+    editor.chain().focus().clearNodes().unsetAllMarks().run();
+  };
+
+  // Paste / Drag image handlers
+  const insertImageFromFile = useCallback((file: File) => {
+    if (!editor) return;
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const src = String(reader.result || '');
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (editor.chain().focus() as any).setImage?.({ src }).run();
+      } catch {
+        editor.chain().focus().insertContent(`<img src="${src}" alt="Image" class="rounded-lg shadow-sm max-w-full h-auto" />`).run();
+      }
+    };
+    reader.readAsDataURL(file);
+  }, [editor]);
+
+  const handlePaste = useCallback((e: React.ClipboardEvent<HTMLDivElement>) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.kind === 'file') {
+        const file = item.getAsFile();
+        if (file) insertImageFromFile(file);
+      }
+    }
+  }, [insertImageFromFile]);
+
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const files = e.dataTransfer?.files;
+    if (!files) return;
+    for (let i = 0; i < files.length; i++) {
+      insertImageFromFile(files[i]);
+    }
+  }, [insertImageFromFile]);
+
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  }, []);
 
   // Handle keyboard shortcuts
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -238,6 +323,14 @@ export function DemoTextEditor() {
           <span>Select text and press</span>
           <kbd className="px-1.5 py-0.5 bg-blue-50 border border-blue-200 rounded text-[10px] font-mono shadow-sm text-blue-800">⌘K</kbd>
           <span>for AI suggestions</span>
+          {selectedChars > 0 && (
+            <>
+              <span className="text-gray-300">•</span>
+              <span>{selectedChars} selected</span>
+            </>
+          )}
+          <span className="text-gray-300">•</span>
+          <span>~{readingTimeMin} min read</span>
         </div>
       </motion.div>
 
@@ -248,12 +341,39 @@ export function DemoTextEditor() {
         transition={{ duration: 0.3, delay: 0.1 }}
         className="flex items-center gap-2 px-4 sm:px-6 py-3 bg-white/90 backdrop-blur-sm border-b border-gray-100 overflow-x-auto"
       >
+        {/* Undo / Redo */}
+        <div className="flex items-center gap-1 border-r border-gray-200 pr-3">
+          <button
+            onClick={handleUndo}
+            className="btn-toolbar"
+            aria-label="Undo"
+          >
+            <div className="btn-shadow"></div>
+            <div className="btn-edge"></div>
+            <div className="btn-front">
+              <Undo2 className="w-4 h-4" />
+            </div>
+          </button>
+          <button
+            onClick={handleRedo}
+            className="btn-toolbar"
+            aria-label="Redo"
+          >
+            <div className="btn-shadow"></div>
+            <div className="btn-edge"></div>
+            <div className="btn-front">
+              <Redo2 className="w-4 h-4" />
+            </div>
+          </button>
+        </div>
+
         {/* Text Formatting */}
         <div className="flex items-center gap-1 border-r border-gray-200 pr-3">
           <button
             onClick={() => editor?.chain().focus().toggleBold().run()}
-            className={`btn-toolbar ${editor?.isActive('bold') ? 'btn-active' : ''}`}
-            title="Bold"
+            className={`btn-toolbar ${editor?.isActive('bold') ? 'btn-active' : ''} cursor-pointer`}
+            aria-label="Bold"
+            aria-pressed={!!editor?.isActive('bold')}
           >
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
@@ -263,8 +383,9 @@ export function DemoTextEditor() {
           </button>
           <button
             onClick={() => editor?.chain().focus().toggleItalic().run()}
-            className={`btn-toolbar ${editor?.isActive('italic') ? 'btn-active' : ''}`}
-            title="Italic"
+            className={`btn-toolbar ${editor?.isActive('italic') ? 'btn-active' : ''} cursor-pointer`}
+            aria-label="Italic"
+            aria-pressed={!!editor?.isActive('italic')}
           >
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
@@ -273,23 +394,38 @@ export function DemoTextEditor() {
             </div>
           </button>
           <button
-            onClick={() => {
-              if (editor) {
-                try {
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  (editor.chain().focus() as any).toggleUnderline().run();
-                } catch {
-                  console.warn('Underline not supported');
-                }
-              }
-            }}
-            className={`btn-toolbar ${editor?.isActive('underline') ? 'btn-active' : ''}`}
-            title="Underline"
+            onClick={handleToggleUnderline}
+            className={`btn-toolbar ${editor?.isActive('underline') ? 'btn-active' : ''} cursor-pointer`}
+            aria-label="Underline"
+            aria-pressed={!!editor?.isActive('underline')}
           >
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
             <div className="btn-front">
-              <Type className="w-4 h-4" />
+              <UnderlineIcon className="w-4 h-4" />
+            </div>
+          </button>
+          <button
+            onClick={handleToggleLink}
+            className={`btn-toolbar ${editor?.isActive('link') ? 'btn-active' : ''} cursor-pointer`}
+            aria-label={editor?.isActive('link') ? 'Remove Link' : 'Add Link'}
+            aria-pressed={!!editor?.isActive('link')}
+          >
+            <div className="btn-shadow"></div>
+            <div className="btn-edge"></div>
+            <div className="btn-front">
+              {editor?.isActive('link') ? <Link2Off className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
+            </div>
+          </button>
+          <button
+            onClick={handleClearFormatting}
+            className="btn-toolbar cursor-pointer"
+            aria-label="Clear formatting"
+          >
+            <div className="btn-shadow"></div>
+            <div className="btn-edge"></div>
+            <div className="btn-front">
+              <Eraser className="w-4 h-4" />
             </div>
           </button>
         </div>
@@ -298,8 +434,8 @@ export function DemoTextEditor() {
         <div className="flex items-center gap-1 border-r border-gray-200 pr-3">
           <button
             onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-            className={`btn-toolbar ${editor?.isActive('heading', { level: 1 }) ? 'btn-active' : ''}`}
-            title="Heading 1"
+            className={`btn-toolbar ${editor?.isActive('heading', { level: 1 }) ? 'btn-active' : ''} cursor-pointer`}
+            aria-pressed={!!editor?.isActive('heading', { level: 1 })}
           >
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
@@ -309,8 +445,8 @@ export function DemoTextEditor() {
           </button>
           <button
             onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-            className={`btn-toolbar ${editor?.isActive('heading', { level: 2 }) ? 'btn-active' : ''}`}
-            title="Heading 2"
+            className={`btn-toolbar ${editor?.isActive('heading', { level: 2 }) ? 'btn-active' : ''} cursor-pointer`}
+            aria-pressed={!!editor?.isActive('heading', { level: 2 })}
           >
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
@@ -320,8 +456,8 @@ export function DemoTextEditor() {
           </button>
           <button
             onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
-            className={`btn-toolbar ${editor?.isActive('heading', { level: 3 }) ? 'btn-active' : ''}`}
-            title="Heading 3"
+            className={`btn-toolbar ${editor?.isActive('heading', { level: 3 }) ? 'btn-active' : ''} cursor-pointer`}
+            aria-pressed={!!editor?.isActive('heading', { level: 3 })}
           >
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
@@ -335,8 +471,8 @@ export function DemoTextEditor() {
         <div className="flex items-center gap-1 border-r border-gray-200 pr-3">
           <button
             onClick={() => editor?.chain().focus().toggleBulletList().run()}
-            className={`btn-toolbar ${editor?.isActive('bulletList') ? 'btn-active' : ''}`}
-            title="Bullet List"
+            className={`btn-toolbar ${editor?.isActive('bulletList') ? 'btn-active' : ''} cursor-pointer`}
+            aria-pressed={!!editor?.isActive('bulletList')}
           >
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
@@ -346,8 +482,8 @@ export function DemoTextEditor() {
           </button>
           <button
             onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-            className={`btn-toolbar ${editor?.isActive('orderedList') ? 'btn-active' : ''}`}
-            title="Numbered List"
+            className={`btn-toolbar ${editor?.isActive('orderedList') ? 'btn-active' : ''} cursor-pointer`}
+            aria-pressed={!!editor?.isActive('orderedList')}
           >
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
@@ -357,8 +493,8 @@ export function DemoTextEditor() {
           </button>
           <button
             onClick={() => editor?.chain().focus().toggleBlockquote().run()}
-            className={`btn-toolbar ${editor?.isActive('blockquote') ? 'btn-active' : ''}`}
-            title="Quote"
+            className={`btn-toolbar ${editor?.isActive('blockquote') ? 'btn-active' : ''} cursor-pointer`}
+            aria-pressed={!!editor?.isActive('blockquote')}
           >
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
@@ -372,8 +508,8 @@ export function DemoTextEditor() {
         <div className="flex items-center gap-1 border-r border-gray-200 pr-3">
           <button
             onClick={() => setTextAlignment('left')}
-            className={`btn-toolbar ${editor?.isActive({ textAlign: 'left' }) ? 'btn-active' : ''}`}
-            title="Align Left (Cmd+Shift+L)"
+            className={`btn-toolbar ${editor?.isActive({ textAlign: 'left' }) ? 'btn-active' : ''} cursor-pointer`}
+            aria-pressed={!!editor?.isActive({ textAlign: 'left' })}
             disabled={!canSetTextAlignment('left')}
           >
             <div className="btn-shadow"></div>
@@ -384,8 +520,8 @@ export function DemoTextEditor() {
           </button>
           <button
             onClick={() => setTextAlignment('center')}
-            className={`btn-toolbar ${editor?.isActive({ textAlign: 'center' }) ? 'btn-active' : ''}`}
-            title="Align Center (Cmd+Shift+E)"
+            className={`btn-toolbar ${editor?.isActive({ textAlign: 'center' }) ? 'btn-active' : ''} cursor-pointer`}
+            aria-pressed={!!editor?.isActive({ textAlign: 'center' })}
             disabled={!canSetTextAlignment('center')}
           >
             <div className="btn-shadow"></div>
@@ -396,8 +532,8 @@ export function DemoTextEditor() {
           </button>
           <button
             onClick={() => setTextAlignment('right')}
-            className={`btn-toolbar ${editor?.isActive({ textAlign: 'right' }) ? 'btn-active' : ''}`}
-            title="Align Right (Cmd+Shift+R)"
+            className={`btn-toolbar ${editor?.isActive({ textAlign: 'right' }) ? 'btn-active' : ''} cursor-pointer`}
+            aria-pressed={!!editor?.isActive({ textAlign: 'right' })}
             disabled={!canSetTextAlignment('right')}
           >
             <div className="btn-shadow"></div>
@@ -408,8 +544,8 @@ export function DemoTextEditor() {
           </button>
           <button
             onClick={() => setTextAlignment('justify')}
-            className={`btn-toolbar ${editor?.isActive({ textAlign: 'justify' }) ? 'btn-active' : ''}`}
-            title="Justify (Cmd+Shift+J)"
+            className={`btn-toolbar ${editor?.isActive({ textAlign: 'justify' }) ? 'btn-active' : ''} cursor-pointer`}
+            aria-pressed={!!editor?.isActive({ textAlign: 'justify' })}
             disabled={!canSetTextAlignment('justify')}
           >
             <div className="btn-shadow"></div>
@@ -421,11 +557,11 @@ export function DemoTextEditor() {
         </div>
 
         {/* Insert Elements */}
-        <div className="flex items-center gap-1">
+        <div className="hidden sm:flex items-center gap-1">
           <button
             onClick={addTable}
             className="btn-toolbar"
-            title="Insert Table"
+            aria-label="Insert Table"
           >
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
@@ -436,7 +572,7 @@ export function DemoTextEditor() {
           <button
             onClick={addImage}
             className="btn-toolbar"
-            title="Insert Image"
+            aria-label="Insert Image"
           >
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
@@ -444,6 +580,40 @@ export function DemoTextEditor() {
               <ImageIcon className="w-4 h-4" />
             </div>
           </button>
+        </div>
+
+        {/* Mobile More Menu */}
+        <div className="sm:hidden relative">
+          <button
+            onClick={() => setShowMobileMore(v => !v)}
+            className="btn-toolbar"
+            aria-label="More"
+          >
+            <div className="btn-shadow"></div>
+            <div className="btn-edge"></div>
+            <div className="btn-front">
+              <MoreHorizontal className="w-4 h-4" />
+            </div>
+          </button>
+          {showMobileMore && (
+            <div className="absolute z-20 mt-2 left-0 bg-white border border-gray-200 rounded-md shadow-lg p-2 grid grid-cols-3 gap-1">
+              <button onClick={addTable} className="btn-toolbar" aria-label="Insert Table">
+                <div className="btn-shadow"></div>
+                <div className="btn-edge"></div>
+                <div className="btn-front"><TableIcon className="w-4 h-4" /></div>
+              </button>
+              <button onClick={addImage} className="btn-toolbar" aria-label="Insert Image">
+                <div className="btn-shadow"></div>
+                <div className="btn-edge"></div>
+                <div className="btn-front"><ImageIcon className="w-4 h-4" /></div>
+              </button>
+              <button onClick={() => setShowMobileMore(false)} className="btn-toolbar" aria-label="Close">
+                <div className="btn-shadow"></div>
+                <div className="btn-edge"></div>
+                <div className="btn-front"><X className="w-4 h-4" /></div>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Table Controls - Show only when inside a table */}
@@ -509,8 +679,10 @@ export function DemoTextEditor() {
       </motion.div>
 
       {/* Rich Text Editor */}
-      <div className="flex-1 relative bg-white overflow-auto">
+      <div className="flex-1 relative bg-white overflow-auto" onPaste={handlePaste} onDrop={handleDrop} onDragOver={handleDragOver}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full">
+          {/* Custom floating selection toolbar */}
+          {false}
           <EditorContent 
             editor={editor}
             className="prose prose-lg max-w-none focus:outline-none h-full"
