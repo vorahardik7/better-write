@@ -1,7 +1,8 @@
 'use client';
+import { signIn } from 'next-auth/react';
 
 import { motion } from 'motion/react';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 export function HeroSection() {
@@ -11,23 +12,6 @@ export function HeroSection() {
       <div className="absolute inset-0" />
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 text-center">
-        {/* Logo/Brand */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="mb-8"
-        >
-          <motion.div
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full border-2 border-black shadow-[3px_3px_0_#000] cursor-pointer"
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 400, damping: 10 }}
-          >
-            <Sparkles className="w-5 h-5 text-blue-600" />
-            <span className="font-semibold text-gray-800">BetterWrite</span>
-          </motion.div>
-        </motion.div>
-
         {/* Main Headline */}
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
@@ -81,6 +65,7 @@ export function HeroSection() {
             whileHover={{ y: -2 }}
             whileTap={{ y: 0 }}
             aria-label="Continue with Google"
+            onClick={() => signIn('google', { redirectTo: '/dashboard' })}
           >
             <div className="flex items-center gap-2 justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-5 h-5">

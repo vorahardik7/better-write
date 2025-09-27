@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'motion/react';
+import Image from 'next/image';
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -51,7 +52,7 @@ export function Navbar() {
             }}
           >
             <motion.div 
-              className="font-bold text-xl"
+              className="flex items-center gap-3 font-bold text-2xl"
               animate={{
                 color: scrolled ? '#000000' : '#1f2937',
               }}
@@ -60,9 +61,18 @@ export function Navbar() {
                 ease: 'easeInOut'
               }}
             >
+              <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100">
+                <Image
+                  src="/better-write.ico"
+                  alt="BetterWrite Logo"
+                  width={32}
+                  height={32}
+                  className="w-full h-full object-cover"
+                />
+              </div>
               BetterWrite
             </motion.div>
-            <nav className="hidden md:flex items-center gap-6 text-md">
+            <nav className="hidden md:flex items-center gap-6 text-md font-bold">
               {navItems.map((item) => (
                 <motion.a
                   key={item.href}

@@ -3,6 +3,7 @@ import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { SessionProvider } from "next-auth/react"
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -36,9 +37,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${montserrat.variable} scroll-smooth`}>
       <body className={`antialiased`}>
-        <Analytics />
-        <SpeedInsights />
-        {children}
+        <SessionProvider>
+          <Analytics />
+          <SpeedInsights />
+          {children}
+        </SessionProvider>
       </body>
     </html>
   );
