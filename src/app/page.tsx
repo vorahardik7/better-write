@@ -6,13 +6,12 @@ import { Navbar } from '@/components/homepage/navbar';
 
 export default function Home() {
   return (
-    <main className="min-h-screen">
+    <main className="bg-white text-slate-900">
       <Navbar />
       <HeroSection />
       <FeaturesSection />
       <DemoSection />
       <PricingSection />
-      
     </main>
   );
 }

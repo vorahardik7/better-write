@@ -13,18 +13,18 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "BetterWrite - AI-Powered Document Editor",
+  title: "BetterWrite",
   description: "The next-generation document editor that understands your intent. Write with AI magic.",
   keywords: ["AI", "document editor", "writing", "text editor", "artificial intelligence"],
   authors: [{ name: "BetterWrite Team" }],
   openGraph: {
-    title: "BetterWrite - AI-Powered Document Editor",
+    title: "BetterWrite",
     description: "Write with AI magic. Select text, describe what you want, and watch AI transform your ideas instantly.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "BetterWrite - AI-Powered Document Editor",
+    title: "BetterWrite",
     description: "Write with AI magic. The future of document editing is here.",
   },
 };

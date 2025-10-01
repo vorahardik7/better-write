@@ -34,65 +34,57 @@ export function Navbar() {
   }, []);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50">
-      <div className="max-w-3xl mx-auto px-6">
-        <div className="py-4">
-          <motion.div 
-            className="flex items-center justify-between px-4 h-16"
-            animate={{
-              backgroundColor: scrolled ? '#ffffff' : 'transparent',
-              borderWidth: scrolled ? '2px' : '0px',
-              borderColor: scrolled ? '#000000' : 'transparent',
-              borderRadius: scrolled ? '12px' : '0px',
-              boxShadow: scrolled ? '6px 6px 0 #000000' : 'none',
-            }}
-            transition={{
-              duration: 0.3,
-              ease: 'easeInOut'
-            }}
+    <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-5">
+      <div className="pointer-events-auto w-full max-w-5xl">
+        <motion.div
+          className="flex h-16 items-center justify-between rounded-full border border-black/5 bg-white/80 px-6 backdrop-blur transition"
+          animate={{
+            boxShadow: scrolled ? '0px 25px 60px rgba(15,23,42,0.12)' : '0px 12px 30px rgba(15,23,42,0)',
+            opacity: scrolled ? 1 : 1,
+          }}
+          transition={{ duration: 0.3, ease: 'easeInOut' }}
+        >
+          <motion.div
+            className="flex items-center gap-3 text-base font-semibold text-slate-900"
+            animate={{ opacity: scrolled ? 0.92 : 1 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
           >
-            <motion.div 
-              className="flex items-center gap-3 font-bold text-2xl"
-              animate={{
-                color: scrolled ? '#000000' : '#1f2937',
-              }}
-              transition={{
-                duration: 0.3,
-                ease: 'easeInOut'
-              }}
-            >
-              <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100">
-                <Image
-                  src="/better-write.ico"
-                  alt="BetterWrite Logo"
-                  width={32}
-                  height={32}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              BetterWrite
-            </motion.div>
-            <nav className="hidden md:flex items-center gap-6 text-md font-bold">
-              {navItems.map((item) => (
-                <motion.a
-                  key={item.href}
-                  href={item.href}
-                  onClick={(e) => handleClick(e, item.href)}
-                  className="hover:underline cursor-pointer"
-                  animate={{
-                    color: scrolled ? '#000000' : '#4b5563',
-                  }}
-                  transition={{
-                    duration: 0.3,
-                    ease: 'easeInOut'
-                  }}
-                >
-                  {item.label}
-                </motion.a>
-              ))}
-            </nav>
+            <div className="flex h-10 w-10 items-center justify-center">
+              <Image
+                src="/better-write.ico"
+                alt="BetterWrite Logo"
+                width={28}
+                height={28}
+                className="h-6 w-6"
+              />
+            </div>
+            <div>
+              <span className="text-lg font-semibold text-slate-900">BetterWrite</span>
+            </div>
           </motion.div>
-        </div>
+          <nav className="hidden items-center gap-6 text-sm font-semibold text-slate-600 md:flex">
+            {navItems.map((item) => (
+              <motion.a
+                key={item.href}
+                href={item.href}
+                onClick={(e) => handleClick(e, item.href)}
+                className="transition hover:text-slate-900"
+                animate={{ color: scrolled ? '#0f172a' : '#475569' }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+              >
+                {item.label}
+              </motion.a>
+            ))}
+          </nav>
+          <div className="hidden items-center gap-3 md:flex">
+            <a
+              href="/editor"
+              className="inline-flex cursor-pointer items-center justify-center rounded-full border border-black/10 bg-white px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 transition hover:border-black/30 hover:text-slate-900"
+            >
+              Launch editor
+            </a>
+          </div>
+        </motion.div>
       </div>
     </div>
   );

@@ -1,347 +1,263 @@
 'use client';
 
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { useState, useEffect } from 'react';
-import { Command, Check, X, Pause, Play } from 'lucide-react';
 
 const demoSteps = [
   {
-    id: 1,
-    action: "Start writing",
-    originalText: "Our new product launch went well last month.",
-    selectedText: "",
-    prompt: "",
-    suggestion: "",
-    showPalette: false
+    step: 1,
+    title: 'Select text',
+    description: 'Highlight the text you want to transform',
+    originalText: 'Our Q3 product launch went well last month.',
+    isSelected: false,
   },
   {
-    id: 2,
-    action: "Select text",
-    originalText: "Our new product launch went well last month.",
-    selectedText: "Our new product launch went well last month.",
-    prompt: "",
-    suggestion: "",
-    showPalette: false
+    step: 2,
+    title: 'Press ⌘K',
+    description: 'Open the AI palette and enter your prompt',
+    prompt: 'Make this sound more professional and include specific outcomes',
+    isSelected: false,
   },
   {
-    id: 3,
-    action: "Press ⌘K for AI",
-    originalText: "Our new product launch went well last month.",
-    selectedText: "Our new product launch went well last month.",
-    prompt: "",
-    suggestion: "",
-    showPalette: true
+    step: 3,
+    title: 'AI suggestion',
+    description: 'Review the enhanced text suggestion',
+    suggestion: 'Our Q3 launch exceeded targets, achieving 150% of projected revenue and onboarding 2,847 new customers within the first month.',
+    isSelected: false,
   },
   {
-    id: 4,
-    action: "Tell AI what you want",
-    originalText: "Our new product launch went well last month.",
-    selectedText: "Our new product launch went well last month.",
-    prompt: "make this more professional with specific results",
-    suggestion: "",
-    showPalette: true
+    step: 4,
+    title: 'Accept changes',
+    description: 'Apply the transformation with one click',
+    finalText: 'Our Q3 launch exceeded targets, achieving 150% of projected revenue and onboarding 2,847 new customers within the first month.',
+    isSelected: false,
   },
-  {
-    id: 5,
-    action: "AI suggests improvements",
-    originalText: "Our new product launch went well last month.",
-    selectedText: "Our new product launch went well last month.",
-    prompt: "make this more professional with specific results",
-    suggestion: "Our Q3 product launch exceeded expectations, achieving 150% of projected sales targets and securing 2,847 new customers in the first 30 days.",
-    showPalette: true
-  },
-  {
-    id: 6,
-    action: "Accept and continue writing",
-    originalText: "Our Q3 product launch exceeded expectations, achieving 150% of projected sales targets and securing 2,847 new customers in the first 30 days.",
-    selectedText: "",
-    prompt: "",
-    suggestion: "",
-    showPalette: false
-  }
 ];
 
 export function DemoSection() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
 
-  // Auto-play continuously with faster timing
   useEffect(() => {
-    if (!isPlaying) return;
-    const timer = setTimeout(() => {
-      if (currentStep < demoSteps.length - 1) {
-        setCurrentStep(prev => prev + 1);
-      } else {
-        setCurrentStep(0);
-      }
-    }, currentStep === 4 ? 2500 : 1800); // Faster transitions
+    const interval = setInterval(() => {
+      setCurrentStep((prev) => (prev + 1) % demoSteps.length);
+    }, 3000);
 
-    return () => clearTimeout(timer);
-  }, [currentStep, isPlaying]);
-
-  const step = demoSteps[currentStep];
-  const textContentKey = step.selectedText ? `sel:${step.selectedText}` : `raw:${step.originalText}`;
-
-  const isActionActive = (action: string, prompt: string) => {
-    const actionKeywords: Record<string, string[]> = {
-      'Make formal': ['formal', 'professional', 'business', 'polished'],
-      'Fix grammar': ['grammar', 'typo', 'spelling', 'correct', 'punctuation'],
-    };
-    const normalized = (prompt || '').toLowerCase();
-    return (actionKeywords[action] || []).some((k) => normalized.includes(k));
-  };
-
-  const handleAccept = () => {
-    if (step.suggestion) {
-      setIsPlaying(false);
-      setCurrentStep(demoSteps.length - 1);
-    }
-  };
-
-  const handleReject = () => {
-    if (step.suggestion) {
-      setIsPlaying(false);
-      setCurrentStep(3); // Back to "Tell AI what you want"
-    }
-  };
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <section id="demo" className="py-24 bg-pattern">
-      <div className="max-w-7xl mx-auto px-6">
-        {/* Section Header */}
+    <section id="demo" className="bg-[#f5f4f0] py-24">
+      <div className="mx-auto max-w-6xl px-6">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.6 }}
+          className="mx-auto max-w-3xl text-center"
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Watch the magic happen
+          <span className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+            How it works
+          </span>
+          <h2 className="mt-6 text-4xl font-semibold leading-[1.05] text-slate-900 sm:text-5xl">
+            Watch the AI palette elevate your document in seconds
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            See how BetterWrite transforms your writing with simple, natural instructions
+          <p className="mt-4 text-lg font-medium text-slate-600">
+            See how BetterWrite transforms your writing with intelligent suggestions and seamless integration.
           </p>
         </motion.div>
 
-        {/* Demo Interface - Side by Side Layout */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="max-w-6xl mx-auto"
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.6, delay: 0.12 }}
+          className="mx-auto mt-14 grid max-w-6xl gap-8 lg:grid-cols-2"
         >
-          <div className="flex gap-6 h-[500px]">
-            {/* Editor Mock - Left Side */}
-            <div className="flex-1 bg-white rounded-xl shadow-[6px_6px_0_#000] overflow-hidden border-2 border-black">
-              {/* Editor Header */}
-              <div className="flex items-center justify-between p-4 border-b-2 border-black bg-neutral-100">
-                <div className="flex items-center gap-3">
-                  <div className="flex gap-2">
-                    <div className="w-3 h-3 bg-red-400 rounded-full cursor-pointer"></div>
-                    <div className="w-3 h-3 bg-yellow-400 rounded-full cursor-pointer"></div>
-                    <div className="w-3 h-3 bg-green-400 rounded-full cursor-pointer"></div>
-                  </div>
-                  <span className="text-sm font-semibold text-black">BetterWrite Editor</span>
-                </div>
-                <div className="flex items-center gap-3 w-1/2">
-                  <div className="text-xs text-gray-500 whitespace-nowrap">
-                    Step {currentStep + 1} of {demoSteps.length}: {step.action}
-                  </div>
-                  <div className="flex-1 h-2 rounded-full border-2 border-black bg-white overflow-hidden">
-                    <motion.div
-                      className="h-full bg-black"
-                      initial={false}
-                      animate={{ width: `${((currentStep + 1) / demoSteps.length) * 100}%` }}
-                      transition={{ duration: 0.25 }}
+          {/* Interactive Demo Card */}
+          <div className="rounded-[28px] border border-black/5 bg-white p-8 shadow-[0_32px_80px_rgba(15,23,42,0.08)]">
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-slate-900">Interactive Demo</h3>
+              <p className="mt-2 text-sm text-slate-600">Watch the transformation in action</p>
+            </div>
+            
+            <div className="rounded-2xl border border-black/10 bg-[#f8fafc] p-6">
+              {/* Step indicator */}
+              <div className="mb-6 flex items-center justify-between">
+                <div className="flex gap-2">
+                  {demoSteps.map((_, index) => (
+                    <div
+                      key={index}
+                      className={`h-2 w-8 rounded-full transition-all duration-300 ${
+                        index <= currentStep ? 'bg-slate-900' : 'bg-slate-200'
+                      }`}
                     />
-                  </div>
-                  <button
-                    className="inline-flex items-center justify-center w-7 h-7 border-2 border-black rounded-md bg-white shadow-[2px_2px_0_#000] hover:shadow-[3px_3px_0_#000] transition-all duration-150 cursor-pointer"
-                    aria-label={isPlaying ? 'Pause demo autoplay' : 'Play demo autoplay'}
-                    onClick={() => setIsPlaying((p) => !p)}
-                  >
-                    {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-                  </button>
+                  ))}
                 </div>
+                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                  Step {currentStep + 1} of {demoSteps.length}
+                </span>
               </div>
 
-              {/* Editor Content */}
-              <div className="p-8 h-[calc(100%-4rem)] flex flex-col">
-                <div className="prose max-w-none flex-1">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={textContentKey}
-                      className="text-lg leading-relaxed"
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -6 }}
-                      transition={{ duration: 0.18 }}
-                    >
-                      {step.selectedText ? (
-                        <>
-                          <motion.span 
-                            className="bg-yellow-200 border-2 border-black rounded px-1 cursor-pointer"
-                            initial={{ backgroundColor: "#fef3c7" }}
-                            animate={{ backgroundColor: step.selectedText ? "#fde047" : "#fef3c7" }}
-                            transition={{ duration: 0.3 }}
-                          >
-                            {step.selectedText}
-                          </motion.span>
-                          <span className="text-gray-700">
-                            {step.originalText.slice(step.selectedText.length)}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-gray-700">{step.originalText}</span>
-                      )}
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
+              {/* Demo content */}
+              <div className="min-h-[300px] space-y-4">
+                {currentStep === 0 && (
+                  <motion.div
+                    key="step-0"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                    className="space-y-3"
+                  >
+                    <div className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                      Original text
+                    </div>
+                    <div className="relative">
+                      <p className="rounded-2xl border-2 border-blue-200 bg-blue-50 p-4 text-sm font-medium text-slate-700">
+                        {demoSteps[0].originalText}
+                      </p>
+                      <div className="absolute -top-2 -right-2 rounded-full bg-blue-500 px-2 py-1 text-xs font-semibold text-white">
+                        Selected
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                        <span>Press ⌘K to continue</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
 
-                {/* Selection Indicator */}
-                <div className="h-12 flex items-end">
-                  <AnimatePresence>
-                    {step.selectedText && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded-lg inline-block"
-                      >
-                        {step.selectedText.length} characters selected • Press ⌘K for AI
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                {currentStep === 1 && (
+                  <motion.div
+                    key="step-1"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                    className="space-y-3"
+                  >
+                    <div className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                      AI Palette
+                    </div>
+                    <div className="rounded-2xl border-2 border-green-200 bg-green-50 p-4">
+                      <div className="mb-2 text-xs font-semibold text-green-700">Your prompt:</div>
+                      <p className="text-sm font-medium text-slate-700">
+                        {demoSteps[1].prompt}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                        <span>Processing...</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {currentStep === 2 && (
+                  <motion.div
+                    key="step-2"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                    className="space-y-3"
+                  >
+                    <div className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                      AI Suggestion
+                    </div>
+                    <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-4">
+                      <p className="text-sm font-medium leading-6 text-slate-700">
+                        {demoSteps[2].suggestion}
+                      </p>
+                    </div>
+                    <div className="flex gap-3">
+                      <button className="flex-1 rounded-full border border-black/10 bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-black">
+                        Accept
+                      </button>
+                      <button className="flex-1 rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-black/20">
+                        Ask again
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {currentStep === 3 && (
+                  <motion.div
+                    key="step-3"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                    className="space-y-3"
+                  >
+                    <div className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                      Final Result
+                    </div>
+                    <div className="rounded-2xl border-2 border-green-200 bg-green-50 p-4">
+                      <p className="text-sm font-medium leading-6 text-slate-700">
+                        {demoSteps[3].finalText}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-2 text-xs font-semibold text-green-700">
+                        <span>✓ Transformation complete</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Features Card */}
+          <div className="space-y-6">
+            <div className="rounded-[28px] border border-black/5 bg-white p-6 shadow-[0_28px_70px_rgba(15,23,42,0.08)]">
+              <h3 className="text-lg font-semibold text-slate-900">Key Features</h3>
+              <div className="mt-6 space-y-4">
+                <div className="flex gap-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-[#f5f4f0] text-sm font-semibold text-slate-900">
+                    01
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Smart Selection</p>
+                    <p className="mt-1 text-sm text-slate-600">Highlight any text to get contextual AI suggestions</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-[#f5f4f0] text-sm font-semibold text-slate-900">
+                    02
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Instant Palette</p>
+                    <p className="mt-1 text-sm text-slate-600">Press ⌘K to open the AI command palette instantly</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-[#f5f4f0] text-sm font-semibold text-slate-900">
+                    03
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">One-Click Apply</p>
+                    <p className="mt-1 text-sm text-slate-600">Accept or refine suggestions with a single click</p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Command Palette - Right Side */}
-            <div className="w-96">
-              <div className="h-full">
-                <div className="bg-white rounded-xl shadow-[6px_6px_0_#000] border-2 border-black h-full overflow-hidden">
-                  <div className="p-4 border-b-2 border-black">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-black">
-                      <Command className="w-4 h-4" />
-                      AI Assistant
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-col h-[calc(100%-4rem)]">
-                    <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                      {step.showPalette ? (
-                        <>
-                          {/* Quick Actions */}
-                          <div>
-                            <div className="text-xs font-medium text-gray-600 mb-2 uppercase tracking-wide">Quick Actions</div>
-                            <div className="grid grid-cols-2 gap-2">
-                              {[
-                                "Make formal",
-                                "Fix grammar",
-                              ].map((action) => {
-                                const active = isActionActive(action, step.prompt || '');
-                                return (
-                                  <motion.button
-                                    key={action}
-                                    className={`text-xs p-2 rounded border-2 border-black transition-all duration-200 cursor-pointer ${
-                                      active
-                                        ? 'bg-blue-100 shadow-[2px_2px_0_#000]'
-                                        : 'bg-gray-50 hover:bg-gray-100'
-                                    }`}
-                                    animate={{
-                                      scale: active ? 1.02 : 1
-                                    }}
-                                  >
-                                    {action}
-                                  </motion.button>
-                                );
-                              })}
-                            </div>
-                          </div>
-
-                          {/* Custom Input */}
-                          <div>
-                            <div className="text-xs font-medium text-gray-600 mb-2 uppercase tracking-wide">Custom Instruction</div>
-                            <motion.div 
-                              className="bg-gray-50 border-2 border-black rounded-lg p-3 text-sm min-h-[60px] flex items-center"
-                              animate={{
-                                backgroundColor: step.prompt ? "#dbeafe" : "#f9fafb"
-                              }}
-                              transition={{ duration: 0.3 }}
-                            >
-                              <motion.span
-                                className="text-gray-700"
-                                animate={{ opacity: step.prompt ? 1 : 0.5 }}
-                              >
-                                {step.prompt || "Describe what you want to do..."}
-                              </motion.span>
-                            </motion.div>
-                          </div>
-
-                          {/* AI Response */}
-                          <AnimatePresence>
-                            {step.suggestion && (
-                              <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
-                                exit={{ opacity: 0, height: 0 }}
-                                transition={{ duration: 0.4 }}
-                              >
-                                <div className="text-xs font-medium text-gray-600 mb-2 uppercase tracking-wide">AI Enhancement</div>
-                                <div className="bg-emerald-50 border-2 border-black p-3 rounded-lg">
-                                  <div className="text-sm text-emerald-800 leading-relaxed">{step.suggestion}</div>
-                                </div>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </>
-                      ) : (
-                        <div className="h-full flex items-center justify-center">
-                          <div className="text-sm text-gray-500">
-                            Select text and press <span className="font-semibold">⌘K</span> to open the AI Assistant
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Bottom Action Bar - always visible when suggestion exists */}
-                    {step.suggestion && (
-                      <div className="border-t-2 border-black p-3 bg-white shrink-0">
-                        <div className="flex gap-2">
-                          <motion.button 
-                            className="bg-emerald-100 border-2 border-black rounded-lg shadow-[3px_3px_0_#000] px-6 py-3 font-bold text-black hover:shadow-[4px_4px_0_#000] transition-all duration-200 cursor-pointer w-1/2 text-sm min-w-[160px]"
-                            whileHover={{ y: -1 }}
-                            whileTap={{ y: 0 }}
-                            onClick={handleAccept}
-                          >
-                            <div className="flex items-center gap-1 justify-center">
-                              <Check className="w-3 h-3" />
-                              Accept
-                            </div>
-                          </motion.button>
-                          <motion.button 
-                            className="bg-red-100 border-2 border-black rounded-lg shadow-[3px_3px_0_#000] px-6 py-3 font-bold text-black hover:shadow-[4px_4px_0_#000] transition-all duration-200 cursor-pointer w-1/2 text-sm min-w-[160px]"
-                            whileHover={{ y: -1 }}
-                            whileTap={{ y: 0 }}
-                            onClick={handleReject}
-                          >
-                            <div className="flex items-center gap-1 justify-center">
-                              <X className="w-3 h-3" />
-                              Reject
-                            </div>
-                          </motion.button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+            <div className="rounded-[28px] border border-black/5 bg-white p-6 shadow-[0_26px_70px_rgba(15,23,42,0.08)]">
+              <h3 className="text-lg font-semibold text-slate-900">Pro Tips</h3>
+              <ul className="mt-4 space-y-3 text-sm text-slate-600">
+                <li className="rounded-2xl border border-black/10 bg-[#f5f4f0] px-4 py-3">
+                  Use specific prompts like &ldquo;make this more formal&rdquo; or &ldquo;add metrics&rdquo;
+                </li>
+                <li className="rounded-2xl border border-black/10 bg-[#f5f4f0] px-4 py-3">
+                  Combine instructions: &ldquo;formal tone + highlight key points&rdquo;
+                </li>
+                <li className="rounded-2xl border border-black/10 bg-[#f5f4f0] px-4 py-3">
+                  Preserves your formatting and style while enhancing content
+                </li>
+              </ul>
             </div>
           </div>
         </motion.div>
       </div>
     </section>
   );
-} 
+}

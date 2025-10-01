@@ -2,85 +2,70 @@
 
 import { motion } from 'motion/react';
 
-const features = [
+const pillars = [
   {
-    title: "Smart Text Editing",
-    description: "Select any text and tell AI what to do. Make it formal, summarize, or fix grammar.",
-    bg: "bg-amber-100"
+    eyebrow: 'Structure',
+    title: 'Outline complex documents instantly',
+    description:
+      'Generate structured outlines with one command so every section follows logical flow and organization.',
   },
   {
-    title: "Document Chat",
-    description: "Chat with your document in real time. Ask questions, get summaries, request changes.",
-    bg: "bg-sky-100"
+    eyebrow: 'Refine',
+    title: 'Polish language to professional quality',
+    description:
+      'Transform rough drafts into clear, polished prose while preserving your voice and maintaining consistency.',
   },
   {
-    title: "Instant Results",
-    description: "No menus or learning curve. AI transforms your content instantly.",
-    bg: "bg-lime-100"
+    eyebrow: 'Enhance',
+    title: 'AI-powered writing assistance',
+    description:
+      'Get intelligent suggestions for improving clarity, tone, and structure as you write and revise your documents.',
   },
-  {
-    title: "Better Than Word",
-    description: "Modern formatting plus AI superpowers to create professional docs faster.",
-    bg: "bg-rose-100"
-  },
-  {
-    title: "Code Snippets Too",
-    description: "Generate examples and technical snippets inline without breaking your flow.",
-    bg: "bg-violet-100"
-  },
-  {
-    title: "Context-Aware AI",
-    description: "Understands your entire document for suggestions that match tone and style.",
-    bg: "bg-gray-100"
-  }
 ];
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="py-12 bg-pattern">
-      <div className="max-w-7xl mx-auto px-6">
-        {/* Section Header */}
+    <section id="features" className="relative overflow-hidden bg-white py-24">
+      <div className="absolute inset-0">
+        <div className="pointer-events-none absolute -top-16 right-8 h-32 w-32 rotate-6 rounded-[24px] border border-black/5 bg-[#f5f4f0]" />
+        <div className="pointer-events-none absolute top-1/2 left-8 h-24 w-24 -rotate-3 rounded-[20px] border border-black/5 bg-[#f5f4f0]" />
+      </div>
+      <div className="relative mx-auto max-w-7xl px-6">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.6 }}
+          className="mx-auto max-w-3xl text-center"
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Document editing, 
-            <span className="text-blue-600"> simplified</span>
+          <span className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-[#f5f4f0] px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+            Designed for writing excellence
+          </span>
+          <h2 className="mt-8 text-4xl font-semibold leading-[1.05] text-slate-900 sm:text-5xl">
+            Built to master any document, from proposals to reports.
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Everything you love about Word, enhanced with AI that actually helps you write better
+          <p className="mt-4 text-lg font-medium text-slate-600">
+            BetterWrite unifies AI outlining, intelligent editing, and seamless formatting so you can focus on the content behind your document.
           </p>
         </motion.div>
 
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
+        <div className="mt-16 grid gap-6 lg:grid-cols-3">
+          {pillars.map((pillar, index) => (
             <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 30 }}
+              key={pillar.title}
+              initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.05 }}
-              whileHover={{ y: -4 }}
-              className="group relative cursor-pointer"
-           >
-              <div className={`relative p-8 rounded-xl border-2 border-black shadow-[6px_6px_0_#000] ${feature.bg} h-[180px] flex flex-col justify-between`}>
-                <h3 className="text-xl font-bold text-black mb-3">
-                  {feature.title}
-                </h3>
-                <p className="text-black/80 leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
+              viewport={{ once: true, margin: '-80px' }}
+              transition={{ duration: 0.6, delay: index * 0.08 }}
+              className="relative overflow-hidden rounded-3xl border border-black/5 bg-[#f5f4f0] p-8 shadow-[0_24px_60px_rgba(15,23,42,0.08)]"
+            >
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">{pillar.eyebrow}</p>
+              <h3 className="mt-4 text-xl font-semibold text-slate-900">{pillar.title}</h3>
+              <p className="mt-3 text-sm font-medium text-slate-600">{pillar.description}</p>
             </motion.div>
           ))}
         </div>
-
       </div>
     </section>
   );
-} 
+}
