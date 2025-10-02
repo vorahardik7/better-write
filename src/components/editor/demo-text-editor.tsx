@@ -290,54 +290,15 @@ export function DemoTextEditor() {
         )}
       </AnimatePresence>
 
-      {/* Document Stats Bar */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="flex items-center justify-between px-8 py-3 bg-white/90 backdrop-blur-sm border-b border-gray-100"
-      >
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-3 py-1 bg-white rounded-md shadow-sm border border-gray-200">
-            <Type className="w-3 h-3 text-blue-600" />
-            <span className="text-xs font-medium text-gray-900">Demo Document</span>
-          </div>
-          
-          <motion.div
-            className="text-xs text-gray-600 flex items-center gap-3"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            <span>{editor?.getText().length || 0} characters</span>
-            <span className="text-gray-300">•</span>
-            <span>{editor?.getText().split(/\s+/).filter(w => w.length > 0).length || 0} words</span>
-          </motion.div>
-        </div>
-
-        <div className="flex items-center gap-2 text-xs text-gray-700 bg-white px-3 py-1 rounded-md shadow-sm border border-gray-200">
-          <MousePointer className="w-3 h-3" />
-          <span>Select text and press</span>
-          <kbd className="px-1.5 py-0.5 bg-blue-50 border border-blue-200 rounded text-[10px] font-mono shadow-sm text-blue-800">⌘K</kbd>
-          <span>for AI suggestions</span>
-          {selectedChars > 0 && (
-            <>
-              <span className="text-gray-300">•</span>
-              <span>{selectedChars} selected</span>
-            </>
-          )}
-          <span className="text-gray-300">•</span>
-          <span>~{readingTimeMin} min read</span>
-        </div>
-      </motion.div>
-
       {/* Formatting Toolbar */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
-        className="flex items-center gap-2 px-4 sm:px-6 py-3 bg-white/90 backdrop-blur-sm border-b border-gray-100 overflow-x-auto"
+        className="flex items-center justify-between px-6 py-3 bg-white border-b border-black/5 overflow-x-auto"
       >
+        {/* Formatting Tools - Left Side */}
+        <div className="flex items-center gap-2">
         {/* Undo / Redo */}
         <div className="flex items-center gap-1 border-r border-gray-200 pr-3">
           <button
@@ -348,7 +309,7 @@ export function DemoTextEditor() {
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
             <div className="btn-front">
-              <Undo2 className="w-4 h-4" />
+              <Undo2 className="w-4 h-4 text-slate-600" />
             </div>
           </button>
           <button
@@ -359,7 +320,7 @@ export function DemoTextEditor() {
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
             <div className="btn-front">
-              <Redo2 className="w-4 h-4" />
+              <Redo2 className="w-4 h-4 text-slate-600" />
             </div>
           </button>
         </div>
@@ -375,7 +336,7 @@ export function DemoTextEditor() {
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
             <div className="btn-front">
-              <Bold className="w-4 h-4" />
+              <Bold className="w-4 h-4 text-slate-600" />
             </div>
           </button>
           <button
@@ -387,7 +348,7 @@ export function DemoTextEditor() {
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
             <div className="btn-front">
-              <Italic className="w-4 h-4" />
+              <Italic className="w-4 h-4 text-slate-600" />
             </div>
           </button>
           <button
@@ -399,7 +360,7 @@ export function DemoTextEditor() {
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
             <div className="btn-front">
-              <UnderlineIcon className="w-4 h-4" />
+              <UnderlineIcon className="w-4 h-4 text-slate-600" />
             </div>
           </button>
           <button
@@ -411,7 +372,7 @@ export function DemoTextEditor() {
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
             <div className="btn-front">
-              {editor?.isActive('link') ? <Link2Off className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
+              {editor?.isActive('link') ? <Link2Off className="w-4 h-4 text-slate-600" /> : <Link2 className="w-4 h-4 text-slate-600" />}
             </div>
           </button>
           <button
@@ -422,7 +383,7 @@ export function DemoTextEditor() {
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
             <div className="btn-front">
-              <Eraser className="w-4 h-4" />
+              <Eraser className="w-4 h-4 text-slate-600" />
             </div>
           </button>
         </div>
@@ -437,7 +398,7 @@ export function DemoTextEditor() {
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
             <div className="btn-front">
-              <Heading1 className="w-4 h-4" />
+              <Heading1 className="w-4 h-4 text-slate-600" />
             </div>
           </button>
           <button
@@ -448,7 +409,7 @@ export function DemoTextEditor() {
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
             <div className="btn-front">
-              <Heading2 className="w-4 h-4" />
+              <Heading2 className="w-4 h-4 text-slate-600" />
             </div>
           </button>
           <button
@@ -459,7 +420,7 @@ export function DemoTextEditor() {
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
             <div className="btn-front">
-              <Heading3 className="w-4 h-4" />
+              <Heading3 className="w-4 h-4 text-slate-600" />
             </div>
           </button>
         </div>
@@ -474,7 +435,7 @@ export function DemoTextEditor() {
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
             <div className="btn-front">
-              <List className="w-4 h-4" />
+              <List className="w-4 h-4 text-slate-600" />
             </div>
           </button>
           <button
@@ -485,7 +446,7 @@ export function DemoTextEditor() {
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
             <div className="btn-front">
-              <ListOrdered className="w-4 h-4" />
+              <ListOrdered className="w-4 h-4 text-slate-600" />
             </div>
           </button>
           <button
@@ -496,7 +457,7 @@ export function DemoTextEditor() {
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
             <div className="btn-front">
-              <Quote className="w-4 h-4" />
+              <Quote className="w-4 h-4 text-slate-600" />
             </div>
           </button>
         </div>
@@ -512,7 +473,7 @@ export function DemoTextEditor() {
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
             <div className="btn-front">
-              <AlignLeft className="w-4 h-4" />
+              <AlignLeft className="w-4 h-4 text-slate-600" />
             </div>
           </button>
           <button
@@ -524,7 +485,7 @@ export function DemoTextEditor() {
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
             <div className="btn-front">
-              <AlignCenter className="w-4 h-4" />
+              <AlignCenter className="w-4 h-4 text-slate-600" />
             </div>
           </button>
           <button
@@ -536,7 +497,7 @@ export function DemoTextEditor() {
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
             <div className="btn-front">
-              <AlignRight className="w-4 h-4" />
+              <AlignRight className="w-4 h-4 text-slate-600" />
             </div>
           </button>
           <button
@@ -548,7 +509,7 @@ export function DemoTextEditor() {
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
             <div className="btn-front">
-              <AlignJustify className="w-4 h-4" />
+              <AlignJustify className="w-4 h-4 text-slate-600" />
             </div>
           </button>
         </div>
@@ -563,7 +524,7 @@ export function DemoTextEditor() {
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
             <div className="btn-front">
-              <TableIcon className="w-4 h-4" />
+              <TableIcon className="w-4 h-4 text-slate-600" />
             </div>
           </button>
           <button
@@ -574,7 +535,7 @@ export function DemoTextEditor() {
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
             <div className="btn-front">
-              <ImageIcon className="w-4 h-4" />
+              <ImageIcon className="w-4 h-4 text-slate-600" />
             </div>
           </button>
         </div>
@@ -589,7 +550,7 @@ export function DemoTextEditor() {
             <div className="btn-shadow"></div>
             <div className="btn-edge"></div>
             <div className="btn-front">
-              <MoreHorizontal className="w-4 h-4" />
+              <MoreHorizontal className="w-4 h-4 text-slate-600" />
             </div>
           </button>
           {showMobileMore && (
@@ -597,17 +558,17 @@ export function DemoTextEditor() {
               <button onClick={addTable} className="btn-toolbar" aria-label="Insert Table">
                 <div className="btn-shadow"></div>
                 <div className="btn-edge"></div>
-                <div className="btn-front"><TableIcon className="w-4 h-4" /></div>
+                <div className="btn-front"><TableIcon className="w-4 h-4 text-slate-600" /></div>
               </button>
               <button onClick={addImage} className="btn-toolbar" aria-label="Insert Image">
                 <div className="btn-shadow"></div>
                 <div className="btn-edge"></div>
-                <div className="btn-front"><ImageIcon className="w-4 h-4" /></div>
+                <div className="btn-front"><ImageIcon className="w-4 h-4 text-slate-600" /></div>
               </button>
               <button onClick={() => setShowMobileMore(false)} className="btn-toolbar" aria-label="Close">
                 <div className="btn-shadow"></div>
                 <div className="btn-edge"></div>
-                <div className="btn-front"><X className="w-4 h-4" /></div>
+                <div className="btn-front"><X className="w-4 h-4 text-slate-600" /></div>
               </button>
             </div>
           )}
@@ -624,7 +585,7 @@ export function DemoTextEditor() {
               <div className="btn-shadow"></div>
               <div className="btn-edge"></div>
               <div className="btn-front">
-                <span className="text-xs font-medium">Col+</span>
+                <span className="text-xs font-medium text-slate-600">Col+</span>
               </div>
             </button>
             <button
@@ -635,7 +596,7 @@ export function DemoTextEditor() {
               <div className="btn-shadow"></div>
               <div className="btn-edge"></div>
               <div className="btn-front">
-                <span className="text-xs font-medium">Row+</span>
+                <span className="text-xs font-medium text-slate-600">Row+</span>
               </div>
             </button>
             <button
@@ -645,7 +606,7 @@ export function DemoTextEditor() {
             >
               <div className="btn-shadow"></div>
               <div className="btn-edge"></div>
-              <div className="btn-front text-red-600">
+              <div className="btn-front text-red-400">
                 <span className="text-xs font-medium">Col-</span>
               </div>
             </button>
@@ -656,7 +617,7 @@ export function DemoTextEditor() {
             >
               <div className="btn-shadow"></div>
               <div className="btn-edge"></div>
-              <div className="btn-front text-red-600">
+              <div className="btn-front text-red-400">
                 <span className="text-xs font-medium">Row-</span>
               </div>
             </button>
@@ -667,26 +628,51 @@ export function DemoTextEditor() {
             >
               <div className="btn-shadow"></div>
               <div className="btn-edge"></div>
-              <div className="btn-front text-red-600">
+              <div className="btn-front text-red-400">
                 <span className="text-xs font-medium">Del</span>
               </div>
             </button>
           </div>
         )}
+        </div>
+
+        {/* Document Stats - Right Side */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
+            <MousePointer className="w-3 h-3 text-slate-600" />
+            <span className="font-medium">Select text and press</span>
+            <kbd className="px-1.5 py-0.5 bg-white border border-slate-300 rounded text-[10px] font-semibold shadow-sm text-slate-700">⌘K</kbd>
+            <span className="font-medium">for AI</span>
+          </div>
+          
+          <div className="text-xs text-slate-600 font-semibold flex items-center gap-3">
+            <span>{editor?.getText().length || 0} chars</span>
+            <span className="text-slate-300">•</span>
+            <span>{editor?.getText().split(/\s+/).filter(w => w.length > 0).length || 0} words</span>
+            <span className="text-slate-300">•</span>
+            <span>{readingTimeMin} min</span>
+            {selectedChars > 0 && (
+              <>
+                <span className="text-slate-300">•</span>
+                <span className="text-blue-600">{selectedChars} selected</span>
+              </>
+            )}
+          </div>
+        </div>
       </motion.div>
 
       {/* Rich Text Editor */}
-      <div className="flex-1 relative bg-white overflow-auto" onPaste={handlePaste} onDrop={handleDrop} onDragOver={handleDragOver}>
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full">
-          {/* Custom floating selection toolbar */}
-          {false}
-          <EditorContent 
-            editor={editor}
-            className="prose prose-lg max-w-none focus:outline-none h-full"
-            style={{
-              minHeight: '100%',
-            }}
-          />
+      <div className="flex-1 relative bg-[#f5f4f0] overflow-auto" onPaste={handlePaste} onDrop={handleDrop} onDragOver={handleDragOver}>
+        <div className="max-w-4xl mx-auto px-8 py-12 h-full">
+          <div className="bg-white rounded-2xl shadow-sm border border-black/5 min-h-[calc(100vh-16rem)] p-12">
+            <EditorContent 
+              editor={editor}
+              className="prose prose-lg max-w-none focus:outline-none [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-[600px]"
+              style={{
+                fontFamily: 'var(--font-sans)',
+              }}
+            />
+          </div>
         </div>
         
         {/* Welcome Guide */}
@@ -696,28 +682,28 @@ export function DemoTextEditor() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="absolute top-8 left-8 right-8 max-w-4xl mx-auto pointer-events-none"
+              className="absolute top-24 left-1/2 -translate-x-1/2 max-w-2xl pointer-events-none z-10"
             >
-              <div className="bg-blue-50/60 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-blue-100">
+              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-8 shadow-lg border border-black/10">
                 <div className="flex items-start gap-4">
-                  <div className="bg-blue-600/90 p-2 rounded-lg flex-shrink-0 shadow-sm">
-                    <Sparkles className="w-5 h-5 text-white" />
+                  <div className="bg-slate-900 p-3 rounded-xl flex-shrink-0 shadow-md">
+                    <Sparkles className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Welcome to VibeDoc!</h3>
-                    <p className="text-gray-700 text-sm leading-relaxed mb-3">
-                      Create professional documents with rich formatting, tables, and images. 
-                      Need AI help? Just select any text and press <kbd className="px-2 py-1 bg-white border border-blue-200 rounded text-xs font-mono shadow-sm text-blue-800">⌘K</kbd> for instant suggestions.
+                    <h3 className="font-semibold text-slate-900 mb-2 text-lg">Welcome to BetterWrite!</h3>
+                    <p className="text-slate-700 text-sm font-medium leading-relaxed mb-4">
+                      Create professional documents with AI-powered assistance. 
+                      Select any text and press <kbd className="px-2 py-1 bg-slate-100 border border-slate-300 rounded text-xs font-semibold shadow-sm text-slate-700">⌘K</kbd> for instant AI suggestions.
                     </p>
-                    <div className="flex items-center gap-4 text-xs text-gray-600">
-                      <span className="flex items-center gap-1">
-                        <Zap className="w-3 h-3 text-blue-600" />
-                        Smart editing
+                    <div className="flex items-center gap-4 text-xs text-slate-600 font-semibold">
+                      <span className="flex items-center gap-1.5">
+                        <Zap className="w-3.5 h-3.5 text-slate-700" />
+                        AI-powered editing
                       </span>
-                      <span className="text-gray-300">•</span>
+                      <span className="text-slate-300">•</span>
                       <span>Rich formatting</span>
-                      <span className="text-gray-300">•</span>
-                      <span>AI assistance</span>
+                      <span className="text-slate-300">•</span>
+                      <span>Smart suggestions</span>
                     </div>
                   </div>
                 </div>

@@ -26,10 +26,6 @@ const pillars = [
 export function FeaturesSection() {
   return (
     <section id="features" className="relative overflow-hidden bg-white py-24">
-      <div className="absolute inset-0">
-        <div className="pointer-events-none absolute -top-16 right-8 h-32 w-32 rotate-6 rounded-[24px] border border-black/5 bg-[#f5f4f0]" />
-        <div className="pointer-events-none absolute top-1/2 left-8 h-24 w-24 -rotate-3 rounded-[20px] border border-black/5 bg-[#f5f4f0]" />
-      </div>
       <div className="relative mx-auto max-w-7xl px-6">
         <motion.div
           initial={{ opacity: 0, y: 24 }}

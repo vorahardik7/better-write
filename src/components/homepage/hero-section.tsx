@@ -5,11 +5,6 @@ import { motion } from "motion/react";
 import { ArrowRight, ArrowUpRight, Check } from "lucide-react";
 import Link from "next/link";
 
-const trustBadges = [
-    "Structured document workflows",
-    "AI-assisted revisions",
-    "Precision formatting controls",
-];
 
 export function HeroSection() {
     return (
@@ -80,19 +75,7 @@ export function HeroSection() {
                         </button>
                     </div>
 
-                    <div className="mt-10 grid gap-3 sm:grid-cols-3">
-                        {trustBadges.map((badge) => (
-                            <div
-                                key={badge}
-                                className="flex items-center gap-3 rounded-2xl border border-black/5 bg-white px-4 py-3 text-sm font-semibold text-slate-700"
-                            >
-                                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-black/5 bg-[#f5f4f0]">
-                                    <Check className="h-4 w-4 text-slate-900" />
-                                </span>
-                                <span className="leading-tight">{badge}</span>
-                            </div>
-                        ))}
-                    </div>
+                    
                 </motion.div>
             </div>
         </section>
