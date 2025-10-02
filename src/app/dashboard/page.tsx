@@ -129,7 +129,7 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 rounded-full border border-black/5 bg-white px-3 py-2">
-              <span className="text-lg">⚡</span>
+              <span className="text-lg text-bla`">⚡</span>
               <span className="text-sm font-semibold text-slate-900">4</span>
               <span className="text-xs text-slate-500">day streak</span>
             </div>
@@ -171,13 +171,9 @@ export default function Dashboard() {
                   <h2 className="text-2xl font-semibold text-slate-900">
                     Ready to write, {session.user?.name?.split(' ')[0]}?
                   </h2>
-                  <p className="text-slate-600 max-w-md text-sm">
+                  <p className="text-slate-600 max-w-2xl text-sm">
                     Your AI-powered writing assistant is ready to help you create professional documents.
                   </p>
-                </div>
-                <div className="text-right">
-                  <div className="text-xl font-semibold text-slate-900">4</div>
-                  <div className="text-xs font-medium text-slate-500">day streak</div>
                 </div>
               </div>
             </motion.section>

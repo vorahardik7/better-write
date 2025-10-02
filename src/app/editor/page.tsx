@@ -10,8 +10,8 @@ export default function EditorPage() {
   return (
     <div className="min-h-screen bg-[#f5f4f0]">
       {/* Header */}
-      <header className="border-b border-black/5 bg-white">
-        <div className="flex items-center justify-between px-6 py-4">
+      <header className="border-b border-black/5 bg-white h-16">
+        <div className="flex items-center justify-between px-6 h-full">
           <div className="flex items-center gap-4">
             <Link
               href="/dashboard"
