@@ -2,7 +2,7 @@
 import { signIn } from "next-auth/react";
 
 import { motion } from "motion/react";
-import { ArrowRight, ArrowUpRight, Check } from "lucide-react";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 
 

@@ -59,11 +59,6 @@ function createSuggestionPreview(content: string): { preview: string; type: 'tab
 export function AISuggestionOverlay() {
   const { aiSuggestion, acceptSuggestion, rejectSuggestion, isProcessing } = useEditorStore();
 
-  const suggestionPreview = useMemo(
-    () => (aiSuggestion ? createSuggestionPreview(aiSuggestion.suggestedText) : null),
-    [aiSuggestion]
-  );
-
   const showOverlay = isProcessing || Boolean(aiSuggestion);
   if (!showOverlay) return null;
 

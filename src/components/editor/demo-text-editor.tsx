@@ -20,7 +20,7 @@ import Link from '@tiptap/extension-link';
 import { useEditorStore } from '@/lib/store/editor-store';
 import { AICommandPalette } from './ai-command-palette';
 import { AISuggestionOverlay } from './ai-suggestion-overlay';
-import { Sparkles, Zap, Type, MousePointer, Bold, Italic, List, ListOrdered, Quote, Table as TableIcon, Image as ImageIcon, Heading1, Heading2, Heading3, AlertCircle, X, AlignLeft, AlignCenter, AlignRight, AlignJustify, Undo2, Redo2, Underline as UnderlineIcon, Link2, Link2Off, Eraser, MoreHorizontal } from 'lucide-react';
+import { Sparkles, Zap, MousePointer, Bold, Italic, List, ListOrdered, Quote, Table as TableIcon, Image as ImageIcon, Heading1, Heading2, Heading3, AlertCircle, X, AlignLeft, AlignCenter, AlignRight, AlignJustify, Undo2, Redo2, Underline as UnderlineIcon, Link2, Link2Off, Eraser, MoreHorizontal } from 'lucide-react';
 
 export function DemoTextEditor() {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
