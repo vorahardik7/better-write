@@ -8,23 +8,29 @@ import {
   List,
   Plus,
   Eye,
-  Edit,
-  Share,
-  Star,
   MoreHorizontal,
-  ArrowRight,
-  X,
   FileText,
+  Star,
+  Edit,
 } from 'lucide-react';
 import Link from 'next/link';
 
-interface MainContentProps {
-  documents: any[];
-  selectedDocument: any;
-  setSelectedDocument: (doc: any) => void;
+interface Document {
+  id: string;
+  title: string;
+  lastModified: string;
+  wordCount: number;
+  preview: string;
+  tags: string[];
+  status: 'draft' | 'review' | 'published' | 'completed';
+  starred?: boolean;
 }
 
-export function MainContent({ documents, selectedDocument, setSelectedDocument }: MainContentProps) {
+interface MainContentProps {
+  documents: Document[];
+}
+
+export function MainContent({ documents }: MainContentProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -113,7 +119,7 @@ export function MainContent({ documents, selectedDocument, setSelectedDocument }
                   className={`group relative bg-white rounded-2xl border border-black/5 shadow-sm hover:shadow-lg hover:border-black/10 transition-all duration-200 cursor-pointer ${
                     viewMode === 'list' ? 'flex items-center gap-4 p-4' : 'p-6'
                   }`}
-                  onClick={() => setSelectedDocument(doc)}
+                  // TODO: Implement document opening functionality
                 >
                   {viewMode === 'grid' ? (
                     <>

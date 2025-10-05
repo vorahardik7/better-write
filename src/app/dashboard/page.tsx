@@ -6,31 +6,41 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   FileText,
-  Edit3,
-  Brain,
-  Zap,
-  BookOpen,
+  X,
   Star,
-  Clock,
-  Archive,
   Edit,
   Share,
   Download,
   ArrowRight,
-  X,
+  Zap,
+  BookOpen,
+  Clock,
+  Archive,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Sidebar } from './sidebar';
 import { MainContent } from './main-content';
 
+interface Document {
+  id: string;
+  title: string;
+  lastModified: string;
+  wordCount: number;
+  preview: string;
+  tags: string[];
+  status: 'draft' | 'review' | 'published' | 'completed';
+  starred?: boolean;
+}
+
+
 export default function Dashboard() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
-  const [selectedDocument, setSelectedDocument] = useState<any>(null);
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
 
-  const documents = [
+  const documents: Document[] = [
     {
-      id: 1,
+      id: '1',
       title: 'Q4 Product Strategy',
       lastModified: '2 hours ago',
       wordCount: 1247,
@@ -40,7 +50,7 @@ export default function Dashboard() {
       starred: true,
     },
     {
-      id: 2,
+      id: '2',
       title: 'User Research Report',
       lastModified: '1 day ago',
       wordCount: 2891,
@@ -50,7 +60,7 @@ export default function Dashboard() {
       starred: false,
     },
     {
-      id: 3,
+      id: '3',
       title: 'Team Meeting Notes',
       lastModified: '3 days ago',
       wordCount: 456,
@@ -60,7 +70,7 @@ export default function Dashboard() {
       starred: false,
     },
     {
-      id: 4,
+      id: '4',
       title: 'Marketing Campaign Brief',
       lastModified: '5 days ago',
       wordCount: 892,
@@ -70,7 +80,7 @@ export default function Dashboard() {
       starred: true,
     },
     {
-      id: 5,
+      id: '5',
       title: 'Technical Documentation',
       lastModified: '1 week ago',
       wordCount: 3421,
@@ -127,11 +137,9 @@ export default function Dashboard() {
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <MainContent
-          documents={documents}
-          selectedDocument={selectedDocument}
-          setSelectedDocument={setSelectedDocument}
-        />
+      <MainContent
+        documents={documents}
+      />
       </div>
 
       {/* Document Preview Modal */}

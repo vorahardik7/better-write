@@ -4,7 +4,7 @@ import React, { useCallback, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { EditorContent } from '@tiptap/react';
 
-import { createEditor } from '@/lib/tiptap-config';
+import { useTipTapEditor } from '@/lib/tiptap-config';
 
 import { useEditorStore } from '@/lib/store/editor-store';
 import { AICommandPalette } from './ai-command-palette';
@@ -29,7 +29,7 @@ export function DemoTextEditor() {
     clearError
   } = useEditorStore();
 
-  const editor = createEditor(
+  const editor = useTipTapEditor(
     content,
     ({ editor }) => {
       setContent(editor.getHTML());

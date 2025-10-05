@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession, signOut } from '@/lib/auth-client';
+import { useSession } from '@/lib/auth-client';
 import {
   FileText,
   Settings,
@@ -11,10 +11,27 @@ import {
   LogOut,
 } from 'lucide-react';
 
+interface NavigationItem {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  active?: boolean;
+}
+
+interface Document {
+  id: string;
+  title: string;
+  lastModified: string;
+  wordCount: number;
+  preview: string;
+  tags: string[];
+  status: 'draft' | 'review' | 'published' | 'completed';
+  starred?: boolean;
+}
+
 interface SidebarProps {
-  documents: any[];
-  stats: any[];
-  navigationItems: any[];
+  documents: Document[];
+  stats: StatItem[];
+  navigationItems: NavigationItem[];
 }
 
 export function Sidebar({ documents, stats, navigationItems }: SidebarProps) {
@@ -107,7 +124,18 @@ export function Sidebar({ documents, stats, navigationItems }: SidebarProps) {
   );
 }
 
-function StatsSection({ stats }: { stats: any[] }) {
+interface StatItem {
+  label: string;
+  value: string;
+  change: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+interface StatsSectionProps {
+  stats: StatItem[];
+}
+
+function StatsSection({ stats }: StatsSectionProps) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
@@ -116,7 +144,7 @@ function StatsSection({ stats }: { stats: any[] }) {
       </div>
 
       <div className="space-y-2">
-        {stats.map((stat) => {
+        {stats.map((stat: StatItem) => {
           const Icon = stat.icon;
           const streakValue = parseInt(stat.value);
 

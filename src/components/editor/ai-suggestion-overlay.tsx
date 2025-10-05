@@ -2,59 +2,8 @@
 
 import { motion, AnimatePresence } from 'motion/react';
 import { useEditorStore } from '@/lib/store/editor-store';
-import { Check, X, Sparkles, Table, List, Code, Loader2 } from 'lucide-react';
-import { useMemo } from 'react';
+import { Check, X, Loader2 } from 'lucide-react';
 
-// Helper function to create a clean preview of AI suggestions
-function createSuggestionPreview(content: string): { preview: string; type: 'table' | 'list' | 'code' | 'text'; icon: React.ComponentType<{ className?: string }> } {
-  const cleanContent = content.trim();
-  
-  // Table detection
-  if (cleanContent.includes('<table') || (cleanContent.includes('|') && cleanContent.includes('---'))) {
-    const tablePreview = cleanContent.includes('<table') 
-      ? "📊 Table with data and columns"
-      : "📊 Table created from your content";
-    return { preview: tablePreview, type: 'table', icon: Table };
-  }
-  
-  // List detection
-  if (cleanContent.includes('<ul>') || cleanContent.includes('<ol>') || cleanContent.includes('- ') || cleanContent.match(/^\d+\./m)) {
-    const listType = cleanContent.includes('<ol>') || cleanContent.match(/^\d+\./m) ? 'numbered' : 'bullet';
-    let itemCount = 0;
-    
-    if (cleanContent.includes('<li>')) {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(cleanContent, 'text/html');
-      itemCount = doc.querySelectorAll('li').length;
-    } else {
-      const lines = cleanContent.split('\n');
-      itemCount = lines.filter(line => line.trim().match(/^[-*]\s/) || line.trim().match(/^\d+\./)).length;
-    }
-    
-    const listPreview = `📝 ${itemCount} ${listType} list items`;
-    return { preview: listPreview, type: 'list', icon: List };
-  }
-  
-  // Code detection
-  if (cleanContent.includes('<pre>') || cleanContent.includes('<code>') || cleanContent.includes('```')) {
-    let language = '';
-    if (cleanContent.includes('```')) {
-      const match = cleanContent.match(/```(\w+)/);
-      language = match ? ` (${match[1]})` : '';
-    }
-    const codePreview = `💻 Code block${language}`;
-    return { preview: codePreview, type: 'code', icon: Code };
-  }
-  
-  // Regular text - clean HTML and show preview
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(cleanContent, 'text/html');
-  const plainText = doc.body.textContent || cleanContent;
-  
-  // Truncate long text
-  const preview = plainText.length > 100 ? plainText.substring(0, 100) + '...' : plainText;
-  return { preview, type: 'text', icon: Sparkles };
-}
 
 export function AISuggestionOverlay() {
   const { aiSuggestion, acceptSuggestion, rejectSuggestion, isProcessing } = useEditorStore();

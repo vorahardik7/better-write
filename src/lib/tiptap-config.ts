@@ -1,4 +1,4 @@
-import { useEditor } from '@tiptap/react';
+import { useEditor, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { TextStyle } from '@tiptap/extension-text-style';
 import FontFamily from '@tiptap/extension-font-family';
@@ -9,7 +9,7 @@ import Placeholder from '@tiptap/extension-placeholder';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 
-export const createEditor = (content: string, onUpdate: (editor: any) => void, onSelectionUpdate: (editor: any) => void) => {
+export const useTipTapEditor = (content: string, onUpdate: (params: { editor: Editor; transaction: unknown; appendedTransactions: unknown[] }) => void, onSelectionUpdate: (params: { editor: Editor; transaction: unknown }) => void) => {
   return useEditor({
     extensions: [
       StarterKit,
