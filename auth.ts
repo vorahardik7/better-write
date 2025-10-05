@@ -1,25 +1,19 @@
-import NextAuth from "next-auth"
-import Google from "next-auth/providers/google"
- 
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    })
-  ],
-  pages: {
-    signIn: '/',
-    error: '/',
-  },
-  callbacks: {
-    async redirect({ url, baseUrl }) {
-      // Allows relative callback URLs
-      if (url.startsWith("/")) return `${baseUrl}${url}`
-      // Allows callback URLs on the same origin
-      else if (new URL(url).origin === baseUrl) return url
-      return `${baseUrl}/dashboard`
+import { betterAuth } from "better-auth";
+import { Pool } from "pg";
+
+// Create PostgreSQL connection pool for Supabase
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }, // Required for Supabase
+});
+
+export const auth = betterAuth({
+  database: pool, // Use PostgreSQL pool as database instance
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     },
   },
-  debug: process.env.NODE_ENV === 'development',
-})
+  baseURL: process.env.BETTER_AUTH_URL as string,
+});

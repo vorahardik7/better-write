@@ -1,5 +1,5 @@
 "use client";
-import { signIn } from "next-auth/react";
+import { signIn } from "@/lib/auth-client";
 
 import { motion } from "motion/react";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
@@ -39,7 +39,7 @@ export function HeroSection() {
                         </Link>
                         <button
                             onClick={() =>
-                                signIn("google", { redirectTo: "/dashboard" })
+                                signIn.social({ provider: "google", callbackURL: "/dashboard" })
                             }
                             className="inline-flex cursor-pointer items-center justify-center gap-3 rounded-full border border-black/10 bg-white px-8 py-4 text-sm font-semibold text-slate-900 transition hover:border-black/30"
                         >

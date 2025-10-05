@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server'
 import { auth } from './auth'
- 
-export default auth((req) => {
+
+export default async function middleware(req: any) {
   const { nextUrl } = req;
-  const isLoggedIn = !!req.auth;
+  const session = await auth.api.getSession({ headers: req.headers });
+
+  const isLoggedIn = !!session;
 
   // Protect dashboard and editor routes
   if (nextUrl.pathname.startsWith('/dashboard') || nextUrl.pathname.startsWith('/editor')) {
@@ -18,7 +20,7 @@ export default auth((req) => {
   }
 
   return NextResponse.next();
-})
+}
  
 export const config = {
   matcher: [

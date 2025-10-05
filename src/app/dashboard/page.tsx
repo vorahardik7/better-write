@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession, signOut } from 'next-auth/react';
+import { useSession, signOut } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { motion } from 'motion/react';
@@ -19,7 +19,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 export default function Dashboard() {
-  const { data: session, status } = useSession();
+  const { data: session, isPending } = useSession();
   const router = useRouter();
 
   const recentDocuments = [
@@ -90,11 +90,11 @@ export default function Dashboard() {
   ];
 
   useEffect(() => {
-    if (status === 'loading') return;
+    if (isPending) return;
     if (!session) router.push('/');
-  }, [session, status, router]);
+  }, [session, isPending, router]);
 
-  if (status === 'loading') {
+  if (isPending) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f5f4f0]">
         <div className="flex flex-col items-center space-y-4">
