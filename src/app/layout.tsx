@@ -13,6 +13,9 @@ const montserrat = Montserrat({
 
 export const metadata: Metadata = {
   title: "BetterWrite",
+  icons: {
+    icon: '/image.png',
+  },
   description: "The next-generation document editor that understands your intent. Write with AI magic.",
   keywords: ["AI", "document editor", "writing", "text editor", "artificial intelligence"],
   authors: [{ name: "BetterWrite Team" }],
