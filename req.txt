@@ -91,7 +91,7 @@ Instant Results: No menus, no learning curve - just select, command, and get res
 * Context Management: Document-aware AI processing with retrieval of relevant context from vector DB (RAG)
 
 6.3. Data & Storage
-* Structured Database: Neon (PostgreSQL) for users, documents metadata, templates, versions, analytics
+* Structured Database: Supabase (PostgreSQL) for users, documents metadata, templates, versions, analytics
 * Vector Database: Managed vector store for embeddings (document chunks, user writing style, AI memory)
 * Document Storage: JSON-based document format (stored in Postgres JSONB) with chunking for embeddings
 * User Data: Basic user accounts and document persistence (Better Auth user id → app user record)
@@ -142,7 +142,7 @@ Instant Results: No menus, no learning curve - just select, command, and get res
 
 9.2. In Development
 * 🔄 Authentication with Google (Better Auth)
-* 🔄 Neon PostgreSQL for structured data (users, documents, templates)
+* 🔄 Supabase PostgreSQL for structured data (users, documents, templates)
 * 🔄 Vector database integration for semantic search and AI memory
 * 🔄 Document persistence and user accounts
 * 🔄 Export functionality (PDF, Markdown)
