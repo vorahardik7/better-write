@@ -2,29 +2,23 @@
 
 import React, { useCallback, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import { TextStyle } from '@tiptap/extension-text-style';
-import FontFamily from '@tiptap/extension-font-family';
-import Color from '@tiptap/extension-color';
-import TextAlign from '@tiptap/extension-text-align';
-import { Table } from '@tiptap/extension-table';
-import TableRow from '@tiptap/extension-table-row';
-import TableHeader from '@tiptap/extension-table-header';
-import TableCell from '@tiptap/extension-table-cell';
-import Image from '@tiptap/extension-image';
-import Placeholder from '@tiptap/extension-placeholder';
-import Underline from '@tiptap/extension-underline';
-import Link from '@tiptap/extension-link';
+import { EditorContent } from '@tiptap/react';
+
+import { createEditor } from '@/lib/tiptap-config';
 
 import { useEditorStore } from '@/lib/store/editor-store';
 import { AICommandPalette } from './ai-command-palette';
 import { AISuggestionOverlay } from './ai-suggestion-overlay';
-import { Sparkles, Zap, MousePointer, Bold, Italic, List, ListOrdered, Quote, Table as TableIcon, Image as ImageIcon, Heading1, Heading2, Heading3, AlertCircle, X, AlignLeft, AlignCenter, AlignRight, AlignJustify, Undo2, Redo2, Underline as UnderlineIcon, Link2, Link2Off, Eraser, MoreHorizontal } from 'lucide-react';
+import { KeyboardShortcutsPanel } from './keyboard-shortcuts-panel';
+import { MousePointer, Bold, Italic, Image as ImageIcon, AlertCircle, X, AlignLeft, AlignCenter, AlignRight, AlignJustify, Undo2, Redo2, Underline as UnderlineIcon, Link2, Link2Off, MoreHorizontal } from 'lucide-react';
 
 export function DemoTextEditor() {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showMobileMore, setShowMobileMore] = useState(false);
+  const [showLinkDialog, setShowLinkDialog] = useState(false);
+  const [showShortcutsPanel, setShowShortcutsPanel] = useState(false);
+  const [linkUrl, setLinkUrl] = useState('');
+  const [linkText, setLinkText] = useState('');
   const { 
     content, 
     setContent, 
@@ -35,43 +29,12 @@ export function DemoTextEditor() {
     clearError
   } = useEditorStore();
 
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      TextStyle,
-      FontFamily,
-      Color,
-      TextAlign.configure({
-        types: ['heading', 'paragraph'],
-        alignments: ['left', 'center', 'right', 'justify'],
-        defaultAlignment: 'left',
-      }),
-      Table,
-      TableRow,
-      TableHeader,
-      TableCell,
-      Image.configure({
-        HTMLAttributes: {
-          class: 'rounded-lg shadow-sm max-w-full h-auto',
-        },
-      }),
-      Placeholder.configure({
-        placeholder: 'Start writing your document...',
-      }),
-      Underline,
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'text-blue-600 underline underline-offset-2 hover:text-blue-700 cursor-pointer',
-        },
-      }),
-    ],
-    content: content,
-    immediatelyRender: false,
-    onUpdate: ({ editor }) => {
+  const editor = createEditor(
+    content,
+    ({ editor }) => {
       setContent(editor.getHTML());
     },
-    onSelectionUpdate: ({ editor }) => {
+    ({ editor }) => {
       const { from, to } = editor.state.selection;
       if (from !== to) {
         const selectedText = editor.state.doc.textBetween(from, to);
@@ -83,8 +46,8 @@ export function DemoTextEditor() {
       } else {
         setSelection(null);
       }
-    },
-  });
+    }
+  );
 
   // Set editor reference in store when editor is ready
   useEffect(() => {
@@ -143,22 +106,48 @@ export function DemoTextEditor() {
   };
   const handleToggleLink = () => {
     if (!editor) return;
+
     if (editor.isActive('link')) {
       editor.chain().focus().unsetLink().run();
       return;
     }
-    const previousUrl = (editor.getAttributes('link')?.href as string | undefined) ?? undefined;
-    const url = window.prompt('Enter URL', previousUrl ?? 'https://');
-    if (!url) return;
-    try {
-      editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
-    } catch {
-      console.warn('Link not supported');
-    }
+
+    // Get current link attributes if editing existing link
+    const previousUrl = (editor.getAttributes('link')?.href as string | undefined) ?? '';
+    const previousText = editor.state.doc.textBetween(
+      editor.state.selection.from,
+      editor.state.selection.to
+    ) || '';
+
+    setLinkUrl(previousUrl);
+    setLinkText(previousText);
+    setShowLinkDialog(true);
   };
-  const handleClearFormatting = () => {
-    if (!editor) return;
-    editor.chain().focus().clearNodes().unsetAllMarks().run();
+
+  const handleLinkSubmit = () => {
+    if (!editor || !linkUrl.trim()) return;
+
+    try {
+      if (linkText.trim()) {
+        // Insert link with custom text
+        editor.chain().focus().insertContent(`<a href="${linkUrl.trim()}">${linkText.trim()}</a>`).run();
+      } else {
+        // Insert link with URL as text
+        editor.chain().focus().insertContent(`<a href="${linkUrl.trim()}">${linkUrl.trim()}</a>`).run();
+      }
+    } catch {
+      console.warn('Link insertion failed');
+    }
+
+    setShowLinkDialog(false);
+    setLinkUrl('');
+    setLinkText('');
+  };
+
+  const handleLinkCancel = () => {
+    setShowLinkDialog(false);
+    setLinkUrl('');
+    setLinkText('');
   };
 
   // Paste / Drag image handlers
@@ -247,9 +236,6 @@ export function DemoTextEditor() {
   }, [handleKeyDown]);
 
   // Toolbar actions
-  const addTable = () => {
-    editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
-  };
 
   const addImage = () => {
     const url = window.prompt('Enter image URL:');
@@ -375,92 +361,9 @@ export function DemoTextEditor() {
               {editor?.isActive('link') ? <Link2Off className="w-4 h-4 text-slate-600" /> : <Link2 className="w-4 h-4 text-slate-600" />}
             </div>
           </button>
-          <button
-            onClick={handleClearFormatting}
-            className="btn-toolbar cursor-pointer"
-            aria-label="Clear formatting"
-          >
-            <div className="btn-shadow"></div>
-            <div className="btn-edge"></div>
-            <div className="btn-front">
-              <Eraser className="w-4 h-4 text-slate-600" />
-            </div>
-          </button>
         </div>
 
-        {/* Headings */}
-        <div className="flex items-center gap-1 border-r border-gray-200 pr-3">
-          <button
-            onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-            className={`btn-toolbar ${editor?.isActive('heading', { level: 1 }) ? 'btn-active' : ''} cursor-pointer`}
-            aria-pressed={!!editor?.isActive('heading', { level: 1 })}
-          >
-            <div className="btn-shadow"></div>
-            <div className="btn-edge"></div>
-            <div className="btn-front">
-              <Heading1 className="w-4 h-4 text-slate-600" />
-            </div>
-          </button>
-          <button
-            onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-            className={`btn-toolbar ${editor?.isActive('heading', { level: 2 }) ? 'btn-active' : ''} cursor-pointer`}
-            aria-pressed={!!editor?.isActive('heading', { level: 2 })}
-          >
-            <div className="btn-shadow"></div>
-            <div className="btn-edge"></div>
-            <div className="btn-front">
-              <Heading2 className="w-4 h-4 text-slate-600" />
-            </div>
-          </button>
-          <button
-            onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
-            className={`btn-toolbar ${editor?.isActive('heading', { level: 3 }) ? 'btn-active' : ''} cursor-pointer`}
-            aria-pressed={!!editor?.isActive('heading', { level: 3 })}
-          >
-            <div className="btn-shadow"></div>
-            <div className="btn-edge"></div>
-            <div className="btn-front">
-              <Heading3 className="w-4 h-4 text-slate-600" />
-            </div>
-          </button>
-        </div>
 
-        {/* Lists */}
-        <div className="flex items-center gap-1 border-r border-gray-200 pr-3">
-          <button
-            onClick={() => editor?.chain().focus().toggleBulletList().run()}
-            className={`btn-toolbar ${editor?.isActive('bulletList') ? 'btn-active' : ''} cursor-pointer`}
-            aria-pressed={!!editor?.isActive('bulletList')}
-          >
-            <div className="btn-shadow"></div>
-            <div className="btn-edge"></div>
-            <div className="btn-front">
-              <List className="w-4 h-4 text-slate-600" />
-            </div>
-          </button>
-          <button
-            onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-            className={`btn-toolbar ${editor?.isActive('orderedList') ? 'btn-active' : ''} cursor-pointer`}
-            aria-pressed={!!editor?.isActive('orderedList')}
-          >
-            <div className="btn-shadow"></div>
-            <div className="btn-edge"></div>
-            <div className="btn-front">
-              <ListOrdered className="w-4 h-4 text-slate-600" />
-            </div>
-          </button>
-          <button
-            onClick={() => editor?.chain().focus().toggleBlockquote().run()}
-            className={`btn-toolbar ${editor?.isActive('blockquote') ? 'btn-active' : ''} cursor-pointer`}
-            aria-pressed={!!editor?.isActive('blockquote')}
-          >
-            <div className="btn-shadow"></div>
-            <div className="btn-edge"></div>
-            <div className="btn-front">
-              <Quote className="w-4 h-4 text-slate-600" />
-            </div>
-          </button>
-        </div>
 
         {/* Alignment */}
         <div className="flex items-center gap-1 border-r border-gray-200 pr-3">
@@ -517,17 +420,6 @@ export function DemoTextEditor() {
         {/* Insert Elements */}
         <div className="hidden sm:flex items-center gap-1">
           <button
-            onClick={addTable}
-            className="btn-toolbar"
-            aria-label="Insert Table"
-          >
-            <div className="btn-shadow"></div>
-            <div className="btn-edge"></div>
-            <div className="btn-front">
-              <TableIcon className="w-4 h-4 text-slate-600" />
-            </div>
-          </button>
-          <button
             onClick={addImage}
             className="btn-toolbar"
             aria-label="Insert Image"
@@ -554,12 +446,7 @@ export function DemoTextEditor() {
             </div>
           </button>
           {showMobileMore && (
-            <div className="absolute z-20 mt-2 left-0 bg-white border border-gray-200 rounded-md shadow-lg p-2 grid grid-cols-3 gap-1">
-              <button onClick={addTable} className="btn-toolbar" aria-label="Insert Table">
-                <div className="btn-shadow"></div>
-                <div className="btn-edge"></div>
-                <div className="btn-front"><TableIcon className="w-4 h-4 text-slate-600" /></div>
-              </button>
+            <div className="absolute z-20 mt-2 left-0 bg-white border border-gray-200 rounded-md shadow-lg p-2 grid grid-cols-2 gap-1">
               <button onClick={addImage} className="btn-toolbar" aria-label="Insert Image">
                 <div className="btn-shadow"></div>
                 <div className="btn-edge"></div>
@@ -574,66 +461,6 @@ export function DemoTextEditor() {
           )}
         </div>
 
-        {/* Table Controls - Show only when inside a table */}
-        {editor?.isActive('table') && (
-          <div className="flex items-center gap-1 border-l border-gray-200 pl-3">
-            <button
-              onClick={() => editor?.chain().focus().addColumnBefore().run()}
-              className="btn-toolbar"
-              title="Add Column Before"
-            >
-              <div className="btn-shadow"></div>
-              <div className="btn-edge"></div>
-              <div className="btn-front">
-                <span className="text-xs font-medium text-slate-600">Col+</span>
-              </div>
-            </button>
-            <button
-              onClick={() => editor?.chain().focus().addRowBefore().run()}
-              className="btn-toolbar"
-              title="Add Row Before"
-            >
-              <div className="btn-shadow"></div>
-              <div className="btn-edge"></div>
-              <div className="btn-front">
-                <span className="text-xs font-medium text-slate-600">Row+</span>
-              </div>
-            </button>
-            <button
-              onClick={() => editor?.chain().focus().deleteColumn().run()}
-              className="btn-toolbar"
-              title="Delete Column"
-            >
-              <div className="btn-shadow"></div>
-              <div className="btn-edge"></div>
-              <div className="btn-front text-red-400">
-                <span className="text-xs font-medium">Col-</span>
-              </div>
-            </button>
-            <button
-              onClick={() => editor?.chain().focus().deleteRow().run()}
-              className="btn-toolbar"
-              title="Delete Row"
-            >
-              <div className="btn-shadow"></div>
-              <div className="btn-edge"></div>
-              <div className="btn-front text-red-400">
-                <span className="text-xs font-medium">Row-</span>
-              </div>
-            </button>
-            <button
-              onClick={() => editor?.chain().focus().deleteTable().run()}
-              className="btn-toolbar"
-              title="Delete Table"
-            >
-              <div className="btn-shadow"></div>
-              <div className="btn-edge"></div>
-              <div className="btn-front text-red-400">
-                <span className="text-xs font-medium">Del</span>
-              </div>
-            </button>
-          </div>
-        )}
         </div>
 
         {/* Document Stats - Right Side */}
@@ -675,42 +502,6 @@ export function DemoTextEditor() {
           </div>
         </div>
         
-        {/* Welcome Guide */}
-        <AnimatePresence>
-          {editor.getText().length === 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="absolute top-24 left-1/2 -translate-x-1/2 max-w-2xl pointer-events-none z-10"
-            >
-              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-8 shadow-lg border border-black/10">
-                <div className="flex items-start gap-4">
-                  <div className="bg-slate-900 p-3 rounded-xl flex-shrink-0 shadow-md">
-                    <Sparkles className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900 mb-2 text-lg">Welcome to BetterWrite!</h3>
-                    <p className="text-slate-700 text-sm font-medium leading-relaxed mb-4">
-                      Create professional documents with AI-powered assistance. 
-                      Select any text and press <kbd className="px-2 py-1 bg-slate-100 border border-slate-300 rounded text-xs font-semibold shadow-sm text-slate-700">⌘K</kbd> for instant AI suggestions.
-                    </p>
-                    <div className="flex items-center gap-4 text-xs text-slate-600 font-semibold">
-                      <span className="flex items-center gap-1.5">
-                        <Zap className="w-3.5 h-3.5 text-slate-700" />
-                        AI-powered editing
-                      </span>
-                      <span className="text-slate-300">•</span>
-                      <span>Rich formatting</span>
-                      <span className="text-slate-300">•</span>
-                      <span>Smart suggestions</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
 
       {/* AI Command Palette */}
@@ -722,6 +513,104 @@ export function DemoTextEditor() {
 
       {/* AI Suggestion Overlay */}
       <AISuggestionOverlay />
+
+      {/* Keyboard Shortcuts Help Button */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <button
+          onClick={() => setShowShortcutsPanel(true)}
+          className="w-12 h-12 bg-slate-900 hover:bg-slate-800 text-white rounded-full shadow-lg transition-all duration-200 flex items-center justify-center hover:scale-110 cursor-pointer"
+          title="Keyboard Shortcuts"
+        >
+          <kbd className="text-xs font-semibold">?</kbd>
+        </button>
+      </div>
+
+      {/* Link Dialog */}
+      <AnimatePresence>
+        {showLinkDialog && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={handleLinkCancel}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl border border-gray-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-slate-900">Add Link</h3>
+                <button
+                  onClick={handleLinkCancel}
+                  className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-slate-500" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    URL *
+                  </label>
+                  <input
+                    type="url"
+                    value={linkUrl}
+                    onChange={(e) => setLinkUrl(e.target.value)}
+                    placeholder="https://example.com"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    autoFocus
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Link Text (optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={linkText}
+                    onChange={(e) => setLinkText(e.target.value)}
+                    placeholder="Display text for the link"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  {linkText.trim() === '' && (
+                    <p className="text-xs text-slate-500 mt-1">
+                      If empty, the URL will be used as the link text
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
+                <button
+                  onClick={handleLinkCancel}
+                  className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleLinkSubmit}
+                  disabled={!linkUrl.trim()}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed rounded-lg transition-colors"
+                >
+                  Add Link
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Keyboard Shortcuts Panel */}
+      <KeyboardShortcutsPanel
+        isOpen={showShortcutsPanel}
+        onClose={() => setShowShortcutsPanel(false)}
+      />
     </div>
   );
 }

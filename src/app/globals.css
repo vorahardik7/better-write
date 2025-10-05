@@ -205,6 +205,9 @@ html {
   line-height: 1.75;
   font-size: 1.125rem;
   color: #374151;
+  caret-color: #3b82f6;
+  /* Smooth cursor blinking animation */
+  animation: smooth-cursor-blink 1.2s ease-in-out infinite;
 }
 
 .ProseMirror p.is-editor-empty:first-child::before {
@@ -213,4 +216,33 @@ html {
   color: #9ca3af;
   pointer-events: none;
   height: 0;
+}
+
+/* Smooth cursor blinking animation */
+@keyframes smooth-cursor-blink {
+  0%, 50% {
+    caret-color: #3b82f6;
+  }
+  51%, 100% {
+    caret-color: transparent;
+  }
+}
+
+/* Ensure cursor is visible and smooth in all browsers */
+.ProseMirror:focus {
+  caret-color: #3b82f6;
+}
+
+/* Custom cursor styling for better visibility */
+.ProseMirror::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+
+/* Improve cursor visibility on different backgrounds */
+.ProseMirror p, .ProseMirror h1, .ProseMirror h2, .ProseMirror h3,
+.ProseMirror div, .ProseMirror span {
+  position: relative;
+  z-index: 1;
 }
