@@ -8,7 +8,6 @@ import { useTipTapEditor } from '@/lib/tiptap-config';
 
 import { useEditorStore } from '@/lib/store/editor-store';
 import { AICommandPalette } from './ai-command-palette';
-import { AISuggestionOverlay } from './ai-suggestion-overlay';
 import { KeyboardShortcutsPanel } from './keyboard-shortcuts-panel';
 import { MousePointer, Bold, Italic, Image as ImageIcon, AlertCircle, X, AlignLeft, AlignCenter, AlignRight, AlignJustify, Undo2, Redo2, Underline as UnderlineIcon, Link2, Link2Off, MoreHorizontal } from 'lucide-react';
 
@@ -511,8 +510,6 @@ export function DemoTextEditor() {
         selectedText={selection?.text || ''}
       />
 
-      {/* AI Suggestion Overlay */}
-      <AISuggestionOverlay />
 
       {/* Keyboard Shortcuts Help Button */}
       <div className="fixed bottom-6 right-6 z-50">

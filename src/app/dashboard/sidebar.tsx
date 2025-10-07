@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from '@/lib/auth-client';
+import { signOut, useSession } from '@/lib/auth-client';
 import {
   FileText,
   Settings,
@@ -114,7 +114,8 @@ export function Sidebar({ documents, stats, navigationItems }: SidebarProps) {
             <HelpCircle className="w-4 h-4" />
             Help & Support
           </button>
-          <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer">
+          <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
+          onClick={() => signOut()}>
             <LogOut className="w-4 h-4" />
             Sign Out
           </button>

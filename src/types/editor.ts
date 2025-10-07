@@ -30,4 +30,5 @@ export interface EditorState {
     requestAISuggestion: (prompt: string) => Promise<void>;
     acceptSuggestion: () => void;
     rejectSuggestion: () => void;
+    autoApplySuggestion: (suggestion: AISuggestion) => void;
 }

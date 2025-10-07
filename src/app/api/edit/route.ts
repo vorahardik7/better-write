@@ -1,6 +1,7 @@
 import { openai } from '@ai-sdk/openai';
 import { generateText } from 'ai';
 import { NextRequest, NextResponse } from 'next/server';
+import { supermemoryTools } from "@supermemory/tools/ai-sdk"
 
 export async function POST(req: NextRequest) {
   try {
@@ -47,6 +48,7 @@ export async function POST(req: NextRequest) {
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
       ],
+      tools: supermemoryTools(process.env.SUPERMEMORY_API_KEY!),
       temperature: 0.7,
       maxOutputTokens: 500,
     });
