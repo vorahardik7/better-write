@@ -59,7 +59,7 @@ export function Navbar() {
               />
             </div>
             <div>
-              <span className="text-lg font-semibold text-slate-900">BetterWrite</span>
+              <span className="text-lg font-semibold text-slate-900"><span>better-write</span></span>
             </div>
           </motion.div>
           <nav className="hidden items-center gap-6 text-sm font-semibold text-slate-600 md:flex">
@@ -76,14 +76,6 @@ export function Navbar() {
               </motion.a>
             ))}
           </nav>
-          <div className="hidden items-center gap-3 md:flex">
-            <a
-              href="/editor"
-              className="inline-flex cursor-pointer items-center justify-center rounded-full border border-black/10 bg-white px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 transition hover:border-black/30 hover:text-slate-900"
-            >
-              Launch editor
-            </a>
-          </div>
         </motion.div>
       </div>
     </div>

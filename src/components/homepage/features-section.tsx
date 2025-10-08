@@ -41,7 +41,7 @@ export function FeaturesSection() {
             Built to master any document, from proposals to reports.
           </h2>
           <p className="mt-4 text-lg font-medium text-slate-600">
-            BetterWrite unifies AI outlining, intelligent editing, and seamless formatting so you can focus on the content behind your document.
+            <span className="italic">better-write</span> unifies AI outlining, intelligent editing, and seamless formatting so you can focus on the content behind your document.
           </p>
         </motion.div>
 

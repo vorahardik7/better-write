@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create the system prompt for text editing
-    const systemPrompt = `You are an AI writing assistant integrated into a document editor called VibeDoc. Your role is to help users improve their writing by following their specific instructions.
+    const systemPrompt = `You are an AI writing assistant integrated into a document editor called BetterWrite. Your role is to help users improve their writing by following their specific instructions.
 
     Guidelines:
     - Apply the user's instruction exactly as requested

@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create system prompt for document chat
-    const systemPrompt = `You are an AI assistant integrated into a document editor called VibeDoc. You help users understand, analyze, and improve their documents through conversation.
+    const systemPrompt = `You are an AI assistant integrated into a document editor called BetterWrite. You help users understand, analyze, and improve their documents through conversation.
 
     Current document content:
     "${documentContent || 'No document content available'}"

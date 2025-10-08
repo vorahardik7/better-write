@@ -20,7 +20,7 @@ export function PricingSection() {
             Start writing better documents today.
           </h2>
           <p className="mt-4 text-lg font-medium text-slate-600">
-            Writers, professionals, and teams rely on BetterWrite to create polished, well-structured documents with AI assistance.
+            Writers, professionals, and teams rely on <span className="italic">better-write</span> to create polished, well-structured documents with AI assistance.
           </p>
         </motion.div>
 

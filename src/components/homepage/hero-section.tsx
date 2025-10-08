@@ -24,7 +24,7 @@ export function HeroSection() {
                         co-author.
                     </h1>
                     <p className="mt-6 mx-auto max-w-2xl text-lg font-medium leading-relaxed text-slate-600">
-                        BetterWrite streamlines outlining, revision, and
+                        <span className="italic">better-write</span> streamlines outlining, revision, and
                         formatting so proposals, specs, and reports land
                         polished and publication-ready.
                     </p>

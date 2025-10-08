@@ -1,7 +1,17 @@
 'use client';
 
 import { motion } from 'motion/react';
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { 
+  MousePointer, 
+  Command, 
+  Brain, 
+  CheckCircle, 
+  Zap, 
+  Type, 
+  Edit3,
+  Send
+} from 'lucide-react';
 
 const demoSteps = [
   {
@@ -36,227 +46,320 @@ const demoSteps = [
 
 export function DemoSection() {
   const [currentStep, setCurrentStep] = useState(0);
+  const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentStep((prev) => (prev + 1) % demoSteps.length);
-    }, 3000);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleEntry = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
 
-    return () => clearInterval(interval);
+        if (visibleEntry) {
+          const index = Number(visibleEntry.target.getAttribute('data-step-index'));
+          if (!Number.isNaN(index)) {
+            setCurrentStep(index);
+          }
+        }
+      },
+      {
+        threshold: 0.55,
+      }
+    );
+
+    const currentRefs = stepRefs.current;
+    currentRefs.forEach((ref) => {
+      if (ref) observer.observe(ref);
+    });
+
+    return () => {
+      currentRefs.forEach((ref) => {
+        if (ref) observer.unobserve(ref);
+      });
+      observer.disconnect();
+    };
   }, []);
+
+  const renderStepContent = (index: number) => {
+    switch (index) {
+      case 0:
+        return (
+          <div className="space-y-8">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+                <MousePointer className="h-6 w-6 text-slate-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-slate-900">Select text</h3>
+                <p className="text-sm text-slate-600">Highlight the text you want to transform</p>
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                <div className="relative">
+                  <p className="text-lg leading-relaxed text-slate-800">
+                    Our Q3 product launch went well last month. We saw good engagement and positive feedback from users.
+                  </p>
+                  <motion.div
+                    className="absolute inset-0 bg-slate-200/30 rounded"
+                    animate={{
+                      opacity: [0.3, 0.6, 0.3],
+                    }}
+                    transition={{ duration: 2, ease: 'easeInOut', repeat: Infinity }}
+                  />
+                </div>
+              </div>
+              <div className="absolute -top-2 -right-2 bg-slate-900 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+                Selected
+              </div>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
+              <span>Next: Press</span>
+              <kbd className="px-2 py-1 bg-slate-100 border border-slate-300 rounded text-xs font-semibold">⌘K</kbd>
+            </div>
+          </div>
+        );
+      case 1:
+        return (
+          <div className="space-y-8">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+                <Command className="h-6 w-6 text-slate-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-slate-900">Press ⌘K</h3>
+                <p className="text-sm text-slate-600">Open the AI command palette</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden">
+              <div className="bg-slate-50 border-b border-slate-200 px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1">
+                    <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                    <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                    <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                  </div>
+                  <span className="text-xs font-medium text-slate-500 ml-2">AI Command Palette</span>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Your prompt</p>
+                  <p className="text-sm text-slate-700">
+                    {demoSteps[1].prompt}
+                  </p>
+                </div>
+
+                <div className="flex gap-2">
+                  <button className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">
+                    <Send className="h-4 w-4" />
+                    Send
+                  </button>
+                  <button className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      case 2:
+        return (
+          <div className="space-y-8">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+                <Brain className="h-6 w-6 text-slate-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-slate-900">AI Suggestion</h3>
+                <p className="text-sm text-slate-600">Review the enhanced text suggestion</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden">
+              <div className="bg-slate-50 border-b border-slate-200 px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <Brain className="h-4 w-4 text-slate-600" />
+                  <span className="text-sm font-semibold text-slate-900">AI Suggestion Ready</span>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Original</p>
+                    <p className="text-sm text-slate-600 line-through">
+                      {demoSteps[0].originalText}
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Suggested</p>
+                    <p className="text-sm font-medium text-slate-800 leading-relaxed">
+                      {demoSteps[2].suggestion}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <button className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">
+                    <CheckCircle className="h-4 w-4" />
+                    Accept suggestion
+                  </button>
+                  <button className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                    Try again
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      case 3:
+      default:
+        return (
+          <div className="space-y-8">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+                <CheckCircle className="h-6 w-6 text-slate-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-slate-900">Complete</h3>
+                <p className="text-sm text-slate-600">Your text has been enhanced with AI</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden">
+              <div className="bg-slate-50 border-b border-slate-200 px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span className="text-sm font-semibold text-slate-900">Transformation Complete</span>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Enhanced Text</p>
+                  <p className="text-sm font-medium text-slate-800 leading-relaxed">
+                    {demoSteps[3].finalText}
+                  </p>
+                </div>
+
+                <div className="flex gap-2">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                    <Zap className="h-3 w-3" />
+                    3x more professional
+                  </span>
+                  <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                    <Type className="h-3 w-3" />
+                    Specific outcomes
+                  </span>
+                </div>
+
+                <div className="flex gap-3">
+                  <button className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">
+                    <Edit3 className="h-4 w-4" />
+                    Continue editing
+                  </button>
+                  <button className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                    Share
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+    }
+  };
 
   return (
     <section id="demo" className="bg-[#f5f4f0] py-24">
-      <div className="mx-auto max-w-6xl px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.6 }}
-          className="mx-auto max-w-3xl text-center"
-        >
-          <span className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-            How it works
-          </span>
-          <h2 className="mt-6 text-4xl font-semibold leading-[1.05] text-slate-900 sm:text-5xl">
-            Watch the AI palette elevate your document in seconds
-          </h2>
-          <p className="mt-4 text-lg font-medium text-slate-600">
-            See how BetterWrite transforms your writing with intelligent suggestions and seamless integration.
-          </p>
-        </motion.div>
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="lg:grid lg:grid-cols-[1.05fr_1.6fr] lg:gap-16">
+          <div className="space-y-10 lg:space-y-14 lg:sticky lg:top-24 lg:self-start lg:pt-16">
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-80px' }}
+              transition={{ duration: 0.6 }}
+              className="max-w-xl"
+            >
+              <span className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                How it works
+              </span>
+              <h2 className="mt-6 text-4xl font-semibold leading-[1.05] text-slate-900 sm:text-5xl">
+                Watch the AI palette elevate your document in seconds
+              </h2>
+            </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.6, delay: 0.12 }}
-          className="mx-auto mt-14 grid max-w-6xl gap-8 lg:grid-cols-2"
-        >
-          {/* Interactive Demo Card */}
-          <div className="rounded-[28px] border border-black/5 bg-white p-8 shadow-[0_32px_80px_rgba(15,23,42,0.08)]">
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-slate-900">Interactive Demo</h3>
-              <p className="mt-2 text-sm text-slate-600">Watch the transformation in action</p>
-            </div>
-            
-            <div className="rounded-2xl border border-black/10 bg-[#f8fafc] p-6">
-              {/* Step indicator */}
-              <div className="mb-6 flex items-center justify-between">
-                <div className="flex gap-2">
-                  {demoSteps.map((_, index) => (
+            <div className="hidden lg:flex flex-col gap-4">
+              {demoSteps.map((step, index) => (
+                <div
+                  key={step.step}
+                  className={`rounded-2xl border px-5 py-4 transition-all duration-300 ${
+                    currentStep === index
+                      ? 'border-slate-900 bg-white shadow-xl'
+                      : 'border-transparent bg-white/40'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
                     <div
-                      key={index}
-                      className={`h-2 w-8 rounded-full transition-all duration-300 ${
-                        index <= currentStep ? 'bg-slate-900' : 'bg-slate-200'
+                      className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition-colors ${
+                        currentStep === index
+                          ? 'bg-slate-900 text-white'
+                          : 'bg-slate-200 text-slate-600'
                       }`}
-                    />
-                  ))}
+                    >
+                      {step.step.toString().padStart(2, '0')}
+                    </div>
+                    <div>
+                      <p className={`text-sm font-semibold ${currentStep === index ? 'text-slate-900' : 'text-slate-600'}`}>
+                        {step.title}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {step.description}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-                  Step {currentStep + 1} of {demoSteps.length}
-                </span>
-              </div>
-
-              {/* Demo content */}
-              <div className="min-h-[300px] space-y-4">
-                {currentStep === 0 && (
-                  <motion.div
-                    key="step-0"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3 }}
-                    className="space-y-3"
-                  >
-                    <div className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-                      Original text
-                    </div>
-                    <div className="relative">
-                      <p className="rounded-2xl border-2 border-blue-200 bg-blue-50 p-4 text-sm font-medium text-slate-700">
-                        {demoSteps[0].originalText}
-                      </p>
-                      <div className="absolute -top-2 -right-2 rounded-full bg-blue-500 px-2 py-1 text-xs font-semibold text-white">
-                        Selected
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-                        <span>Press ⌘K to continue</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-
-                {currentStep === 1 && (
-                  <motion.div
-                    key="step-1"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3 }}
-                    className="space-y-3"
-                  >
-                    <div className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-                      AI Palette
-                    </div>
-                    <div className="rounded-2xl border-2 border-green-200 bg-green-50 p-4">
-                      <div className="mb-2 text-xs font-semibold text-green-700">Your prompt:</div>
-                      <p className="text-sm font-medium text-slate-700">
-                        {demoSteps[1].prompt}
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-                        <span>Processing...</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-
-                {currentStep === 2 && (
-                  <motion.div
-                    key="step-2"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3 }}
-                    className="space-y-3"
-                  >
-                    <div className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-                      AI Suggestion
-                    </div>
-                    <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-4">
-                      <p className="text-sm font-medium leading-6 text-slate-700">
-                        {demoSteps[2].suggestion}
-                      </p>
-                    </div>
-                    <div className="flex gap-3">
-                      <button className="flex-1 rounded-full border border-black/10 bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-black">
-                        Accept
-                      </button>
-                      <button className="flex-1 rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-black/20">
-                        Ask again
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-
-                {currentStep === 3 && (
-                  <motion.div
-                    key="step-3"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3 }}
-                    className="space-y-3"
-                  >
-                    <div className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-                      Final Result
-                    </div>
-                    <div className="rounded-2xl border-2 border-green-200 bg-green-50 p-4">
-                      <p className="text-sm font-medium leading-6 text-slate-700">
-                        {demoSteps[3].finalText}
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <div className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-2 text-xs font-semibold text-green-700">
-                        <span>✓ Transformation complete</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </div>
+              ))}
             </div>
           </div>
 
-          {/* Features Card */}
-          <div className="space-y-6">
-            <div className="rounded-[28px] border border-black/5 bg-white p-6 shadow-[0_28px_70px_rgba(15,23,42,0.08)]">
-              <h3 className="text-lg font-semibold text-slate-900">Key Features</h3>
-              <div className="mt-6 space-y-4">
-                <div className="flex gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-[#f5f4f0] text-sm font-semibold text-slate-900">
-                    01
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">Smart Selection</p>
-                    <p className="mt-1 text-sm text-slate-600">Highlight any text to get contextual AI suggestions</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-[#f5f4f0] text-sm font-semibold text-slate-900">
-                    02
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">Instant Palette</p>
-                    <p className="mt-1 text-sm text-slate-600">Press ⌘K to open the AI command palette instantly</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-[#f5f4f0] text-sm font-semibold text-slate-900">
-                    03
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">One-Click Apply</p>
-                    <p className="mt-1 text-sm text-slate-600">Accept or refine suggestions with a single click</p>
-                  </div>
-                </div>
+          <div className="mt-14 space-y-24 lg:mt-0 lg:space-y-32">
+            {demoSteps.map((step, index) => (
+              <div
+                key={step.step}
+                ref={(el) => {
+                  stepRefs.current[index] = el;
+                }}
+                data-step-index={index}
+                className="min-h-[80vh] scroll-mt-32 flex items-center"
+              >
+                <motion.div
+                  initial={{ opacity: 0, y: 48 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.45 }}
+                  animate={{
+                    scale: currentStep === index ? 1 : 0.97,
+                    boxShadow:
+                      currentStep === index
+                        ? '0px 32px 96px rgba(15, 23, 42, 0.16)'
+                        : '0px 16px 48px rgba(15, 23, 42, 0.08)',
+                    borderColor: currentStep === index ? 'rgba(15, 23, 42, 0.2)' : 'rgba(148, 163, 184, 0.25)',
+                  }}
+                  transition={{ duration: 0.4, ease: 'easeOut' }}
+                  className="w-full rounded-[30px] border bg-white px-8 py-10 shadow-xl"
+                >
+                  {renderStepContent(index)}
+                </motion.div>
               </div>
-            </div>
-
-            <div className="rounded-[28px] border border-black/5 bg-white p-6 shadow-[0_26px_70px_rgba(15,23,42,0.08)]">
-              <h3 className="text-lg font-semibold text-slate-900">Pro Tips</h3>
-              <ul className="mt-4 space-y-3 text-sm text-slate-600">
-                <li className="rounded-2xl border border-black/10 bg-[#f5f4f0] px-4 py-3">
-                  Use specific prompts like &ldquo;make this more formal&rdquo; or &ldquo;add metrics&rdquo;
-                </li>
-                <li className="rounded-2xl border border-black/10 bg-[#f5f4f0] px-4 py-3">
-                  Combine instructions: &ldquo;formal tone + highlight key points&rdquo;
-                </li>
-                <li className="rounded-2xl border border-black/10 bg-[#f5f4f0] px-4 py-3">
-                  Preserves your formatting and style while enhancing content
-                </li>
-              </ul>
-            </div>
+            ))}
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
