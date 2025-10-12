@@ -46,3 +46,4 @@ next-env.d.ts
 /src/generated/prisma
 req.txt
 PROJECT_RECOMMENDATIONS.md
+better-auth_migrations/

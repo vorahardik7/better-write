@@ -2,12 +2,9 @@
 
 import { signOut, useSession } from '@/lib/auth-client';
 import {
-  FileText,
   Settings,
   HelpCircle,
   ChevronRight,
-  TrendingUp,
-  Activity,
   LogOut,
 } from 'lucide-react';
 
@@ -17,24 +14,11 @@ interface NavigationItem {
   active?: boolean;
 }
 
-interface Document {
-  id: string;
-  title: string;
-  lastModified: string;
-  wordCount: number;
-  preview: string;
-  tags: string[];
-  status: 'draft' | 'review' | 'published' | 'completed';
-  starred?: boolean;
-}
-
 interface SidebarProps {
-  documents: Document[];
-  stats: StatItem[];
   navigationItems: NavigationItem[];
 }
 
-export function Sidebar({ documents, stats, navigationItems }: SidebarProps) {
+export function Sidebar({ navigationItems }: SidebarProps) {
   const { data: session } = useSession();
 
   return (
@@ -57,8 +41,6 @@ export function Sidebar({ documents, stats, navigationItems }: SidebarProps) {
           </button>
         </div>
 
-        {/* Enhanced Stats Section */}
-        <StatsSection stats={stats} />
       </div>
 
       {/* Navigation */}
@@ -82,29 +64,6 @@ export function Sidebar({ documents, stats, navigationItems }: SidebarProps) {
             );
           })}
         </div>
-
-        {/* Recent Activity */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex items-center gap-2 mb-4 flex-shrink-0">
-            <Activity className="w-4 h-4 text-slate-500" />
-            <h4 className="text-sm font-semibold text-slate-900">Recent Activity</h4>
-          </div>
-          <div className="flex-1 overflow-y-auto">
-            <div className="space-y-3">
-              {documents.slice(0, 5).map((doc) => (
-                <div key={doc.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer group">
-                  <div className="w-8 h-8 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg flex items-center justify-center group-hover:from-slate-200 group-hover:to-slate-300 transition-colors">
-                    <FileText className="w-4 h-4 text-slate-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-slate-900 truncate">{doc.title}</div>
-                    <div className="text-xs text-slate-500">{doc.lastModified}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
       </nav>
 
       {/* Sidebar Footer */}
@@ -122,75 +81,5 @@ export function Sidebar({ documents, stats, navigationItems }: SidebarProps) {
         </div>
       </div>
     </aside>
-  );
-}
-
-interface StatItem {
-  label: string;
-  value: string;
-  change: string;
-  icon: React.ComponentType<{ className?: string }>;
-}
-
-interface StatsSectionProps {
-  stats: StatItem[];
-}
-
-function StatsSection({ stats }: StatsSectionProps) {
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <TrendingUp className="w-4 h-4 text-slate-500" />
-        <h4 className="text-sm font-semibold text-slate-900">Progress</h4>
-      </div>
-
-      <div className="space-y-2">
-        {stats.map((stat: StatItem) => {
-          const Icon = stat.icon;
-          const streakValue = parseInt(stat.value);
-
-          return (
-            <div key={stat.label} className="group">
-              {/* Writing Streak Card */}
-              {stat.label === 'Writing Streak' && (
-                <div className="relative bg-gradient-to-br from-slate-50 to-white rounded-lg p-3 border border-slate-200/50 hover:border-slate-300/50 hover:shadow-sm transition-all cursor-pointer">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1.5 rounded-md bg-slate-100 group-hover:bg-slate-200 transition-colors">
-                        <Icon className="w-3.5 h-3.5 text-slate-600" />
-                      </div>
-                      <div className="text-sm font-medium text-slate-900">
-                        {stat.label}
-                      </div>
-                    </div>
-          
-                  </div>
-
-                  {/* Streak Display */}
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: 7 }).map((_, i) => (
-                        <div
-                          key={i}
-                          className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                            i < streakValue
-                              ? 'bg-slate-600 shadow-sm scale-110'
-                              : 'bg-slate-200 hover:bg-slate-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <div className="text-lg font-bold text-slate-900">
-                      {streakValue} day{streakValue !== 1 ? 's' : ''}
-                    </div>
-                  </div>
-
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
   );
 }

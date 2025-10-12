@@ -5,17 +5,27 @@ import type { TextSelection, AISuggestion, EditorState } from "@/types/editor";
 
 export const useEditorStore = create<EditorState>((set, get) => ({
     // Initial state
-    content:
-        "<h1>Welcome to better-write!</h1><p>Start writing your document with rich formatting, tables, images, and AI assistance.</p><p>Select any text and press <kbd>⌘K</kbd> to get instant AI suggestions for improvement.</p><blockquote><p>This is the future of document editing - where AI understands your intent and helps you write better.</p></blockquote>",
+    content: "",
+    title: "Untitled Document",
+    documentId: null,
     selection: null,
     aiSuggestion: null,
     isProcessing: false,
     editorRef: null,
     error: null,
+    hasUnsavedChanges: false,
 
     // Actions
     setContent: (content: string) => {
-        set({ content });
+        set({ content, hasUnsavedChanges: true });
+    },
+
+    setTitle: (title: string) => {
+        set({ title, hasUnsavedChanges: true });
+    },
+
+    setDocumentId: (documentId: string | null) => {
+        set({ documentId, hasUnsavedChanges: false });
     },
 
     setSelection: (selection: TextSelection | null) => {
@@ -24,6 +34,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
     setEditorRef: (editor: Editor) => {
         set({ editorRef: editor });
+    },
+
+    setHasUnsavedChanges: (hasUnsavedChanges: boolean) => {
+        set({ hasUnsavedChanges });
     },
 
     clearError: () => {

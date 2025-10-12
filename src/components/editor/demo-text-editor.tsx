@@ -29,7 +29,7 @@ export function DemoTextEditor() {
   } = useEditorStore();
 
   const editor = useTipTapEditor(
-    content,
+    content || '<p></p>',
     ({ editor }) => {
       setContent(editor.getHTML());
     },
@@ -250,31 +250,6 @@ export function DemoTextEditor() {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Error Display */}
-      <AnimatePresence>
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 shadow-sm"
-          >
-            <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
-            <span className="text-sm text-red-700 flex-1">{error}</span>
-            <button
-              onClick={clearError}
-              className="btn-toolbar"
-            >
-              <div className="btn-shadow"></div>
-              <div className="btn-edge"></div>
-              <div className="btn-front">
-                <X className="w-3 h-3 text-red-600" />
-              </div>
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Formatting Toolbar */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
@@ -510,6 +485,33 @@ export function DemoTextEditor() {
         selectedText={selection?.text || ''}
       />
 
+
+      {/* Error Toast */}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className="fixed bottom-20 right-6 z-50 max-w-md"
+          >
+            <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 shadow-lg">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-red-900 mb-1">Error</p>
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+              <button
+                onClick={clearError}
+                className="p-1 hover:bg-red-100 rounded-lg transition-colors flex-shrink-0"
+                aria-label="Close error"
+              >
+                <X className="w-4 h-4 text-red-600" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Keyboard Shortcuts Help Button */}
       <div className="fixed bottom-6 right-6 z-50">

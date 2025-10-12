@@ -1,5 +1,5 @@
 import { openai } from '@ai-sdk/openai';
-import { generateText } from 'ai';
+import { generateText, CoreMessage } from 'ai';
 import { NextRequest, NextResponse } from 'next/server';
 import { supermemoryTools } from "@supermemory/tools/ai-sdk"
 
@@ -42,16 +42,22 @@ export async function POST(req: NextRequest) {
     Please apply the instruction to the selected text and return only the improved version:`;
 
     // Generate AI response
-    const { text } = await generateText({
+    const messages: CoreMessage[] = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt }
+    ];
+
+    const generateConfig = {
       model: openai('gpt-4o-mini'), // Using the faster, cheaper model for text editing
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-      ],
-      tools: supermemoryTools(process.env.SUPERMEMORY_API_KEY!),
+      messages,
       temperature: 0.7,
-      maxOutputTokens: 500,
-    });
+      maxTokens: 500,
+      ...(process.env.SUPERMEMORY_API_KEY && {
+        tools: supermemoryTools(process.env.SUPERMEMORY_API_KEY)
+      })
+    };
+
+    const { text } = await generateText(generateConfig);
 
     return NextResponse.json({
       success: true,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Search,
@@ -10,34 +10,84 @@ import {
   Eye,
   MoreHorizontal,
   FileText,
-  Star,
   Edit,
+  Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useSession } from '@/lib/auth-client';
+import { useRouter } from 'next/navigation';
 
 interface Document {
   id: string;
   title: string;
-  lastModified: string;
+  contentHtml: string;
+  contentText: string;
+  createdAt: string;
+  updatedAt: string;
+  lastEditedAt: string;
+  isArchived: boolean;
+  isPublic: boolean;
   wordCount: number;
-  preview: string;
-  tags: string[];
-  status: 'draft' | 'review' | 'published' | 'completed';
-  starred?: boolean;
+  characterCount: number;
 }
 
 interface MainContentProps {
-  documents: Document[];
+  initialDocuments?: Document[];
 }
 
-export function MainContent({ documents }: MainContentProps) {
+export function MainContent({ initialDocuments = [] }: MainContentProps) {
+  const { data: session } = useSession();
+  const [documents, setDocuments] = useState<Document[]>(initialDocuments);
+  const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
+
+  // Fetch documents on component mount
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      if (!session?.user) return;
+      setLoading(true);
+      try {
+        const response = await fetch('/api/documents');
+        if (response.ok) {
+          const data = await response.json();
+          setDocuments(data.documents || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch documents:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (initialDocuments.length === 0) {
+      fetchDocuments();
+    }
+  }, [initialDocuments.length, session?.user]);
 
   const filteredDocuments = documents.filter(doc =>
     doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    doc.preview.toLowerCase().includes(searchQuery.toLowerCase())
+    (doc.contentText?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
   );
+
+  const handleOpenDocument = (id: string) => {
+    router.push(`/editor?id=${id}`);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+    
+    if (diffInHours < 24) {
+      return `${Math.floor(diffInHours)}h ago`;
+    } else if (diffInHours < 168) {
+      return `${Math.floor(diffInHours / 24)}d ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
+  };
 
   return (
     <>
@@ -99,7 +149,11 @@ export function MainContent({ documents }: MainContentProps) {
       {/* Document Grid/List - Scrollable */}
       <div className="flex-1 p-6 overflow-y-auto">
         <AnimatePresence mode="wait">
-          {filteredDocuments.length > 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
+            </div>
+          ) : filteredDocuments.length > 0 ? (
             <motion.div
               key={viewMode}
               initial={{ opacity: 0, y: 20 }}
@@ -119,7 +173,15 @@ export function MainContent({ documents }: MainContentProps) {
                   className={`group relative bg-white rounded-2xl border border-black/5 shadow-sm hover:shadow-lg hover:border-black/10 transition-all duration-200 cursor-pointer ${
                     viewMode === 'list' ? 'flex items-center gap-4 p-4' : 'p-6'
                   }`}
-                  // TODO: Implement document opening functionality
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => handleOpenDocument(doc.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      handleOpenDocument(doc.id);
+                    }
+                  }}
                 >
                   {viewMode === 'grid' ? (
                     <>
@@ -133,47 +195,25 @@ export function MainContent({ documents }: MainContentProps) {
                           <h3 className="font-semibold text-slate-900 group-hover:text-slate-700 transition-colors line-clamp-2">
                             {doc.title}
                           </h3>
-                          {doc.starred && (
-                            <Star className="w-4 h-4 text-yellow-500 fill-current flex-shrink-0 ml-2" />
-                          )}
                         </div>
 
                         <p className="text-sm text-slate-600 line-clamp-2">
-                          {doc.preview}
+                          {(doc.contentText ?? '').slice(0, 100)}...
                         </p>
 
                         <div className="flex items-center justify-between pt-2">
                           <div className="flex items-center gap-2">
-                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                              doc.status === 'draft'
-                                ? 'bg-yellow-100 text-yellow-700'
-                                : doc.status === 'review'
-                                ? 'bg-blue-100 text-blue-700'
-                                : 'bg-green-100 text-green-700'
-                            }`}>
-                              {doc.status}
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                              {doc.isPublic ? 'Public' : 'Private'}
                             </span>
                             <span className="text-xs text-slate-500">
                               {doc.wordCount.toLocaleString()} words
                             </span>
                           </div>
                           <span className="text-xs text-slate-400">
-                            {doc.lastModified}
+                            {formatDate(doc.lastEditedAt)}
                           </span>
                         </div>
-
-                        {doc.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1 pt-1">
-                            {doc.tags.slice(0, 2).map((tag: string) => (
-                              <span key={tag} className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-600">
-                                {tag}
-                              </span>
-                            ))}
-                            {doc.tags.length > 2 && (
-                              <span className="text-xs text-slate-400">+{doc.tags.length - 2}</span>
-                            )}
-                          </div>
-                        )}
                       </div>
 
                       {/* Hover Actions */}
@@ -203,42 +243,26 @@ export function MainContent({ documents }: MainContentProps) {
                           <h3 className="font-semibold text-slate-900 group-hover:text-slate-700 transition-colors truncate">
                             {doc.title}
                           </h3>
-                          {doc.starred && (
-                            <Star className="w-4 h-4 text-yellow-500 fill-current flex-shrink-0" />
-                          )}
                         </div>
 
                         <p className="text-sm text-slate-600 line-clamp-1 mb-2">
-                          {doc.preview}
+                          {(doc.contentText ?? '').slice(0, 100)}...
                         </p>
 
                         <div className="flex items-center gap-4 text-xs text-slate-500">
                           <span>{doc.wordCount.toLocaleString()} words</span>
                           <span>•</span>
-                          <span>{doc.lastModified}</span>
+                          <span>{formatDate(doc.lastEditedAt)}</span>
                           <span>•</span>
-                          <div className="flex gap-1">
-                            {doc.tags.slice(0, 2).map((tag: string) => (
-                              <span key={tag} className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-600">
-                                {tag}
-                              </span>
-                            ))}
-                            {doc.tags.length > 2 && (
-                              <span className="text-xs text-slate-400">+{doc.tags.length - 2}</span>
-                            )}
-                          </div>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-600">
+                            {doc.isPublic ? 'Public' : 'Private'}
+                          </span>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          doc.status === 'draft'
-                            ? 'bg-yellow-100 text-yellow-700'
-                            : doc.status === 'review'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-green-100 text-green-700'
-                        }`}>
-                          {doc.status}
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                          {doc.isPublic ? 'Public' : 'Private'}
                         </span>
 
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity">
@@ -289,3 +313,4 @@ export function MainContent({ documents }: MainContentProps) {
     </>
   );
 }
+
