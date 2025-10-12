@@ -2,8 +2,8 @@
 
 import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { BookOpen, Clock, Archive } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { BookOpen, Clock, Archive, Star, Share2 } from 'lucide-react';
 import { Sidebar } from './sidebar';
 import { MainContent } from './main-content';
 
@@ -11,13 +11,42 @@ import { MainContent } from './main-content';
 export default function Dashboard() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
+  const [activeItem, setActiveItem] = useState('all-docs');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({
+    starredOnly: false,
+    sharedOnly: false,
+  });
+  const [documentCounts, setDocumentCounts] = useState({
+    all: 0,
+    starred: 0,
+    recent: 0,
+    shared: 0,
+    archive: 0,
+  });
 
   const navigationItems = [
-    { label: 'All Documents', icon: BookOpen, active: true },
-    { label: 'Starred', icon: BookOpen, active: false },
-    { label: 'Recent', icon: Clock, active: false },
-    { label: 'Archive', icon: Archive, active: false },
+    { id: 'all-docs', label: 'All Documents', icon: BookOpen },
+    { id: 'starred', label: 'Starred', icon: Star },
+    { id: 'recent', label: 'Recent', icon: Clock },
+    { id: 'shared', label: 'Shared with me', icon: Share2 },
+    { id: 'archive', label: 'Archive', icon: Archive },
   ];
+
+  const handleSelectNavigation = (itemId: string) => {
+    setActiveItem(itemId);
+
+    setFilters((prev) => ({
+      ...prev,
+      starredOnly: itemId === 'starred',
+      sharedOnly: itemId === 'shared',
+    }));
+
+    if (itemId === 'archive') {
+      setViewMode('list');
+    }
+  };
 
   useEffect(() => {
     if (isPending) return;
@@ -41,10 +70,23 @@ export default function Dashboard() {
 
   return (
     <div className="h-screen bg-[#f5f4f0] flex overflow-hidden">
-      <Sidebar navigationItems={navigationItems} />
+      <Sidebar
+        navigationItems={navigationItems}
+        activeItem={activeItem}
+        onSelect={handleSelectNavigation}
+        documentCounts={documentCounts}
+      />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <MainContent />
+        <MainContent
+          activeItem={activeItem}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          filters={filters}
+          onDocumentCountsChange={setDocumentCounts}
+        />
       </div>
     </div>
   );

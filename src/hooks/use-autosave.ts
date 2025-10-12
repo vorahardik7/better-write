@@ -67,8 +67,7 @@ export function useAutosave({
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
         e.preventDefault();
-        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
-        return e.returnValue;
+        return 'You have unsaved changes. Are you sure you want to leave?';
       }
     };
 

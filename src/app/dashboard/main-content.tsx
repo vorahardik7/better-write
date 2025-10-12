@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, MouseEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Search,
@@ -29,18 +29,44 @@ interface Document {
   isPublic: boolean;
   wordCount: number;
   characterCount: number;
+  isStarred?: boolean;
 }
 
 interface MainContentProps {
   initialDocuments?: Document[];
+  activeItem: string;
+  viewMode: 'grid' | 'list';
+  onViewModeChange: (mode: 'grid' | 'list') => void;
+  searchQuery: string;
+  onSearchQueryChange: (value: string) => void;
+  filters: {
+    starredOnly: boolean;
+    sharedOnly: boolean;
+  };
+  onDocumentCountsChange?: (counts: {
+    all: number;
+    starred: number;
+    recent: number;
+    shared: number;
+    archive: number;
+  }) => void;
 }
 
-export function MainContent({ initialDocuments = [] }: MainContentProps) {
+
+export function MainContent({
+  initialDocuments = [],
+  activeItem,
+  viewMode,
+  onViewModeChange,
+  searchQuery,
+  onSearchQueryChange,
+  filters,
+  onDocumentCountsChange,
+}: MainContentProps) {
   const { data: session } = useSession();
   const [documents, setDocuments] = useState<Document[]>(initialDocuments);
   const [loading, setLoading] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [starredIds, setStarredIds] = useState<string[]>([]);
   const router = useRouter();
 
   // Fetch documents on component mount
@@ -66,14 +92,55 @@ export function MainContent({ initialDocuments = [] }: MainContentProps) {
     }
   }, [initialDocuments.length, session?.user]);
 
-  const filteredDocuments = documents.filter(doc =>
-    doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (doc.contentText?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
-  );
+  // Calculate and send document counts to parent
+  useEffect(() => {
+    if (onDocumentCountsChange && documents.length > 0) {
+      const now = new Date();
+      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      
+      const counts = {
+        all: documents.length,
+        starred: documents.filter(doc => doc.isStarred || starredIds.includes(doc.id)).length,
+        recent: documents.filter(doc => new Date(doc.lastEditedAt) > oneWeekAgo).length,
+        shared: documents.filter(doc => doc.isPublic).length,
+        archive: documents.filter(doc => doc.isArchived).length,
+      };
+      
+      onDocumentCountsChange(counts);
+    }
+  }, [documents, starredIds, onDocumentCountsChange]);
+
+  const filteredDocuments = useMemo(() => {
+    return documents
+      .map((doc) => {
+        const isStarred = starredIds.includes(doc.id) || doc.isStarred === true;
+        return { ...doc, isStarred };
+      })
+      .filter((doc) => {
+        if (activeItem !== 'archive' && doc.isArchived) {
+          return false;
+        }
+
+        if (filters.starredOnly && !doc.isStarred) {
+          return false;
+        }
+
+        if (filters.sharedOnly && !doc.isPublic) {
+          return false;
+        }
+
+        const lowerQuery = searchQuery.toLowerCase();
+        const matchesTitle = doc.title.toLowerCase().includes(lowerQuery);
+        const matchesContent = doc.contentText?.toLowerCase().includes(lowerQuery) ?? false;
+
+        return matchesTitle || matchesContent;
+      });
+  }, [activeItem, documents, filters.sharedOnly, filters.starredOnly, searchQuery, starredIds]);
 
   const handleOpenDocument = (id: string) => {
     router.push(`/editor?id=${id}`);
   };
+
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -109,7 +176,7 @@ export function MainContent({ initialDocuments = [] }: MainContentProps) {
                 type="text"
                 placeholder="Search documents..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => onSearchQueryChange(e.target.value)}
                 className="pl-10 pr-4 py-2 w-80 border border-black/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition-all"
               />
             </div>
@@ -117,7 +184,7 @@ export function MainContent({ initialDocuments = [] }: MainContentProps) {
             {/* View Toggle */}
             <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
               <button
-                onClick={() => setViewMode('grid')}
+                onClick={() => onViewModeChange('grid')}
                 className={`p-2 rounded-md transition-colors cursor-pointer ${
                   viewMode === 'grid' ? 'bg-white shadow-sm' : 'hover:bg-slate-200'
                 }`}
@@ -125,7 +192,7 @@ export function MainContent({ initialDocuments = [] }: MainContentProps) {
                 <Grid3X3 className="w-4 h-4 text-slate-600" />
               </button>
               <button
-                onClick={() => setViewMode('list')}
+                onClick={() => onViewModeChange('list')}
                 className={`p-2 rounded-md transition-colors cursor-pointer ${
                   viewMode === 'list' ? 'bg-white shadow-sm' : 'hover:bg-slate-200'
                 }`}

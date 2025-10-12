@@ -1,12 +1,25 @@
 "use client";
+import { useState } from "react";
 import { signIn } from "@/lib/auth-client";
 
 import { motion } from "motion/react";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
-import Link from "next/link";
+import { ArrowUpRight, Loader2 } from "lucide-react";
 
 
 export function HeroSection() {
+    const [isSigningIn, setIsSigningIn] = useState(false);
+
+    const handleGoogleSignIn = async () => {
+        if (isSigningIn) return;
+        setIsSigningIn(true);
+        try {
+            await signIn.social({ provider: "google", callbackURL: "/dashboard" });
+        } catch (error) {
+            console.error("Failed to sign in with Google", error);
+            setIsSigningIn(false);
+        }
+    };
+
     return (
         <section className="relative overflow-hidden bg-[#f5f4f0] pb-24 pt-32">
             <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center gap-12 px-6 text-center">
@@ -28,20 +41,11 @@ export function HeroSection() {
                         formatting so proposals, specs, and reports land
                         polished and publication-ready.
                     </p>
-
-                    <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center">
-                        <Link
-                            href="/editor"
-                            className="inline-flex cursor-pointer items-center justify-center rounded-full bg-slate-900 px-8 py-4 text-sm font-semibold text-white transition hover:bg-black"
-                        >
-                            Launch the editor
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                        </Link>
+                    <div className="mt-10 flex flex-col items-center justify-center">
                         <button
-                            onClick={() =>
-                                signIn.social({ provider: "google", callbackURL: "/dashboard" })
-                            }
-                            className="inline-flex cursor-pointer items-center justify-center gap-3 rounded-full border border-black/10 bg-white px-8 py-4 text-sm font-semibold text-slate-900 transition hover:border-black/30"
+                            onClick={handleGoogleSignIn}
+                            disabled={isSigningIn}
+                            className="inline-flex cursor-pointer items-center justify-center gap-3 rounded-full border border-black/10 bg-white px-8 py-4 text-sm font-semibold text-slate-900 transition hover:border-black/30 disabled:pointer-events-none disabled:opacity-70"
                         >
                             <span className="flex h-6 w-6 items-center justify-center">
                                 <svg
@@ -70,12 +74,21 @@ export function HeroSection() {
                                     ></path>
                                 </svg>
                             </span>
-                            Continue with Google
-                            <ArrowUpRight className="ml-2 h-4 w-4" />
+                            {isSigningIn ? (
+                                <span className="flex items-center gap-2">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Signing in...
+                                </span>
+                            ) : (
+                                <span className="flex items-center gap-2">
+                                    Continue with Google
+                                    <ArrowUpRight className="h-4 w-4" />
+                                </span>
+                            )}
                         </button>
                     </div>
 
-                    
+
                 </motion.div>
             </div>
         </section>
