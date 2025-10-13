@@ -29,9 +29,6 @@ export function HeroSection() {
                     transition={{ duration: 0.6, delay: 0.1 }}
                     className="w-full max-w-3xl"
                 >
-                    <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">
-                        Precision writing workspace
-                    </div>
                     <h1 className="mt-8 text-4xl font-semibold leading-[1.05] text-slate-900 sm:text-5xl md:text-6xl">
                         Compose professional documents with AI as your
                         co-author.

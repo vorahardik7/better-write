@@ -34,9 +34,6 @@ export function FeaturesSection() {
           transition={{ duration: 0.6 }}
           className="mx-auto max-w-3xl text-center"
         >
-          <span className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-[#f5f4f0] px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-            Designed for writing excellence
-          </span>
           <h2 className="mt-8 text-4xl font-semibold leading-[1.05] text-slate-900 sm:text-5xl">
             Built to master any document, from proposals to reports.
           </h2>

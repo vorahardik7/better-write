@@ -13,9 +13,6 @@ export function PricingSection() {
           transition={{ duration: 0.6 }}
           className="mx-auto max-w-3xl text-center"
         >
-          <span className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-[#f5f4f0] px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-            Simple, transparent pricing
-          </span>
           <h2 className="mt-8 text-4xl font-semibold leading-[1.05] text-slate-900 sm:text-5xl">
             Start writing better documents today.
           </h2>
@@ -31,7 +28,7 @@ export function PricingSection() {
           transition={{ duration: 0.6 }}
           className="mx-auto mt-16 max-w-lg"
         >
-          <div className="relative overflow-hidden rounded-3xl border border-black/5 bg-gradient-to-br from-[#f5f4f0] to-white p-10 shadow-[0_30px_80px_rgba(15,23,42,0.08)]">
+          <div className="relative overflow-hidden rounded-3xl border border-black/5 bg-gradient-to-br from-[#f5f4f0] to-white p-8 shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Free Plan</p>
@@ -44,10 +41,10 @@ export function PricingSection() {
                 Free Now
               </div>
             </div>
-            <p className="mt-5 text-sm font-medium text-slate-600">
+            <p className="mt-4 text-sm font-medium text-slate-600">
               Everything you need to create professional documents with AI assistance built into your workflow.
             </p>
-            <ul className="mt-8 space-y-3 text-sm font-medium text-slate-700">
+            <ul className="mt-6 space-y-2 text-sm font-medium text-slate-700">
               {[
                 'Unlimited documents & workspaces',
                 'AI outlining, rewriting, and summarization',
@@ -64,7 +61,7 @@ export function PricingSection() {
                 </li>
               ))}
             </ul>
-            <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
               <a
                 href="/editor"
                 className="inline-flex cursor-pointer items-center justify-center rounded-full border border-black/10 bg-slate-900 px-8 py-4 text-sm font-semibold text-white transition hover:bg-black"

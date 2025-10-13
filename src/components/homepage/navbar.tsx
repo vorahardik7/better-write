@@ -27,9 +27,7 @@ export function Navbar() {
     const rect = el.getBoundingClientRect();
     const navbarHeight = 80; // Account for fixed navbar height
     const absoluteTop = window.scrollY + rect.top;
-    const viewportCenter = window.innerHeight / 2;
-    const elementCenterOffset = rect.height / 2;
-    const targetScrollTop = absoluteTop - viewportCenter + elementCenterOffset + navbarHeight - 100;
+    const targetScrollTop = absoluteTop - navbarHeight + 100; // Scroll to top of section with some padding
     window.scrollTo({ top: Math.max(0, targetScrollTop), behavior: 'smooth' });
   }, []);
 
