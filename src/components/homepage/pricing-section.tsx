@@ -6,8 +6,8 @@ import { SectionHeader } from './section-header';
 
 export function PricingSection() {
   return (
-    <section id="pricing" className="relative overflow-hidden bg-white py-24">
-      <div className="relative mx-auto max-w-7xl px-6">
+    <section id="pricing" className="relative overflow-hidden bg-white py-20 sm:py-24">
+      <div className="relative mx-auto max-w-7xl px-5 sm:px-6">
         <SectionHeader sectionId="pricing" label="Pricing" order={3}>
           Pricing
         </SectionHeader>
@@ -17,12 +17,12 @@ export function PricingSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.6 }}
-          className="mx-auto mt-10 max-w-3xl text-center"
+          className="mx-auto mt-8 max-w-3xl text-center sm:mt-10"
         >
-          <h2 className="mt-8 text-4xl font-semibold leading-[1.05] text-slate-900 sm:text-5xl">
+          <h2 className="mt-6 text-3xl font-semibold leading-[1.08] text-slate-900 sm:mt-8 sm:text-4xl md:text-5xl">
             Start writing better documents today.
           </h2>
-          <p className="mt-4 text-lg font-medium text-slate-600">
+          <p className="mt-4 text-base font-medium text-slate-600 sm:text-lg">
             Writers, professionals, and teams rely on <span className="italic">better-write</span> to create polished, well-structured documents with AI assistance.
           </p>
         </motion.div>
@@ -32,22 +32,22 @@ export function PricingSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.6 }}
-          className="mx-auto mt-16 max-w-lg"
+          className="mx-auto mt-12 max-w-lg sm:mt-16"
         >
-          <div className="relative overflow-hidden rounded-3xl border border-black/5 bg-gradient-to-br from-[#f5f4f0] to-white p-8 shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
-            <div className="flex items-center justify-between">
+          <div className="relative overflow-hidden rounded-3xl border border-black/5 bg-gradient-to-br from-[#f5f4f0] to-white p-6 shadow-[0_20px_48px_rgba(15,23,42,0.08)] sm:p-8">
+            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Free Plan</p>
+                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-500 sm:text-xs">Free Plan</p>
                 <div className="mt-4 flex items-baseline gap-3">
-                    <span className="text-5xl font-semibold text-slate-900">Free</span>
-                    <span className="text-xl font-medium text-slate-400 line-through">$15/mo</span>
+                    <span className="text-4xl font-semibold text-slate-900 sm:text-5xl">Free</span>
+                    <span className="text-lg font-medium text-slate-400 line-through sm:text-xl">$15/mo</span>
                 </div>
               </div>
-              <div className="rounded-2xl border border-black/10 bg-white px-4 py-2 text-xs font-semibold text-slate-700">
+              <div className="inline-flex w-max items-center justify-center rounded-2xl border border-black/10 bg-white px-4 py-2 text-xs font-semibold text-slate-700">
                 Free Now
               </div>
             </div>
-            <p className="mt-4 text-sm font-medium text-slate-600">
+            <p className="mt-5 text-sm font-medium leading-relaxed text-slate-600">
               Everything you need to create professional documents with AI assistance built into your workflow.
             </p>
             <ul className="mt-6 space-y-2 text-sm font-medium text-slate-700">

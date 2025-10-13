@@ -268,14 +268,71 @@ export function DemoSection() {
   };
 
   return (
-    <section id="demo" className="bg-[#f5f4f0] py-24">
-      <div className="mx-auto max-w-7xl px-6">
+    <section id="demo" className="bg-[#f5f4f0] py-20 sm:py-24">
+      <div className="mx-auto max-w-7xl px-5 sm:px-6">
         <SectionHeader sectionId="demo" label="Demo" order={2}>
           Demo
         </SectionHeader>
 
-        <div className="lg:grid lg:grid-cols-[1.05fr_1.6fr] lg:gap-16">
-          <div className="space-y-10 lg:space-y-14 lg:sticky lg:top-24 lg:self-start lg:pt-16">
+        <div className="lg:hidden">
+          <div className="max-w-xl">
+            <span className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-slate-500">
+              How it works
+            </span>
+            <h2 className="mt-4 text-3xl font-semibold leading-[1.08] text-slate-900">
+              Watch the AI palette elevate your document in seconds
+            </h2>
+          </div>
+
+          <div className="mt-8 space-y-6">
+            {demoSteps.map((step) => (
+              <div
+                key={step.step}
+                className="rounded-3xl border border-black/5 bg-white/90 p-5 shadow-[0_16px_36px_rgba(15,23,42,0.08)] backdrop-blur"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold text-white">
+                    {step.step.toString().padStart(2, '0')}
+                  </span>
+                  <div>
+                    <h3 className="text-base font-semibold text-slate-900">{step.title}</h3>
+                    <p className="mt-1 text-sm text-slate-600">{step.description}</p>
+                  </div>
+                </div>
+
+                {step.originalText && (
+                  <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4 text-sm leading-relaxed text-slate-700">
+                    {step.originalText}
+                  </div>
+                )}
+
+                {step.prompt && (
+                  <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Prompt</p>
+                    <p className="mt-2 text-sm text-slate-700">{step.prompt}</p>
+                  </div>
+                )}
+
+                {step.suggestion && (
+                  <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">AI Suggestion</p>
+                    <p className="mt-2 text-sm font-medium text-slate-800 leading-relaxed">{step.suggestion}</p>
+                  </div>
+                )}
+
+                {step.finalText && (
+                  <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Final Text</p>
+                    <p className="mt-2 text-sm font-medium text-slate-800 leading-relaxed">{step.finalText}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="hidden lg:grid lg:grid-cols-[1.05fr_1.6fr] lg:gap-16">
+          <div className="space-y-14 lg:sticky lg:top-24 lg:self-start lg:pt-16">
             <motion.div
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -291,7 +348,7 @@ export function DemoSection() {
               </h2>
             </motion.div>
 
-            <div className="hidden lg:flex flex-col gap-4">
+            <div className="flex flex-col gap-4">
               {demoSteps.map((step, index) => (
                 <div
                   key={step.step}
@@ -315,7 +372,7 @@ export function DemoSection() {
                       <p className={`text-sm font-semibold ${currentStep === index ? 'text-slate-900' : 'text-slate-600'}`}>
                         {step.title}
                       </p>
-                      <p className="text-xs text-slate-500 mt-1">
+                      <p className="mt-1 text-xs text-slate-500">
                         {step.description}
                       </p>
                     </div>
@@ -325,7 +382,7 @@ export function DemoSection() {
             </div>
           </div>
 
-          <div className="mt-14 space-y-24 lg:mt-0 lg:space-y-32">
+          <div className="mt-16 space-y-32">
             {demoSteps.map((step, index) => (
               <div
                 key={step.step}
@@ -333,7 +390,7 @@ export function DemoSection() {
                   stepRefs.current[index] = el;
                 }}
                 data-step-index={index}
-                className="min-h-[80vh] scroll-mt-32 flex items-center"
+                className="min-h-[70vh] scroll-mt-32 flex items-center"
               >
                 <motion.div
                   initial={{ opacity: 0, y: 48 }}
