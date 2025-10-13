@@ -3,15 +3,18 @@ import { FeaturesSection } from '@/components/homepage/features-section';
 import { DemoSection } from '@/components/homepage/demo-section';
 import { PricingSection } from '@/components/homepage/pricing-section';
 import { Navbar } from '@/components/homepage/navbar';
+import { ScrollSectionsProvider } from '@/components/homepage/scroll-sections-context';
 
 export default function Home() {
   return (
     <main className="bg-white text-slate-900">
-      <Navbar />
-      <HeroSection />
-      <FeaturesSection />
-      <DemoSection />
-      <PricingSection />
+      <ScrollSectionsProvider>
+        <Navbar />
+        <HeroSection />
+        <FeaturesSection />
+        <DemoSection />
+        <PricingSection />
+      </ScrollSectionsProvider>
     </main>
   );
 }

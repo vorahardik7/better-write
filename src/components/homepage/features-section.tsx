@@ -2,6 +2,8 @@
 
 import { motion } from 'motion/react';
 
+import { SectionHeader } from './section-header';
+
 const pillars = [
   {
     eyebrow: 'Structure',
@@ -27,12 +29,16 @@ export function FeaturesSection() {
   return (
     <section id="features" className="relative overflow-hidden bg-white py-24">
       <div className="relative mx-auto max-w-7xl px-6">
+        <SectionHeader sectionId="features" label="Features" order={1}>
+          Features
+        </SectionHeader>
+
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.6 }}
-          className="mx-auto max-w-3xl text-center"
+          className="mx-auto mt-10 max-w-3xl text-center"
         >
           <h2 className="mt-8 text-4xl font-semibold leading-[1.05] text-slate-900 sm:text-5xl">
             Built to master any document, from proposals to reports.

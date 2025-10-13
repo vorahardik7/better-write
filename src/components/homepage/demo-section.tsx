@@ -2,16 +2,8 @@
 
 import { motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
-import { 
-  MousePointer, 
-  Command, 
-  Brain, 
-  CheckCircle, 
-  Zap, 
-  Type, 
-  Edit3,
-  Send
-} from 'lucide-react';
+import { MousePointer, Command, Brain, CheckCircle, Zap, Type, Edit3, Send } from 'lucide-react';
+import { SectionHeader } from './section-header';
 
 const demoSteps = [
   {
@@ -278,6 +270,10 @@ export function DemoSection() {
   return (
     <section id="demo" className="bg-[#f5f4f0] py-24">
       <div className="mx-auto max-w-7xl px-6">
+        <SectionHeader sectionId="demo" label="Demo" order={2}>
+          Demo
+        </SectionHeader>
+
         <div className="lg:grid lg:grid-cols-[1.05fr_1.6fr] lg:gap-16">
           <div className="space-y-10 lg:space-y-14 lg:sticky lg:top-24 lg:self-start lg:pt-16">
             <motion.div
