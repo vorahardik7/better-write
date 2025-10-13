@@ -29,46 +29,53 @@ function EditorPageContent() {
   const documentIdParam = searchParams?.get('id') ?? null;
 
   useEffect(() => {
-    let isMounted = true;
+    const controller = new AbortController();
+    let ignore = false;
+
+    const resetDocumentState = () => {
+      if (ignore) return;
+      setTitle('Untitled Document');
+      setContent('');
+      setDocumentId(null);
+      setLoadingDocument(false);
+      setLoadError(null);
+    };
 
     const loadDocument = async (id: string) => {
+      setLoadingDocument(true);
+      setLoadError(null);
       try {
-        setLoadingDocument(true);
-        setLoadError(null);
-        const response = await fetch(`/api/documents/${id}`);
+        const response = await fetch(`/api/documents/${id}`, {
+          signal: controller.signal,
+        });
         if (!response.ok) {
           throw new Error('Failed to load document');
         }
         const data = await response.json();
-        if (isMounted) {
-          setTitle(data.title);
-          setContent(data.content);
-          setDocumentId(data.id);
-        }
+        if (ignore) return;
+        setTitle(data.title);
+        setContent(data.content);
+        setDocumentId(data.id);
       } catch (error) {
+        if (controller.signal.aborted) return;
         console.error(error);
-        if (isMounted) {
-          setLoadError('Failed to load document. Please try again.');
-        }
+        if (ignore) return;
+        setLoadError('Failed to load document. Please try again.');
       } finally {
-        if (isMounted) {
-          setLoadingDocument(false);
-        }
+        if (ignore) return;
+        setLoadingDocument(false);
       }
     };
 
     if (documentIdParam) {
       loadDocument(documentIdParam);
     } else {
-      setTitle('Untitled Document');
-      setContent('');
-      setDocumentId(null);
-      setLoadingDocument(false);
-      setLoadError(null);
+      resetDocumentState();
     }
 
     return () => {
-      isMounted = false;
+      ignore = true;
+      controller.abort();
     };
   }, [documentIdParam, setTitle, setContent, setDocumentId]);
 

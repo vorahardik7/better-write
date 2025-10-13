@@ -71,44 +71,57 @@ export function MainContent({
 
   // Fetch documents on component mount
   useEffect(() => {
+    if (!session?.user || initialDocuments.length > 0) {
+      return;
+    }
+
+    const controller = new AbortController();
+
     const fetchDocuments = async () => {
-      if (!session?.user) return;
       setLoading(true);
       try {
-        const response = await fetch('/api/documents');
-        if (response.ok) {
-          const data = await response.json();
-          setDocuments(data.documents || []);
+        const response = await fetch('/api/documents', {
+          signal: controller.signal,
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch documents');
         }
+        const data = await response.json();
+        setDocuments(data.documents || []);
       } catch (error) {
-        console.error('Failed to fetch documents:', error);
+        if (!controller.signal.aborted) {
+          console.error('Failed to fetch documents:', error);
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    if (initialDocuments.length === 0) {
-      fetchDocuments();
-    }
+    fetchDocuments();
+
+    return () => {
+      controller.abort();
+    };
   }, [initialDocuments.length, session?.user]);
 
-  // Calculate and send document counts to parent
+  const documentCounts = useMemo(() => {
+    const now = new Date();
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    return {
+      all: documents.length,
+      starred: documents.filter(doc => doc.isStarred || starredIds.includes(doc.id)).length,
+      recent: documents.filter(doc => new Date(doc.lastEditedAt) > oneWeekAgo).length,
+      shared: documents.filter(doc => doc.isPublic).length,
+      archive: documents.filter(doc => doc.isArchived).length,
+    };
+  }, [documents, starredIds]);
+
+  // Notify parent of document counts
   useEffect(() => {
-    if (onDocumentCountsChange && documents.length > 0) {
-      const now = new Date();
-      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      
-      const counts = {
-        all: documents.length,
-        starred: documents.filter(doc => doc.isStarred || starredIds.includes(doc.id)).length,
-        recent: documents.filter(doc => new Date(doc.lastEditedAt) > oneWeekAgo).length,
-        shared: documents.filter(doc => doc.isPublic).length,
-        archive: documents.filter(doc => doc.isArchived).length,
-      };
-      
-      onDocumentCountsChange(counts);
-    }
-  }, [documents, starredIds, onDocumentCountsChange]);
+    if (!onDocumentCountsChange) return;
+    onDocumentCountsChange(documentCounts);
+  }, [documentCounts, onDocumentCountsChange]);
 
   const filteredDocuments = useMemo(() => {
     return documents
