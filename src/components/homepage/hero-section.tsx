@@ -1,99 +1,78 @@
 "use client";
-import { useState } from "react";
-import { signIn } from "@/lib/auth-client";
 
+import { useState } from "react";
+
+import { signIn } from "@/lib/auth-client";
 import { motion } from "motion/react";
-import { ArrowUpRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 
 
 export function HeroSection() {
-    const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
-    const handleGoogleSignIn = async () => {
-        if (isSigningIn) return;
-        setIsSigningIn(true);
-        try {
-            await signIn.social({ provider: "google", callbackURL: "/dashboard" });
-        } catch (error) {
-            console.error("Failed to sign in with Google", error);
-            setIsSigningIn(false);
-        }
-    };
+  const handleGoogleSignIn = async () => {
+    if (isSigningIn) return;
+    setIsSigningIn(true);
+    try {
+      await signIn.social({ provider: "google", callbackURL: "/dashboard" });
+    } catch (error) {
+      console.error("Failed to sign in with Google", error);
+      setIsSigningIn(false);
+    }
+  };
 
-    return (
-        <section className="relative overflow-hidden bg-[#f5f4f0] pb-20 pt-24 sm:pb-24 sm:pt-28 lg:pb-28 lg:pt-32">
-            <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center gap-10 px-5 text-center sm:gap-12">
-                <motion.div
-                    initial={{ opacity: 0, y: 24 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.1 }}
-                    className="w-full max-w-3xl"
-                >
-                    <h1 className="mt-6 text-3xl font-semibold leading-[1.08] text-slate-900 sm:mt-8 sm:text-4xl md:text-5xl lg:text-6xl">
-                        Compose professional documents with AI as your
-                        co-author.
-                    </h1>
-                    <p className="mt-5 mx-auto max-w-2xl text-base font-medium leading-relaxed text-slate-600 sm:mt-6 sm:text-lg">
-                        <span className="italic">better-write</span> streamlines outlining, revision, and
-                        formatting so proposals, specs, and reports land
-                        polished and publication-ready.
-                    </p>
-                    <div className="mt-10 flex w-full flex-col items-center gap-4">
-                        <div className="hidden w-full justify-center md:flex">
-                            <button
-                                onClick={handleGoogleSignIn}
-                                disabled={isSigningIn}
-                                className="inline-flex cursor-pointer items-center justify-center gap-3 rounded-full border border-black/10 bg-white px-8 py-4 text-sm font-semibold text-slate-900 transition hover:border-black/30 disabled:pointer-events-none disabled:opacity-70"
-                            >
-                                <span className="flex h-6 w-6 items-center justify-center">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        x="0px"
-                                        y="0px"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 48 48"
-                                    >
-                                        <path
-                                            fill="#FFC107"
-                                            d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
-                                        ></path>
-                                        <path
-                                            fill="#FF3D00"
-                                            d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
-                                        ></path>
-                                        <path
-                                            fill="#4CAF50"
-                                            d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
-                                        ></path>
-                                        <path
-                                            fill="#1976D2"
-                                            d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
-                                        ></path>
-                                    </svg>
-                                </span>
-                                {isSigningIn ? (
-                                    <span className="flex items-center gap-2">
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                        Signing in...
-                                    </span>
-                                ) : (
-                                    <span className="flex items-center gap-2">
-                                        Continue with Google
-                                        <ArrowUpRight className="h-4 w-4" />
-                                    </span>
-                                )}
-                            </button>
-                        </div>
-                        <div className="flex w-full flex-col items-center justify-center gap-1.5 rounded-2xl border border-slate-200 bg-white/70 px-4 py-3 text-sm font-medium text-slate-600 backdrop-blur md:hidden">
-                            <span>For the full better-write experience</span>
-                            <span className="font-semibold text-slate-900">Please continue on a desktop device</span>
-                        </div>
-                    </div>
+  return (
+    <section className="relative flex min-h-screen items-center overflow-hidden pb-28 pt-36 sm:pb-32 sm:pt-40 bg-[#fff7fb]">
+      <div className="pointer-events-none absolute inset-0 motion-smooth" aria-hidden>
+        <div className="absolute left-1/2 top-[-32%] h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-gradient-to-br from-[#d7f0ff] via-[#edf2ff] to-[#f9e8ff] opacity-75 blur-3xl sm:h-[680px] sm:w-[680px]" />
+        <div className="absolute -bottom-16 left-[12%] h-72 w-72 rounded-full bg-gradient-to-br from-[#e6f9ff] via-[#def7ef] to-transparent opacity-65 blur-2xl" />
+        <div className="absolute -right-24 top-[35%] hidden h-80 w-80 rounded-full bg-gradient-to-br from-[#f1e6ff] via-white to-transparent opacity-65 blur-2xl md:block" />
+      </div>
+
+      <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center gap-12 px-6 text-center sm:gap-14">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="w-full"
+        >
+
+          <h1 className="font-display text-[2.9rem] leading-[1.05] text-slate-900 sm:text-[3.6rem] md:text-[4.3rem]">
+          Introducing <span className="italic lowercase tracking-tight">better-write</span>
+          </h1>
+
+          <br/>
+          
+          <h3 className="text-lg leading-relaxed text-slate-600 sm:text-xl">AI-powered writing workflow that lives inside your document.</h3>
 
 
-                </motion.div>
-            </div>
-        </section>
-    );
+          <p className="mt-6 mx-auto max-w-3xl text-lg leading-relaxed text-slate-600 sm:text-xl">
+            Highlight a sentence, press ⌘K, and better-write rewrites, summarizes, or expands using the context it already understands. No copy/paste, no lost tone, no juggling tools.
+          </p>
+
+          <div className="mt-10 flex flex-col items-center justify-center gap-5 sm:flex-row sm:gap-6">
+            <button
+              onClick={handleGoogleSignIn}
+              disabled={isSigningIn}
+              className="cursor-pointer group inline-flex items-center gap-3 rounded-full bg-slate-900 px-7 py-4 text-sm font-semibold text-white transition hover:bg-black disabled:pointer-events-none disabled:opacity-70"
+            >
+              {isSigningIn ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Signing in
+                </>
+              ) : (
+                <>
+                  Continue with Google
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </>
+              )}
+            </button>
+
+          </div>
+
+        </motion.div>
+      </div>
+    </section>
+  );
 }

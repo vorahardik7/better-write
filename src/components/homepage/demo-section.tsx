@@ -8,31 +8,29 @@ import { SectionHeader } from './section-header';
 const demoSteps = [
   {
     step: 1,
-    title: 'Select text',
-    description: 'Highlight the text you want to transform',
-    originalText: 'Our Q3 product launch went well last month.',
-    isSelected: false,
+    title: 'Drop your source',
+    description: 'Paste research, meeting notes, or a rough draft into better-write.',
+    originalText: 'Discovery sync raw notes • 40 min call • Key takeaways: pilot launch, ops blockers, success metrics tracking.',
   },
   {
     step: 2,
-    title: 'Press ⌘K',
-    description: 'Open the AI palette and enter your prompt',
-    prompt: 'Make this sound more professional and include specific outcomes',
-    isSelected: false,
+    title: 'Call the command palette',
+    description: 'Highlight a section and press ⌘K. Ask for a rewrite, summary, or action plan.',
+    prompt: 'Create a stakeholder-ready brief with goals, risks, timeline, and owner from these notes.',
   },
   {
     step: 3,
-    title: 'AI suggestion',
-    description: 'Review the enhanced text suggestion',
-    suggestion: 'Our Q3 launch exceeded targets, achieving 150% of projected revenue and onboarding 2,847 new customers within the first month.',
-    isSelected: false,
+    title: 'Review the structured output',
+    description: 'AI drafts the sections you need while keeping your source nearby.',
+    suggestion:
+      'Summary: Pilot with 25 customers in June. Goals: 92% onboarding completion by week 2. Risks: integration backlog, support bandwidth. Next steps: finalize ops checklist by May 18, confirm analytics triggers.',
   },
   {
     step: 4,
-    title: 'Accept changes',
-    description: 'Apply the transformation with one click',
-    finalText: 'Our Q3 launch exceeded targets, achieving 150% of projected revenue and onboarding 2,847 new customers within the first month.',
-    isSelected: false,
+    title: 'Publish or export',
+    description: 'Accept changes, share for review, or export to your existing workflow.',
+    finalText:
+      'Stakeholder brief drafted, reviewers tagged, and export queued to PDF + Notion. Tasks synced to roadmap workspace.',
   },
 ];
 
@@ -82,8 +80,8 @@ export function DemoSection() {
                 <MousePointer className="h-6 w-6 text-slate-600" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-slate-900">Select text</h3>
-                <p className="text-sm text-slate-600">Highlight the text you want to transform</p>
+                <h3 className="text-xl font-semibold text-slate-900">Drop your source</h3>
+                <p className="text-sm text-slate-600">Paste research notes or import an existing doc into better-write.</p>
               </div>
             </div>
 
@@ -91,7 +89,7 @@ export function DemoSection() {
               <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                 <div className="relative">
                   <p className="text-lg leading-relaxed text-slate-800">
-                    Our Q3 product launch went well last month. We saw good engagement and positive feedback from users.
+                    Discovery sync • 40 min call • Key takeaways: pilot launch with 25 customers, onboarding blockers, analytics owners TBD.
                   </p>
                   <motion.div
                     className="absolute inset-0 bg-slate-200/30 rounded"
@@ -103,13 +101,12 @@ export function DemoSection() {
                 </div>
               </div>
               <div className="absolute -top-2 -right-2 bg-slate-900 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
-                Selected
+                Captured
               </div>
             </div>
 
             <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
-              <span>Next: Press</span>
-              <kbd className="px-2 py-1 bg-slate-100 border border-slate-300 rounded text-xs font-semibold">⌘K</kbd>
+              <span>Next: Highlight the key section and press ⌘K.</span>
             </div>
           </div>
         );
@@ -121,8 +118,8 @@ export function DemoSection() {
                 <Command className="h-6 w-6 text-slate-600" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-slate-900">Press ⌘K</h3>
-                <p className="text-sm text-slate-600">Open the AI command palette</p>
+                <h3 className="text-xl font-semibold text-slate-900">Call the command palette</h3>
+                <p className="text-sm text-slate-600">Highlight what matters, press ⌘K, and ask for the rewrite or summary you need.</p>
               </div>
             </div>
 
@@ -140,7 +137,7 @@ export function DemoSection() {
 
               <div className="p-6 space-y-4">
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Your prompt</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Prompt</p>
                   <p className="text-sm text-slate-700">
                     {demoSteps[1].prompt}
                   </p>
@@ -149,7 +146,7 @@ export function DemoSection() {
                 <div className="flex gap-2">
                   <button className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">
                     <Send className="h-4 w-4" />
-                    Send
+                    Generate
                   </button>
                   <button className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
                     Cancel
@@ -167,8 +164,8 @@ export function DemoSection() {
                 <Brain className="h-6 w-6 text-slate-600" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-slate-900">AI Suggestion</h3>
-                <p className="text-sm text-slate-600">Review the enhanced text suggestion</p>
+                <h3 className="text-xl font-semibold text-slate-900">Review the structured output</h3>
+                <p className="text-sm text-slate-600">Better-write lays the summary beside your source so you can tweak fast.</p>
               </div>
             </div>
 
@@ -176,21 +173,21 @@ export function DemoSection() {
               <div className="bg-slate-50 border-b border-slate-200 px-4 py-3">
                 <div className="flex items-center gap-2">
                   <Brain className="h-4 w-4 text-slate-600" />
-                  <span className="text-sm font-semibold text-slate-900">AI Suggestion Ready</span>
+                  <span className="text-sm font-semibold text-slate-900">Brief preview</span>
                 </div>
               </div>
 
               <div className="p-6 space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Original</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Original notes</p>
                     <p className="text-sm text-slate-600 line-through">
                       {demoSteps[0].originalText}
                     </p>
                   </div>
 
                   <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Suggested</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Structured brief</p>
                     <p className="text-sm font-medium text-slate-800 leading-relaxed">
                       {demoSteps[2].suggestion}
                     </p>
@@ -200,10 +197,10 @@ export function DemoSection() {
                 <div className="flex gap-3">
                   <button className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">
                     <CheckCircle className="h-4 w-4" />
-                    Accept suggestion
+                    Insert sections
                   </button>
                   <button className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
-                    Try again
+                    Regenerate
                   </button>
                 </div>
               </div>
@@ -219,8 +216,8 @@ export function DemoSection() {
                 <CheckCircle className="h-6 w-6 text-slate-600" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-slate-900">Complete</h3>
-                <p className="text-sm text-slate-600">Your text has been enhanced with AI</p>
+                <h3 className="text-xl font-semibold text-slate-900">Publish or export</h3>
+                <p className="text-sm text-slate-600">Accept edits, share, or push tasks into your roadmap tool.</p>
               </div>
             </div>
 
@@ -228,13 +225,13 @@ export function DemoSection() {
               <div className="bg-slate-50 border-b border-slate-200 px-4 py-3">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-semibold text-slate-900">Transformation Complete</span>
+                  <span className="text-sm font-semibold text-slate-900">Launch-ready</span>
                 </div>
               </div>
 
               <div className="p-6 space-y-4">
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Enhanced Text</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Final brief</p>
                   <p className="text-sm font-medium text-slate-800 leading-relaxed">
                     {demoSteps[3].finalText}
                   </p>
@@ -243,11 +240,11 @@ export function DemoSection() {
                 <div className="flex gap-2">
                   <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
                     <Zap className="h-3 w-3" />
-                    3x more professional
+                    Tasks synced
                   </span>
                   <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
                     <Type className="h-3 w-3" />
-                    Specific outcomes
+                    Ready to share
                   </span>
                 </div>
 
@@ -268,8 +265,17 @@ export function DemoSection() {
   };
 
   return (
-    <section id="demo" className="bg-[#f5f4f0] py-20 sm:py-24">
-      <div className="mx-auto max-w-7xl px-5 sm:px-6">
+    <section
+      id="demo"
+      className="relative py-24 sm:py-28 bg-gradient-to-br from-[#fff0f6] via-[#fff7fb] to-white"
+    >
+      <div className="pointer-events-none motion-smooth absolute inset-0" aria-hidden>
+        <div className="absolute left-[18%] top-[6%] h-64 w-64 rounded-full bg-gradient-to-br from-[#ffdff0] via-transparent to-transparent opacity-68 blur-3xl" />
+        <div className="absolute -right-24 top-[28%] h-80 w-80 rounded-full bg-gradient-to-br from-[#ffe9f7] via-white to-transparent opacity-70 blur-3xl" />
+        <div className="absolute bottom-[-18%] left-1/3 h-72 w-72 rounded-full bg-gradient-to-br from-[#ffebf8] via-white to-transparent opacity-65 blur-3xl" />
+      </div>
+
+      <div className="relative mx-auto max-w-7xl px-5 sm:px-6">
         <SectionHeader sectionId="demo" label="Demo" order={2}>
           Demo
         </SectionHeader>

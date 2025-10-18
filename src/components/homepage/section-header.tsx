@@ -25,13 +25,13 @@ export function SectionHeader({ sectionId, label, order, children }: SectionHead
   const isPinned = pinnedSections.some((section) => section.id === sectionId);
 
   return (
-    <div ref={ref} data-section-id={sectionId} className="mb-6 flex flex-col items-center sm:mb-8">
+    <div ref={ref} data-section-id={sectionId} className="mb-6 flex flex-col items-center sm:mb-10">
       <div className="flex h-9 items-center sm:h-10">
         {!isPinned && (
           <motion.div
             layoutId={`nav-section-${sectionId}`}
             transition={{ type: 'spring', stiffness: 500, damping: 35, mass: 0.55 }}
-            className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-slate-500 shadow-[0_10px_24px_rgba(15,23,42,0.08)] sm:gap-3 sm:px-5 sm:py-2 sm:text-xs sm:tracking-[0.3em]"
+            className="inline-flex items-center gap-2 rounded-full border border-white/50 bg-white/75 px-5 py-2 text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-slate-500 shadow-[0_20px_36px_rgba(15,23,42,0.12)] backdrop-blur sm:gap-3 sm:px-6 sm:py-2 sm:text-xs sm:tracking-[0.3em]"
           >
             {children}
           </motion.div>
