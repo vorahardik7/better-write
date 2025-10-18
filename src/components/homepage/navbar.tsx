@@ -39,7 +39,7 @@ export function Navbar() {
       <div className="pointer-events-auto w-full max-w-5xl">
         <motion.div
           ref={setNavRef}
-          className="relative flex h-16 items-center justify-center rounded-full border border-[#ccd5ae]/40 bg-[#fefae0]/80 px-6 backdrop-blur transition"
+          className="relative flex h-16 items-center justify-center rounded-full border border-[#ccd5ae]/40 rgba(227, 232, 213, 0.92) px-6 backdrop-blur transition"
           animate={{
             boxShadow: scrolled
               ? '0px 25px 60px rgba(212,163,115,0.26)'

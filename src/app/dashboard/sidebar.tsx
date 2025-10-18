@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signOut, useSession } from '@/lib/auth-client';
 import {
   ChevronDown,
@@ -36,6 +36,21 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
   const { data: session } = useSession();
   const [signOutPending, setSignOutPending] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!profileMenuOpen) return;
+
+    const handleClickAway = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (target && target.closest('[data-profile-popover]')) {
+        return;
+      }
+      setProfileMenuOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleClickAway);
+    return () => document.removeEventListener('mousedown', handleClickAway);
+  }, [profileMenuOpen]);
 
   const handleSignOut = async () => {
     if (signOutPending) return;
@@ -104,16 +119,16 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
                     : 'text-[rgb(72,84,42)] hover:bg-[rgba(245,247,239,0.55)]'
                 }`}
               >
-                <span className="flex items-center gap-3">
+                <span className="flex items-center gap-3 cursor-pointer">
                   <Icon className="w-4 h-4" />
                   {item.label}
                 </span>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 cursor-pointer">
                   {count !== null && (
                     <span className={`text-xs font-medium px-2 py-1 rounded-full ${
                       activeItem === item.id 
-                        ? 'bg-white/25 text-white' 
-                        : 'bg-[rgba(245,247,239,0.8)] text-[rgb(96,108,58)]'
+                        ? 'text-white' 
+                        : 'text-[rgb(96,108,58)]'
                     }`}>
                       {count}
                     </span>
@@ -133,7 +148,7 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
             <button
               type="button"
               onClick={() => setIsCreatingFolder(true)}
-              className="inline-flex items-center gap-1 text-xs font-medium text-[rgba(96,108,58,0.85)] hover:text-[rgb(72,84,42)]"
+              className="inline-flex items-center gap-1 text-xs font-medium text-[rgba(96,108,58,0.85)] hover:text-[rgb(72,84,42)] cursor-pointer"
             >
               <FolderPlus className="w-3 h-3" />
               New
@@ -215,9 +230,10 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
             setProfileMenuOpen(false);
           }
         }}
+        data-profile-popover
       >
         {profileMenuOpen && (
-          <div className="absolute bottom-[76px] left-6 right-6 rounded-2xl bg-[#fdf8eb] shadow-[0_18px_40px_rgba(52,63,29,0.22)] border border-[rgba(136,153,79,0.15)] pt-3 pb-2">
+          <div className="absolute bottom-[100px] left-6 right-6 rounded-2xl bg-[#fdf8eb] shadow-[0_18px_40px_rgba(52,63,29,0.22)] border border-[rgba(136,153,79,0.15)] pt-3 pb-2">
             <div className="px-5 pb-2 text-left">
               <p className="text-xs uppercase tracking-[0.2em] text-[rgba(96,108,58,0.65)]">Account</p>
               <p className="mt-2 text-sm font-semibold text-[rgb(52,63,29)] truncate">{session?.user?.name}</p>
@@ -225,13 +241,13 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
             <div className="mt-1 flex flex-col gap-1 px-2">
               <button
                 type="button"
-                className="flex items-center gap-3 rounded-xl px-4 py-2 text-sm font-medium text-[rgb(72,84,42)] hover:bg-[#f5f1df] transition-colors"
+                className="flex items-center gap-3 rounded-xl px-4 py-2 text-sm font-medium text-[rgb(72,84,42)] hover:bg-[#f5f1df] transition-colors cursor-pointer"
               >
                 <Settings className="w-4 h-4" />
                 Settings
               </button>
               <button
-                className="flex items-center gap-3 rounded-xl px-4 py-2 text-sm font-medium text-white bg-[rgb(136,153,79)] hover:bg-[rgb(118,132,68)] transition-colors disabled:opacity-70"
+                className="flex items-center gap-3 rounded-xl px-4 py-2 text-sm font-medium text-white bg-[rgb(136,153,79)] hover:bg-[rgb(118,132,68)] transition-colors disabled:opacity-70 cursor-pointer"
                 onClick={handleSignOut}
                 disabled={signOutPending}
               >
@@ -254,7 +270,7 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
         <button
           type="button"
           onClick={() => setProfileMenuOpen((prev) => !prev)}
-          className="flex w-full items-center gap-3 rounded-2xl bg-[#fbf5e6] px-4 py-3 text-left transition-colors hover:bg-[#f5f0de]"
+          className="flex w-full items-center gap-3 rounded-2xl bg-[#fbf5e6] px-4 py-3 text-left transition-colors hover:bg-[#f5f0de] cursor-pointer"
         >
           <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[rgb(136,153,79)] text-white font-semibold text-lg shadow-[0_12px_28px_rgba(52,63,29,0.25)]">
             {session?.user?.name?.charAt(0).toUpperCase()}
