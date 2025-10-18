@@ -3,14 +3,13 @@
 import { useState } from 'react';
 import { signOut, useSession } from '@/lib/auth-client';
 import {
-  Settings,
-  HelpCircle,
+  ChevronDown,
   ChevronRight,
   LogOut,
   Loader2,
   Folder,
   FolderPlus,
-  X,
+  Settings,
 } from 'lucide-react';
 
 interface NavigationItem {
@@ -36,12 +35,7 @@ interface SidebarProps {
 export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts }: SidebarProps) {
   const { data: session } = useSession();
   const [signOutPending, setSignOutPending] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [settingsState, setSettingsState] = useState({
-    emailUpdates: true,
-    autoSave: true,
-    compactSidebar: false,
-  });
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
     if (signOutPending) return;
@@ -57,13 +51,6 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
   const [folders, setFolders] = useState<Array<{ id: string; name: string; count: number }>>([]);
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
-
-  const toggleSetting = (key: keyof typeof settingsState) => {
-    setSettingsState((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
-  };
 
   const handleCreateFolder = () => {
     if (newFolderName.trim()) {
@@ -83,23 +70,10 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
   };
 
   return (
-    <aside className="w-80 bg-white border-r border-black/5 h-screen flex flex-col overflow-hidden">
-      {/* User Profile Section */}
-      <div className="p-6 border-b border-black/5 flex-shrink-0">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="w-12 h-12 bg-gradient-to-br from-slate-900 to-slate-700 rounded-full flex items-center justify-center text-white font-semibold text-lg shadow-lg">
-              {session?.user?.name?.charAt(0).toUpperCase()}
-            </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-slate-900">{session?.user?.name}</h3>
-            <p className="text-sm text-slate-500">{session?.user?.email}</p>
-          </div>
-        </div>
-
-      </div>
+    <aside className="w-80 h-screen flex flex-col overflow-hidden border-r border-[rgba(136,153,79,0.12)] bg-[#f7f3e5]">
 
       {/* Navigation */}
-      <nav className="flex-1 p-6 overflow-hidden">
+      <nav className="flex-1 px-6 pt-10 pb-4 overflow-hidden">
         <div className="space-y-1.5 mb-8">
           {navigationItems.map((item) => {
             const Icon = item.icon;
@@ -120,11 +94,14 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
               <button
                 key={item.label}
                 type="button"
-                onClick={() => onSelect(item.id)}
-                className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors cursor-pointer border border-transparent ${
+                onClick={() => {
+                  setProfileMenuOpen(false);
+                  onSelect(item.id);
+                }}
+                className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
                   activeItem === item.id
-                    ? 'bg-slate-900 text-white shadow-lg'
-                    : 'text-slate-700 hover:bg-slate-100 border-black/5'
+                    ? 'bg-[rgb(136,153,79)] text-white shadow-[0_16px_40px_rgba(52,63,29,0.28)]'
+                    : 'text-[rgb(72,84,42)] hover:bg-[rgba(245,247,239,0.55)]'
                 }`}
               >
                 <span className="flex items-center gap-3">
@@ -135,8 +112,8 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
                   {count !== null && (
                     <span className={`text-xs font-medium px-2 py-1 rounded-full ${
                       activeItem === item.id 
-                        ? 'bg-white/20 text-white' 
-                        : 'bg-slate-100 text-slate-600'
+                        ? 'bg-white/25 text-white' 
+                        : 'bg-[rgba(245,247,239,0.8)] text-[rgb(96,108,58)]'
                     }`}>
                       {count}
                     </span>
@@ -148,15 +125,15 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
           })}
         </div>
 
-        <div className="border-t border-black/5 pt-6 mt-6">
+        <div className="border-t border-[rgba(136,153,79,0.18)] pt-6 mt-6">
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-[rgba(96,108,58,0.7)]">
               Folders
             </h4>
             <button
               type="button"
               onClick={() => setIsCreatingFolder(true)}
-              className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"
+              className="inline-flex items-center gap-1 text-xs font-medium text-[rgba(96,108,58,0.85)] hover:text-[rgb(72,84,42)]"
             >
               <FolderPlus className="w-3 h-3" />
               New
@@ -165,13 +142,13 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
 
           <div className="space-y-2">
             {isCreatingFolder && (
-              <div className="flex items-center gap-2 p-2 border border-black/10 rounded-lg bg-slate-50">
+              <div className="flex items-center gap-2 p-2 border border-[rgba(136,153,79,0.18)] rounded-lg bg-[rgba(245,247,239,0.75)] shadow-[0_8px_18px_rgba(136,153,79,0.12)]">
                 <input
                   type="text"
                   value={newFolderName}
                   onChange={(e) => setNewFolderName(e.target.value)}
                   placeholder="Folder name"
-                  className="flex-1 text-sm bg-transparent border-none outline-none placeholder-slate-400"
+                  className="flex-1 text-sm bg-transparent border-none outline-none placeholder-[rgba(96,108,58,0.55)] text-[rgb(72,84,42)]"
                   autoFocus
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -185,7 +162,7 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
                 <button
                   type="button"
                   onClick={handleCreateFolder}
-                  className="text-xs font-medium text-slate-600 hover:text-slate-800"
+                  className="text-xs font-medium text-[rgb(96,108,58)] hover:text-[rgb(72,84,42)]"
                 >
                   Create
                 </button>
@@ -195,7 +172,7 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
                     setIsCreatingFolder(false);
                     setNewFolderName('');
                   }}
-                  className="text-xs font-medium text-slate-400 hover:text-slate-600"
+                  className="text-xs font-medium text-[rgba(96,108,58,0.55)] hover:text-[rgb(96,108,58)]"
                 >
                   Cancel
                 </button>
@@ -205,7 +182,7 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
             {folders.map((folder) => (
               <div
                 key={folder.id}
-                className="group flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition-colors"
+                className="group flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-sm text-[rgb(96,108,58)] hover:bg-[rgba(245,247,239,0.6)] transition"
               >
                 <button
                   type="button"
@@ -215,7 +192,7 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
                   <span className="truncate">{folder.name}</span>
                 </button>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-slate-400">{folder.count}</span>
+                  <span className="text-xs font-medium text-[rgba(96,108,58,0.6)]">{folder.count}</span>
                   <button
                     type="button"
                     onClick={() => handleDeleteFolder(folder.id)}
@@ -231,119 +208,66 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
       </nav>
 
       {/* Sidebar Footer */}
-      <div className="p-6 border-t border-black/5 flex-shrink-0">
-        <div className="space-y-2">
-          <button
-            type="button"
-            onClick={() => setIsSettingsOpen(true)}
-            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
-          >
-            <Settings className="w-4 h-4" />
-            Settings
-          </button>
-          <button
-            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer disabled:pointer-events-none disabled:opacity-70"
-            onClick={handleSignOut}
-            disabled={signOutPending}
-          >
-            <LogOut className="w-4 h-4" />
-            {signOutPending ? (
-              <span className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Signing out...
-              </span>
-            ) : (
-              'Sign Out'
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => window.open('mailto:codezukibusiness@gmail.com')}
-            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
-          >
-            <HelpCircle className="w-4 h-4" />
-            Email support (codezukibusiness@gmail.com)
-          </button>
-        </div>
-      </div>
-
-      {isSettingsOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white shadow-xl border border-black/10">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-black/5">
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900">Quick settings</h3>
-                <p className="text-sm text-slate-500">Tune your workspace preferences.</p>
-              </div>
+      <div
+        className="relative p-6 border-t border-[rgba(136,153,79,0.12)] flex-shrink-0 bg-[#f0ead9]"
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') {
+            setProfileMenuOpen(false);
+          }
+        }}
+      >
+        {profileMenuOpen && (
+          <div className="absolute bottom-[76px] left-6 right-6 rounded-2xl bg-[#fdf8eb] shadow-[0_18px_40px_rgba(52,63,29,0.22)] border border-[rgba(136,153,79,0.15)] pt-3 pb-2">
+            <div className="px-5 pb-2 text-left">
+              <p className="text-xs uppercase tracking-[0.2em] text-[rgba(96,108,58,0.65)]">Account</p>
+              <p className="mt-2 text-sm font-semibold text-[rgb(52,63,29)] truncate">{session?.user?.name}</p>
+            </div>
+            <div className="mt-1 flex flex-col gap-1 px-2">
               <button
                 type="button"
-                onClick={() => setIsSettingsOpen(false)}
-                className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                className="flex items-center gap-3 rounded-xl px-4 py-2 text-sm font-medium text-[rgb(72,84,42)] hover:bg-[#f5f1df] transition-colors"
               >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="px-6 py-5 space-y-4">
-              <label className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="font-medium text-slate-800">Email updates</p>
-                  <p className="text-sm text-slate-500">Get notified when collaborators reply.</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={settingsState.emailUpdates}
-                  onChange={() => toggleSetting('emailUpdates')}
-                  className="h-4 w-4"
-                />
-              </label>
-
-              <label className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="font-medium text-slate-800">Auto-save</p>
-                  <p className="text-sm text-slate-500">Save document changes every 5 seconds.</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={settingsState.autoSave}
-                  onChange={() => toggleSetting('autoSave')}
-                  className="h-4 w-4"
-                />
-              </label>
-
-              <label className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="font-medium text-slate-800">Compact sidebar</p>
-                  <p className="text-sm text-slate-500">Reduce padding to fit more links.</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={settingsState.compactSidebar}
-                  onChange={() => toggleSetting('compactSidebar')}
-                  className="h-4 w-4"
-                />
-              </label>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-black/5 bg-slate-50">
-              <button
-                type="button"
-                onClick={() => setIsSettingsOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800"
-              >
-                Cancel
+                <Settings className="w-4 h-4" />
+                Settings
               </button>
               <button
-                type="button"
-                onClick={() => setIsSettingsOpen(false)}
-                className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-black transition-colors"
+                className="flex items-center gap-3 rounded-xl px-4 py-2 text-sm font-medium text-white bg-[rgb(136,153,79)] hover:bg-[rgb(118,132,68)] transition-colors disabled:opacity-70"
+                onClick={handleSignOut}
+                disabled={signOutPending}
               >
-                Save preferences
+                {signOutPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Signing out...
+                  </>
+                ) : (
+                  <>
+                    <LogOut className="w-4 h-4" />
+                    Sign out
+                  </>
+                )}
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        <button
+          type="button"
+          onClick={() => setProfileMenuOpen((prev) => !prev)}
+          className="flex w-full items-center gap-3 rounded-2xl bg-[#fbf5e6] px-4 py-3 text-left transition-colors hover:bg-[#f5f0de]"
+        >
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[rgb(136,153,79)] text-white font-semibold text-lg shadow-[0_12px_28px_rgba(52,63,29,0.25)]">
+            {session?.user?.name?.charAt(0).toUpperCase()}
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-[rgb(52,63,29)] truncate">{session?.user?.name}</p>
+            <p className="text-xs text-[rgba(96,108,58,0.65)]">Workspace</p>
+          </div>
+          <ChevronDown
+            className={`w-4 h-4 text-[rgba(96,108,58,0.75)] transition-transform ${profileMenuOpen ? 'rotate-180' : ''}`}
+          />
+        </button>
+      </div>
     </aside>
   );
 }

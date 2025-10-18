@@ -8,12 +8,13 @@ const featureCards = [
   {
     id: 'library',
     eyebrow: 'Workspace',
-    title: 'Document library built for teams',
+    title: 'Document library built for productivity',
     description:
       'All docs, starred work, recent edits, shared links, and archive live together—no more hunting through folders or separate tools.',
-    gradient: 'from-[#ffe1f1] via-[#fff4fa] to-white',
-    accent: 'bg-[#2563eb]',
-    mediaTone: 'bg-[#fdf2ff]',
+    accent: '#ccd5ae',
+    background: 'rgba(255, 250, 224, 0.92)',
+    border: 'rgba(136, 153, 79, 0.18)',
+    shadow: 'rgba(204, 213, 174, 0.35)',
     size: 'sm:col-span-2 lg:col-span-5 lg:row-span-2',
   },
   {
@@ -22,9 +23,10 @@ const featureCards = [
     title: 'Ask ⌘K to rewrite, structure, or summarize',
     description:
       'Highlight any section, press ⌘K, and better-write rewrites, expands, compresses, or shifts tone while respecting your document voice.',
-    gradient: 'from-[#ede9fe] via-[#f5f3ff] to-white',
-    accent: 'bg-[#7c3aed]',
-    mediaTone: 'bg-[#f4f0ff]',
+    accent: '#d4a373',
+    background: 'rgba(250, 237, 205, 0.92)',
+    border: 'rgba(212, 163, 115, 0.22)',
+    shadow: 'rgba(212, 163, 115, 0.3)',
     size: 'sm:col-span-1 lg:col-span-3 lg:row-span-2',
   },
   {
@@ -33,9 +35,10 @@ const featureCards = [
     title: 'Intelligent document understanding',
     description:
       'AI that understands context, tone, and your domain knowledge to provide better writing suggestions and improvements.',
-    gradient: 'from-[#dcfce7] via-[#f0fdf4] to-white',
-    accent: 'bg-[#059669]',
-    mediaTone: 'bg-[#ecfdf5]',
+    accent: '#88994f',
+    background: 'rgba(233, 237, 201, 0.92)',
+    border: 'rgba(136, 153, 79, 0.22)',
+    shadow: 'rgba(136, 153, 79, 0.28)',
     size: 'sm:col-span-1 lg:col-span-3 lg:row-span-2',
   },
   {
@@ -44,9 +47,10 @@ const featureCards = [
     title: 'Versioned',
     description:
       'Every change is captured. Branch ideas, compare revisions, and roll back instantly when experiments don’t land.',
-    gradient: 'from-[#fee2e2] via-[#fff7ed] to-white',
-    accent: 'bg-[#f97316]',
-    mediaTone: 'bg-[#fff4ed]',
+    accent: '#d4a373',
+    background: 'rgba(204, 213, 174, 0.92)',
+    border: 'rgba(136, 153, 79, 0.26)',
+    shadow: 'rgba(204, 213, 174, 0.3)',
     size: 'sm:col-span-1 lg:col-span-2 lg:row-span-2',
   },
   {
@@ -55,9 +59,10 @@ const featureCards = [
     title: 'Exports and handoff built in',
     description:
       'Publish to PDF, Markdown, or Word and sync action items into your roadmap so docs and delivery stay aligned.',
-    gradient: 'from-[#fef3c7] via-white to-[#ecfdf5]',
-    accent: 'bg-[#d97706]',
-    mediaTone: 'bg-[#fef3c7]',
+    accent: '#88994f',
+    background: 'rgba(245, 247, 239, 0.92)',
+    border: 'rgba(136, 153, 79, 0.2)',
+    shadow: 'rgba(233, 237, 201, 0.28)',
     size: 'sm:col-span-1 lg:col-span-3 lg:row-span-2',
   },
 ];
@@ -66,12 +71,12 @@ export function FeaturesSection() {
   return (
     <section
       id="features"
-      className="relative overflow-hidden py-24 sm:py-32 bg-gradient-to-br from-[#fff0f6] via-[#fff7fb] to-white"
+      className="relative overflow-hidden py-24 sm:py-32"
     >
       <div className="pointer-events-none motion-smooth absolute inset-0" aria-hidden>
-        <div className="absolute -top-24 left-[8%] h-64 w-64 rounded-full bg-gradient-to-br from-[#ffdff0] via-transparent to-transparent opacity-70 blur-3xl sm:h-80 sm:w-80" />
-        <div className="absolute right-[20%] top-[30%] h-72 w-72 rounded-full bg-gradient-to-br from-[#ffe6f5] via-white to-transparent opacity-65 blur-3xl" />
-        <div className="absolute bottom-[-20%] left-[28%] h-80 w-80 rounded-full bg-gradient-to-br from-[#ffd4ed] via-white to-transparent opacity-60 blur-3xl" />
+        <div className="absolute -top-24 left-[8%] h-64 w-64 rounded-full bg-[rgba(204,213,174,0.45)] opacity-60 blur-3xl sm:h-80 sm:w-80" />
+        <div className="absolute right-[20%] top-[30%] h-72 w-72 rounded-full bg-[rgba(250,237,205,0.4)] opacity-55 blur-3xl" />
+        <div className="absolute bottom-[-20%] left-[28%] h-80 w-80 rounded-full bg-[rgba(233,237,201,0.4)] opacity-50 blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-6xl px-6">
@@ -90,7 +95,7 @@ export function FeaturesSection() {
             Replace scattered docs with one coordinated workspace.
           </h2>
           <p className="mt-5 text-base text-slate-600 sm:text-lg">
-            Better-write supports kickoff, collaboration, and delivery in one place. AI accelerates the work; your team keeps control over process and approvals.
+            Better-write supports planning, writing, and delivery in one place. AI accelerates the work; you keep control over process and quality.
           </p>
         </motion.div>
 
@@ -102,13 +107,17 @@ export function FeaturesSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-80px' }}
               transition={{ duration: 0.6, delay: index * 0.08 }}
-              className={`relative overflow-hidden rounded-[32px] border border-white/50 bg-white/80 p-7 shadow-[0_24px_70px_rgba(15,23,42,0.12)] backdrop-blur ${card.size}`}
+              className={`relative overflow-hidden rounded-[32px] p-7 backdrop-blur-sm ${card.size}`}
+              style={{
+                border: `1px solid ${card.border}`,
+                background: card.background,
+                boxShadow: `0 24px 70px ${card.shadow}`,
+              }}
             >
-              <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-90`} aria-hidden />
               <div className="relative z-10 flex h-full flex-col justify-between gap-6">
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-2">
-                    <span className={`h-2 w-2 rounded-full ${card.accent}`} />
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: card.accent }} />
                     <p className="text-[0.65rem] font-semibold uppercase tracking-[0.32em] text-slate-500 sm:text-xs">
                       {card.eyebrow}
                     </p>

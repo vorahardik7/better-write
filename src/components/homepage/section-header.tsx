@@ -31,7 +31,7 @@ export function SectionHeader({ sectionId, label, order, children }: SectionHead
           <motion.div
             layoutId={`nav-section-${sectionId}`}
             transition={{ type: 'spring', stiffness: 500, damping: 35, mass: 0.55 }}
-            className="inline-flex items-center gap-2 rounded-full border border-white/50 bg-white/75 px-5 py-2 text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-slate-500 shadow-[0_20px_36px_rgba(15,23,42,0.12)] backdrop-blur sm:gap-3 sm:px-6 sm:py-2 sm:text-xs sm:tracking-[0.3em]"
+            className="inline-flex items-center gap-2 rounded-full border border-[#e9edc9]/60 bg-[#fefae0]/80 px-5 py-2 text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-[rgb(136,153,79)] shadow-[0_20px_36px_rgba(212,163,115,0.18)] backdrop-blur sm:gap-3 sm:px-6 sm:py-2 sm:text-xs sm:tracking-[0.3em]"
           >
             {children}
           </motion.div>

@@ -55,10 +55,10 @@ export default function Dashboard() {
 
   if (isPending) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f4f0]">
+      <div className="min-h-screen flex items-center justify-center bg-[#fefae0]">
         <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-2 border-slate-300 border-t-slate-600"></div>
-          <p className="text-slate-600 font-medium">Loading your workspace...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-[rgba(136,153,79,0.35)] border-t-[#88994f]"></div>
+          <p className="text-[rgb(96,108,58)] font-medium">Loading your workspace...</p>
         </div>
       </div>
     );
@@ -69,7 +69,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="h-screen bg-[#f5f4f0] flex overflow-hidden">
+    <div className="h-screen bg-[#f5f0de] flex overflow-hidden">
       <Sidebar
         navigationItems={navigationItems}
         activeItem={activeItem}

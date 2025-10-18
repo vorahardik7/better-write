@@ -172,11 +172,11 @@ export function MainContent({
   return (
     <>
       {/* Header - Fixed */}
-      <header className="bg-white border-b border-black/5 p-6 flex-shrink-0">
+      <header className="bg-[#fdf8eb] border-b border-[rgba(136,153,79,0.2)] p-6 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Documents</h1>
-            <p className="text-sm text-slate-500 mt-1">
+            <h1 className="text-2xl font-bold text-[rgb(52,63,29)]">Documents</h1>
+            <p className="text-sm text-[rgba(96,108,58,0.8)] mt-1">
               Manage and organize your documents
             </p>
           </div>
@@ -184,40 +184,40 @@ export function MainContent({
           <div className="flex items-center gap-3">
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgba(96,108,58,0.55)]" />
               <input
                 type="text"
                 placeholder="Search documents..."
                 value={searchQuery}
                 onChange={(e) => onSearchQueryChange(e.target.value)}
-                className="pl-10 pr-4 py-2 w-80 border border-black/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition-all"
+                className="pl-10 pr-4 py-2 w-80 rounded-xl focus:outline-none bg-[#fdf8eb] text-[rgb(72,84,42)] placeholder-[rgba(96,108,58,0.55)] transition-all shadow-[0_0_0_1px_rgba(136,153,79,0.2)] focus:shadow-[0_0_0_2px_rgba(136,153,79,0.45)]"
               />
             </div>
 
             {/* View Toggle */}
-            <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
+            <div className="flex items-center gap-1 bg-[#f5f1df] rounded-lg p-1 border border-[rgba(136,153,79,0.15)]">
               <button
                 onClick={() => onViewModeChange('grid')}
                 className={`p-2 rounded-md transition-colors cursor-pointer ${
-                  viewMode === 'grid' ? 'bg-white shadow-sm' : 'hover:bg-slate-200'
+                  viewMode === 'grid' ? 'bg-[rgba(255,250,224,0.95)] shadow-sm text-[rgb(72,84,42)]' : 'hover:bg-[rgba(245,247,239,0.8)] text-[rgba(96,108,58,0.75)]'
                 }`}
               >
-                <Grid3X3 className="w-4 h-4 text-slate-600" />
+                <Grid3X3 className="w-4 h-4" />
               </button>
               <button
                 onClick={() => onViewModeChange('list')}
                 className={`p-2 rounded-md transition-colors cursor-pointer ${
-                  viewMode === 'list' ? 'bg-white shadow-sm' : 'hover:bg-slate-200'
+                  viewMode === 'list' ? 'bg-[rgba(255,250,224,0.95)] shadow-sm text-[rgb(72,84,42)]' : 'hover:bg-[rgba(245,247,239,0.8)] text-[rgba(96,108,58,0.75)]'
                 }`}
               >
-                <List className="w-4 h-4 text-slate-600" />
+                <List className="w-4 h-4" />
               </button>
             </div>
 
             {/* New Document Button */}
             <Link
               href="/editor"
-              className="inline-flex items-center gap-2 bg-slate-900 hover:bg-black text-white px-4 py-2 rounded-xl font-semibold transition-colors"
+              className="inline-flex items-center gap-2 bg-[rgb(136,153,79)] hover:bg-[rgb(118,132,68)] text-white px-4 py-2 rounded-xl font-semibold transition-colors shadow-[0_12px_30px_rgba(136,153,79,0.3)]"
             >
               <Plus className="w-4 h-4" />
               New Document
@@ -227,11 +227,11 @@ export function MainContent({
       </header>
 
       {/* Document Grid/List - Scrollable */}
-      <div className="flex-1 p-6 overflow-y-auto">
+      <div className="flex-1 p-6 overflow-y-auto bg-[#f8f4e2]">
         <AnimatePresence mode="wait">
           {loading ? (
             <div className="flex items-center justify-center py-16">
-              <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
+              <Loader2 className="w-8 h-8 text-[rgba(136,153,79,0.6)] animate-spin" />
             </div>
           ) : filteredDocuments.length > 0 ? (
             <motion.div
@@ -250,7 +250,7 @@ export function MainContent({
                 <motion.div
                   key={doc.id}
                   layout
-                  className={`group relative bg-white rounded-2xl border border-black/5 shadow-sm hover:shadow-lg hover:border-black/10 transition-all duration-200 cursor-pointer ${
+                  className={`group relative rounded-2xl border border-[rgba(136,153,79,0.16)] bg-[#fbf5e6] shadow-[0_16px_36px_rgba(136,153,79,0.16)] hover:shadow-[0_22px_48px_rgba(136,153,79,0.2)] hover:border-[rgba(136,153,79,0.28)] transition-all duration-200 cursor-pointer ${
                     viewMode === 'list' ? 'flex items-center gap-4 p-4' : 'p-6'
                   }`}
                   role="button"
@@ -266,31 +266,31 @@ export function MainContent({
                   {viewMode === 'grid' ? (
                     <>
                       {/* Grid View */}
-                      <div className="aspect-[4/3] bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl mb-4 flex items-center justify-center">
-                        <FileText className="w-12 h-12 text-slate-400" />
+                      <div className="aspect-[4/3] rounded-xl mb-4 flex items-center justify-center bg-[#f0ead9] border border-[rgba(136,153,79,0.18)]">
+                        <FileText className="w-12 h-12 text-[rgba(96,108,58,0.7)]" />
                       </div>
 
                       <div className="space-y-2">
                         <div className="flex items-start justify-between">
-                          <h3 className="font-semibold text-slate-900 group-hover:text-slate-700 transition-colors line-clamp-2">
+                          <h3 className="font-semibold text-[rgb(52,63,29)] group-hover:text-[rgb(72,84,42)] transition-colors line-clamp-2">
                             {doc.title}
                           </h3>
                         </div>
 
-                        <p className="text-sm text-slate-600 line-clamp-2">
+                        <p className="text-sm text-[rgba(96,108,58,0.8)] line-clamp-2">
                           {(doc.contentText ?? '').slice(0, 100)}...
                         </p>
 
                         <div className="flex items-center justify-between pt-2">
                           <div className="flex items-center gap-2">
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#f0ead9] text-[rgb(72,84,42)] border border-[rgba(136,153,79,0.15)]">
                               {doc.isPublic ? 'Public' : 'Private'}
                             </span>
-                            <span className="text-xs text-slate-500">
+                            <span className="text-xs text-[rgba(96,108,58,0.7)]">
                               {doc.wordCount.toLocaleString()} words
                             </span>
                           </div>
-                          <span className="text-xs text-slate-400">
+                          <span className="text-xs text-[rgba(96,108,58,0.55)]">
                             {formatDate(doc.lastEditedAt)}
                           </span>
                         </div>
@@ -298,15 +298,15 @@ export function MainContent({
 
                       {/* Hover Actions */}
                       <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-lg p-1 shadow-sm">
-                          <button className="p-1.5 hover:bg-slate-100 rounded-md transition-colors cursor-pointer" title="Preview">
-                            <Eye className="w-4 h-4 text-slate-600" />
+                        <div className="flex items-center gap-1 bg-[#fdf8eb] rounded-lg p-1 shadow-sm border border-[rgba(136,153,79,0.15)]">
+                          <button className="p-1.5 hover:bg-[#f5f1df] rounded-md transition-colors cursor-pointer" title="Preview">
+                            <Eye className="w-4 h-4 text-[rgb(72,84,42)]" />
                           </button>
-                          <button className="p-1.5 hover:bg-slate-100 rounded-md transition-colors cursor-pointer" title="Edit">
-                            <Edit className="w-4 h-4 text-slate-600" />
+                          <button className="p-1.5 hover:bg-[#f5f1df] rounded-md transition-colors cursor-pointer" title="Edit">
+                            <Edit className="w-4 h-4 text-[rgb(72,84,42)]" />
                           </button>
-                          <button className="p-1.5 hover:bg-slate-100 rounded-md transition-colors cursor-pointer" title="More options">
-                            <MoreHorizontal className="w-4 h-4 text-slate-600" />
+                          <button className="p-1.5 hover:bg-[#f5f1df] rounded-md transition-colors cursor-pointer" title="More options">
+                            <MoreHorizontal className="w-4 h-4 text-[rgb(72,84,42)]" />
                           </button>
                         </div>
                       </div>
@@ -314,44 +314,44 @@ export function MainContent({
                   ) : (
                     <>
                       {/* List View */}
-                      <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <FileText className="w-6 h-6 text-slate-600" />
+                      <div className="w-12 h-12 bg-[#f0ead9] border border-[rgba(136,153,79,0.18)] rounded-lg flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-6 h-6 text-[rgba(96,108,58,0.7)]" />
                       </div>
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-slate-900 group-hover:text-slate-700 transition-colors truncate">
+                          <h3 className="font-semibold text-[rgb(52,63,29)] group-hover:text-[rgb(72,84,42)] transition-colors truncate">
                             {doc.title}
                           </h3>
                         </div>
 
-                        <p className="text-sm text-slate-600 line-clamp-1 mb-2">
+                        <p className="text-sm text-[rgba(96,108,58,0.8)] line-clamp-1 mb-2">
                           {(doc.contentText ?? '').slice(0, 100)}...
                         </p>
 
-                        <div className="flex items-center gap-4 text-xs text-slate-500">
+                        <div className="flex items-center gap-4 text-xs text-[rgba(96,108,58,0.7)]">
                           <span>{doc.wordCount.toLocaleString()} words</span>
                           <span>•</span>
                           <span>{formatDate(doc.lastEditedAt)}</span>
                           <span>•</span>
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-600">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-[#f0ead9] text-[rgb(72,84,42)] border border-[rgba(136,153,79,0.15)]">
                             {doc.isPublic ? 'Public' : 'Private'}
                           </span>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#f0ead9] text-[rgb(72,84,42)] border border-[rgba(136,153,79,0.15)]">
                           {doc.isPublic ? 'Public' : 'Private'}
                         </span>
 
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                           <div className="flex items-center gap-1">
-                            <button className="p-1.5 hover:bg-slate-100 rounded-md transition-colors cursor-pointer" title="Edit">
-                              <Edit className="w-4 h-4 text-slate-600" />
+                            <button className="p-1.5 hover:bg-[#f5f1df] rounded-md transition-colors cursor-pointer" title="Edit">
+                              <Edit className="w-4 h-4 text-[rgb(72,84,42)]" />
                             </button>
-                            <button className="p-1.5 hover:bg-slate-100 rounded-md transition-colors cursor-pointer" title="More options">
-                              <MoreHorizontal className="w-4 h-4 text-slate-600" />
+                            <button className="p-1.5 hover:bg-[#f5f1df] rounded-md transition-colors cursor-pointer" title="More options">
+                              <MoreHorizontal className="w-4 h-4 text-[rgb(72,84,42)]" />
                             </button>
                           </div>
                         </div>
@@ -367,11 +367,11 @@ export function MainContent({
               animate={{ opacity: 1, scale: 1 }}
               className="flex flex-col items-center justify-center py-16"
             >
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                <Search className="w-8 h-8 text-slate-400" />
+              <div className="w-16 h-16 bg-[#f0ead9] border border-[rgba(136,153,79,0.2)] rounded-full flex items-center justify-center mb-4">
+                <Search className="w-8 h-8 text-[rgba(96,108,58,0.7)]" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">No documents found</h3>
-              <p className="text-sm text-slate-500 text-center max-w-md">
+              <h3 className="text-lg font-semibold text-[rgb(52,63,29)] mb-2">No documents found</h3>
+              <p className="text-sm text-[rgba(96,108,58,0.75)] text-center max-w-md">
                 {searchQuery
                   ? `No documents match "${searchQuery}". Try a different search term.`
                   : 'Create your first document to get started with AI-powered writing.'
@@ -380,7 +380,7 @@ export function MainContent({
               {!searchQuery && (
                 <Link
                   href="/editor"
-                  className="mt-4 inline-flex items-center gap-2 bg-slate-900 hover:bg-black text-white px-4 py-2 rounded-xl font-semibold transition-colors"
+                  className="mt-4 inline-flex items-center gap-2 bg-[rgb(136,153,79)] hover:bg-[rgb(118,132,68)] text-white px-4 py-2 rounded-xl font-semibold transition-colors shadow-[0_12px_30px_rgba(136,153,79,0.3)]"
                 >
                   <Plus className="w-4 h-4" />
                   Create Document

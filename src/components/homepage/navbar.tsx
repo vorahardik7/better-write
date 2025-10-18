@@ -39,9 +39,11 @@ export function Navbar() {
       <div className="pointer-events-auto w-full max-w-5xl">
         <motion.div
           ref={setNavRef}
-          className="relative flex h-16 items-center justify-center rounded-full border border-black/5 bg-white/80 px-6 backdrop-blur transition"
+          className="relative flex h-16 items-center justify-center rounded-full border border-[#ccd5ae]/40 bg-[#fefae0]/80 px-6 backdrop-blur transition"
           animate={{
-            boxShadow: scrolled ? '0px 25px 60px rgba(15,23,42,0.12)' : '0px 12px 30px rgba(15,23,42,0)',
+            boxShadow: scrolled
+              ? '0px 25px 60px rgba(212,163,115,0.26)'
+              : '0px 12px 30px rgba(212,163,115,0.12)',
             opacity: scrolled ? 1 : 1,
           }}
           transition={{ duration: 0.3, ease: 'easeInOut' }}
@@ -53,7 +55,7 @@ export function Navbar() {
           >
             <div className="flex h-10 w-10 items-center justify-center">
               <Image
-                src="/better-write.ico"
+                src="/image.png"
                 alt="BetterWrite Logo"
                 width={28}
                 height={28}

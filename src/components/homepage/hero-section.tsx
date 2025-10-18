@@ -22,11 +22,11 @@ export function HeroSection() {
   };
 
   return (
-    <section className="relative flex min-h-screen items-center overflow-hidden pb-28 pt-36 sm:pb-32 sm:pt-40 bg-[#fff7fb]">
+    <section className="relative flex min-h-screen items-center overflow-hidden pb-28 pt-36 sm:pb-32 sm:pt-40">
       <div className="pointer-events-none absolute inset-0 motion-smooth" aria-hidden>
-        <div className="absolute left-1/2 top-[-32%] h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-gradient-to-br from-[#d7f0ff] via-[#edf2ff] to-[#f9e8ff] opacity-75 blur-3xl sm:h-[680px] sm:w-[680px]" />
-        <div className="absolute -bottom-16 left-[12%] h-72 w-72 rounded-full bg-gradient-to-br from-[#e6f9ff] via-[#def7ef] to-transparent opacity-65 blur-2xl" />
-        <div className="absolute -right-24 top-[35%] hidden h-80 w-80 rounded-full bg-gradient-to-br from-[#f1e6ff] via-white to-transparent opacity-65 blur-2xl md:block" />
+        <div className="absolute left-1/2 top-[-32%] h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-gradient-to-br from-[#faedcd] via-[#fefae0] to-[#e9edc9] opacity-80 blur-3xl sm:h-[680px] sm:w-[680px]" />
+        <div className="absolute -bottom-16 left-[12%] h-72 w-72 rounded-full bg-gradient-to-br from-[#ccd5ae] via-transparent to-transparent opacity-60 blur-2xl" />
+        <div className="absolute -right-24 top-[35%] hidden h-80 w-80 rounded-full bg-gradient-to-br from-[#d4a373] via-[#faedcd] to-transparent opacity-50 blur-2xl md:block" />
       </div>
 
       <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center gap-12 px-6 text-center sm:gap-14">
@@ -38,12 +38,14 @@ export function HeroSection() {
         >
 
           <h1 className="font-display text-[2.9rem] leading-[1.05] text-slate-900 sm:text-[3.6rem] md:text-[4.3rem]">
-          Introducing <span className="italic lowercase tracking-tight">better-write</span>
+          Introducing <span className="italic lowercase tracking-tight text-[#d4a373]">better-write</span>
           </h1>
 
           <br/>
           
-          <h3 className="text-lg leading-relaxed text-slate-600 sm:text-xl">AI-powered writing workflow that lives inside your document.</h3>
+          <h3 className="text-lg leading-relaxed text-slate-600 sm:text-xl">
+            AI-powered writing workflow that lives inside your document.
+          </h3>
 
 
           <p className="mt-6 mx-auto max-w-3xl text-lg leading-relaxed text-slate-600 sm:text-xl">
@@ -54,7 +56,7 @@ export function HeroSection() {
             <button
               onClick={handleGoogleSignIn}
               disabled={isSigningIn}
-              className="cursor-pointer group inline-flex items-center gap-3 rounded-full bg-slate-900 px-7 py-4 text-sm font-semibold text-white transition hover:bg-black disabled:pointer-events-none disabled:opacity-70"
+              className="cursor-pointer group inline-flex items-center gap-3 rounded-full bg-[#d4a373] px-7 py-4 text-sm font-semibold text-white transition hover:bg-[#c18f62] disabled:pointer-events-none disabled:opacity-70"
             >
               {isSigningIn ? (
                 <>
@@ -70,6 +72,10 @@ export function HeroSection() {
             </button>
 
           </div>
+
+          <p className="mt-6 text-sm uppercase tracking-[0.4em] text-[#88994f]">
+            The calm writing surface you always wanted
+          </p>
 
         </motion.div>
       </div>
