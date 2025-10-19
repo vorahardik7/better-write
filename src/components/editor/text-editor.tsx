@@ -11,7 +11,7 @@ import { AICommandPalette } from './ai-command-palette';
 import { KeyboardShortcutsPanel } from './keyboard-shortcuts-panel';
 import { MousePointer, Bold, Italic, Image as ImageIcon, AlertCircle, X, AlignLeft, AlignCenter, AlignRight, AlignJustify, Undo2, Redo2, Underline as UnderlineIcon, Link2, Link2Off, MoreHorizontal } from 'lucide-react';
 
-export function DemoTextEditor() {
+export function TextEditor() {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showMobileMore, setShowMobileMore] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
@@ -245,8 +245,16 @@ export function DemoTextEditor() {
   };
 
   if (!editor) {
-    return <div className="h-full flex items-center justify-center">Loading editor...</div>;
+    return (
+      <div className="h-full flex items-center justify-center bg-[#fefae0] text-[rgb(87,73,55)]">
+        Loading editor...
+      </div>
+    );
   }
+
+  const baseToolbarButton = 'inline-flex h-10 w-10 items-center justify-center rounded-xl border transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-[rgba(136,153,79,0.35)] focus:ring-offset-1 focus:ring-offset-[#f7f3e5] disabled:opacity-55 disabled:cursor-not-allowed cursor-pointer';
+  const activeToolbarButton = 'bg-[rgb(136,153,79)] border-[rgb(136,153,79)] text-white shadow-[0_12px_28px_rgba(136,153,79,0.24)]';
+  const inactiveToolbarButton = 'bg-[#fbf7ec] border-[rgba(136,153,79,0.3)] text-[rgb(90,78,60)] hover:bg-[#fefae2] hover:border-[rgba(136,153,79,0.45)]';
 
   return (
     <div className="h-full flex flex-col">
@@ -255,207 +263,152 @@ export function DemoTextEditor() {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
-        className="flex items-center justify-between px-6 py-3 bg-white border-b border-black/5 overflow-x-auto"
+        className="flex items-center justify-between px-6 py-3 bg-[#f7f3e5] border-b border-[rgba(136,153,79,0.15)] backdrop-blur-sm overflow-x-auto shadow-[0_8px_26px_rgba(136,153,79,0.12)]"
       >
-        {/* Formatting Tools - Left Side */}
         <div className="flex items-center gap-2">
-        {/* Undo / Redo */}
-        <div className="flex items-center gap-1 border-r border-gray-200 pr-3">
-          <button
-            onClick={handleUndo}
-            className="btn-toolbar"
-            aria-label="Undo"
-          >
-            <div className="btn-shadow"></div>
-            <div className="btn-edge"></div>
-            <div className="btn-front">
-              <Undo2 className="w-4 h-4 text-slate-600" />
-            </div>
-          </button>
-          <button
-            onClick={handleRedo}
-            className="btn-toolbar"
-            aria-label="Redo"
-          >
-            <div className="btn-shadow"></div>
-            <div className="btn-edge"></div>
-            <div className="btn-front">
-              <Redo2 className="w-4 h-4 text-slate-600" />
-            </div>
-          </button>
-        </div>
+          {/* Undo / Redo */}
+          <div className="flex items-center gap-1 border-r border-[rgba(136,153,79,0.2)] pr-3">
+            <button
+              onClick={handleUndo}
+              className={`${baseToolbarButton} ${inactiveToolbarButton}`}
+              aria-label="Undo"
+            >
+              <Undo2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleRedo}
+              className={`${baseToolbarButton} ${inactiveToolbarButton}`}
+              aria-label="Redo"
+            >
+              <Redo2 className="w-4 h-4" />
+            </button>
+          </div>
 
-        {/* Text Formatting */}
-        <div className="flex items-center gap-1 border-r border-gray-200 pr-3">
-          <button
-            onClick={() => editor?.chain().focus().toggleBold().run()}
-            className={`btn-toolbar ${editor?.isActive('bold') ? 'btn-active' : ''} cursor-pointer`}
-            aria-label="Bold"
-            aria-pressed={!!editor?.isActive('bold')}
-          >
-            <div className="btn-shadow"></div>
-            <div className="btn-edge"></div>
-            <div className="btn-front">
-              <Bold className="w-4 h-4 text-slate-600" />
-            </div>
-          </button>
-          <button
-            onClick={() => editor?.chain().focus().toggleItalic().run()}
-            className={`btn-toolbar ${editor?.isActive('italic') ? 'btn-active' : ''} cursor-pointer`}
-            aria-label="Italic"
-            aria-pressed={!!editor?.isActive('italic')}
-          >
-            <div className="btn-shadow"></div>
-            <div className="btn-edge"></div>
-            <div className="btn-front">
-              <Italic className="w-4 h-4 text-slate-600" />
-            </div>
-          </button>
-          <button
-            onClick={handleToggleUnderline}
-            className={`btn-toolbar ${editor?.isActive('underline') ? 'btn-active' : ''} cursor-pointer`}
-            aria-label="Underline"
-            aria-pressed={!!editor?.isActive('underline')}
-          >
-            <div className="btn-shadow"></div>
-            <div className="btn-edge"></div>
-            <div className="btn-front">
-              <UnderlineIcon className="w-4 h-4 text-slate-600" />
-            </div>
-          </button>
-          <button
-            onClick={handleToggleLink}
-            className={`btn-toolbar ${editor?.isActive('link') ? 'btn-active' : ''} cursor-pointer`}
-            aria-label={editor?.isActive('link') ? 'Remove Link' : 'Add Link'}
-            aria-pressed={!!editor?.isActive('link')}
-          >
-            <div className="btn-shadow"></div>
-            <div className="btn-edge"></div>
-            <div className="btn-front">
-              {editor?.isActive('link') ? <Link2Off className="w-4 h-4 text-slate-600" /> : <Link2 className="w-4 h-4 text-slate-600" />}
-            </div>
-          </button>
-        </div>
+          {/* Text Formatting */}
+          <div className="flex items-center gap-1 border-r border-[rgba(136,153,79,0.2)] pr-3">
+            <button
+              onClick={() => editor?.chain().focus().toggleBold().run()}
+              className={`${baseToolbarButton} ${editor?.isActive('bold') ? activeToolbarButton : inactiveToolbarButton}`}
+              aria-label="Bold"
+              aria-pressed={!!editor?.isActive('bold')}
+            >
+              <Bold className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => editor?.chain().focus().toggleItalic().run()}
+              className={`${baseToolbarButton} ${editor?.isActive('italic') ? activeToolbarButton : inactiveToolbarButton}`}
+              aria-label="Italic"
+              aria-pressed={!!editor?.isActive('italic')}
+            >
+              <Italic className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleToggleUnderline}
+              className={`${baseToolbarButton} ${editor?.isActive('underline') ? activeToolbarButton : inactiveToolbarButton}`}
+              aria-label="Underline"
+              aria-pressed={!!editor?.isActive('underline')}
+            >
+              <UnderlineIcon className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleToggleLink}
+              className={`${baseToolbarButton} ${editor?.isActive('link') ? activeToolbarButton : inactiveToolbarButton}`}
+              aria-label={editor?.isActive('link') ? 'Remove Link' : 'Add Link'}
+              aria-pressed={!!editor?.isActive('link')}
+            >
+              {editor?.isActive('link') ? <Link2Off className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
+            </button>
+          </div>
 
+          {/* Alignment */}
+          <div className="flex items-center gap-1 border-r border-[rgba(136,153,79,0.2)] pr-3">
+            <button
+              onClick={() => setTextAlignment('left')}
+              className={`${baseToolbarButton} ${editor?.isActive({ textAlign: 'left' }) ? activeToolbarButton : inactiveToolbarButton}`}
+              aria-pressed={!!editor?.isActive({ textAlign: 'left' })}
+              disabled={!canSetTextAlignment('left')}
+            >
+              <AlignLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setTextAlignment('center')}
+              className={`${baseToolbarButton} ${editor?.isActive({ textAlign: 'center' }) ? activeToolbarButton : inactiveToolbarButton}`}
+              aria-pressed={!!editor?.isActive({ textAlign: 'center' })}
+              disabled={!canSetTextAlignment('center')}
+            >
+              <AlignCenter className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setTextAlignment('right')}
+              className={`${baseToolbarButton} ${editor?.isActive({ textAlign: 'right' }) ? activeToolbarButton : inactiveToolbarButton}`}
+              aria-pressed={!!editor?.isActive({ textAlign: 'right' })}
+              disabled={!canSetTextAlignment('right')}
+            >
+              <AlignRight className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setTextAlignment('justify')}
+              className={`${baseToolbarButton} ${editor?.isActive({ textAlign: 'justify' }) ? activeToolbarButton : inactiveToolbarButton}`}
+              aria-pressed={!!editor?.isActive({ textAlign: 'justify' })}
+              disabled={!canSetTextAlignment('justify')}
+            >
+              <AlignJustify className="w-4 h-4" />
+            </button>
+          </div>
 
+          {/* Insert Elements */}
+          <div className="hidden sm:flex items-center gap-1">
+            <button
+              onClick={addImage}
+              className={`${baseToolbarButton} ${inactiveToolbarButton}`}
+              aria-label="Insert Image"
+            >
+              <ImageIcon className="w-4 h-4" />
+            </button>
+          </div>
 
-        {/* Alignment */}
-        <div className="flex items-center gap-1 border-r border-gray-200 pr-3">
-          <button
-            onClick={() => setTextAlignment('left')}
-            className={`btn-toolbar ${editor?.isActive({ textAlign: 'left' }) ? 'btn-active' : ''} cursor-pointer`}
-            aria-pressed={!!editor?.isActive({ textAlign: 'left' })}
-            disabled={!canSetTextAlignment('left')}
-          >
-            <div className="btn-shadow"></div>
-            <div className="btn-edge"></div>
-            <div className="btn-front">
-              <AlignLeft className="w-4 h-4 text-slate-600" />
-            </div>
-          </button>
-          <button
-            onClick={() => setTextAlignment('center')}
-            className={`btn-toolbar ${editor?.isActive({ textAlign: 'center' }) ? 'btn-active' : ''} cursor-pointer`}
-            aria-pressed={!!editor?.isActive({ textAlign: 'center' })}
-            disabled={!canSetTextAlignment('center')}
-          >
-            <div className="btn-shadow"></div>
-            <div className="btn-edge"></div>
-            <div className="btn-front">
-              <AlignCenter className="w-4 h-4 text-slate-600" />
-            </div>
-          </button>
-          <button
-            onClick={() => setTextAlignment('right')}
-            className={`btn-toolbar ${editor?.isActive({ textAlign: 'right' }) ? 'btn-active' : ''} cursor-pointer`}
-            aria-pressed={!!editor?.isActive({ textAlign: 'right' })}
-            disabled={!canSetTextAlignment('right')}
-          >
-            <div className="btn-shadow"></div>
-            <div className="btn-edge"></div>
-            <div className="btn-front">
-              <AlignRight className="w-4 h-4 text-slate-600" />
-            </div>
-          </button>
-          <button
-            onClick={() => setTextAlignment('justify')}
-            className={`btn-toolbar ${editor?.isActive({ textAlign: 'justify' }) ? 'btn-active' : ''} cursor-pointer`}
-            aria-pressed={!!editor?.isActive({ textAlign: 'justify' })}
-            disabled={!canSetTextAlignment('justify')}
-          >
-            <div className="btn-shadow"></div>
-            <div className="btn-edge"></div>
-            <div className="btn-front">
-              <AlignJustify className="w-4 h-4 text-slate-600" />
-            </div>
-          </button>
-        </div>
-
-        {/* Insert Elements */}
-        <div className="hidden sm:flex items-center gap-1">
-          <button
-            onClick={addImage}
-            className="btn-toolbar"
-            aria-label="Insert Image"
-          >
-            <div className="btn-shadow"></div>
-            <div className="btn-edge"></div>
-            <div className="btn-front">
-              <ImageIcon className="w-4 h-4 text-slate-600" />
-            </div>
-          </button>
-        </div>
-
-        {/* Mobile More Menu */}
-        <div className="sm:hidden relative">
-          <button
-            onClick={() => setShowMobileMore(v => !v)}
-            className="btn-toolbar"
-            aria-label="More"
-          >
-            <div className="btn-shadow"></div>
-            <div className="btn-edge"></div>
-            <div className="btn-front">
-              <MoreHorizontal className="w-4 h-4 text-slate-600" />
-            </div>
-          </button>
-          {showMobileMore && (
-            <div className="absolute z-20 mt-2 left-0 bg-white border border-gray-200 rounded-md shadow-lg p-2 grid grid-cols-2 gap-1">
-              <button onClick={addImage} className="btn-toolbar" aria-label="Insert Image">
-                <div className="btn-shadow"></div>
-                <div className="btn-edge"></div>
-                <div className="btn-front"><ImageIcon className="w-4 h-4 text-slate-600" /></div>
-              </button>
-              <button onClick={() => setShowMobileMore(false)} className="btn-toolbar" aria-label="Close">
-                <div className="btn-shadow"></div>
-                <div className="btn-edge"></div>
-                <div className="btn-front"><X className="w-4 h-4 text-slate-600" /></div>
-              </button>
-            </div>
-          )}
-        </div>
+          {/* Mobile More Menu */}
+          <div className="sm:hidden relative">
+            <button
+              onClick={() => setShowMobileMore(v => !v)}
+              className={`${baseToolbarButton} ${inactiveToolbarButton}`}
+              aria-label="More"
+            >
+              <MoreHorizontal className="w-4 h-4" />
+            </button>
+            {showMobileMore && (
+              <div className="absolute z-20 mt-2 left-0 bg-[#fefae0] border border-[rgba(136,153,79,0.22)] rounded-xl shadow-[0_16px_28px_rgba(136,153,79,0.18)] p-2 grid grid-cols-2 gap-1">
+                <button onClick={addImage} className={`${baseToolbarButton} ${inactiveToolbarButton}`} aria-label="Insert Image">
+                  <ImageIcon className="w-4 h-4" />
+                </button>
+                <button onClick={() => setShowMobileMore(false)} className={`${baseToolbarButton} ${inactiveToolbarButton}`} aria-label="Close">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
 
         </div>
 
         {/* Document Stats - Right Side */}
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
-            <MousePointer className="w-3 h-3 text-slate-600" />
+          <div className="flex items-center gap-2 text-xs text-[rgb(87,73,55)] bg-[#fbf5e6] px-3 py-1.5 rounded-full border border-[rgba(136,153,79,0.2)]">
+            <MousePointer className="w-3 h-3 text-[rgb(136,153,79)]" />
             <span className="font-medium">Select text and press</span>
-            <kbd className="px-1.5 py-0.5 bg-white border border-slate-300 rounded text-[10px] font-semibold shadow-sm text-slate-700">⌘K</kbd>
+            <kbd className="px-1.5 py-0.5 bg-white border border-[rgba(136,153,79,0.35)] rounded text-[10px] font-semibold shadow-sm text-[rgb(72,84,42)]">⌘K</kbd>
             <span className="font-medium">for AI</span>
           </div>
           
-          <div className="text-xs text-slate-600 font-semibold flex items-center gap-3">
+          <div className="text-xs text-[rgb(87,73,55)] font-semibold flex items-center gap-3">
             <span>{editor?.getText().length || 0} chars</span>
-            <span className="text-slate-300">•</span>
+            <span className="text-[rgba(136,153,79,0.45)]">•</span>
             <span>{editor?.getText().split(/\s+/).filter(w => w.length > 0).length || 0} words</span>
-            <span className="text-slate-300">•</span>
+            <span className="text-[rgba(136,153,79,0.45)]">•</span>
             <span>{readingTimeMin} min</span>
             {selectedChars > 0 && (
               <>
-                <span className="text-slate-300">•</span>
-                <span className="text-blue-600">{selectedChars} selected</span>
+                <span className="text-[rgba(136,153,79,0.45)]">•</span>
+                <span className="text-[rgb(136,153,79)]">{selectedChars} selected</span>
               </>
             )}
           </div>
@@ -463,9 +416,9 @@ export function DemoTextEditor() {
       </motion.div>
 
       {/* Rich Text Editor */}
-      <div className="flex-1 relative bg-[#f5f4f0] overflow-auto" onPaste={handlePaste} onDrop={handleDrop} onDragOver={handleDragOver}>
+      <div className="flex-1 relative bg-[#fefae0] overflow-auto" onPaste={handlePaste} onDrop={handleDrop} onDragOver={handleDragOver}>
         <div className="max-w-4xl mx-auto px-8 py-12 h-full">
-          <div className="bg-white rounded-2xl shadow-sm border border-black/5 min-h-[calc(100vh-16rem)] p-12">
+          <div className="bg-[#fffdf3] rounded-2xl shadow-[0_24px_56px_rgba(136,153,79,0.22)] border border-[rgba(136,153,79,0.22)] min-h-[calc(100vh-16rem)] p-12">
             <EditorContent 
               editor={editor}
               className="prose prose-lg max-w-none focus:outline-none [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-[600px]"
@@ -495,7 +448,7 @@ export function DemoTextEditor() {
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             className="fixed bottom-20 right-6 z-50 max-w-md"
           >
-            <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 shadow-lg">
+            <div className="p-4 bg-[#fef7f7] border border-[rgba(213,85,85,0.25)] rounded-xl flex items-start gap-3 shadow-[0_18px_34px_rgba(213,85,85,0.18)]">
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="text-sm font-semibold text-red-900 mb-1">Error</p>
@@ -503,7 +456,7 @@ export function DemoTextEditor() {
               </div>
               <button
                 onClick={clearError}
-                className="p-1 hover:bg-red-100 rounded-lg transition-colors flex-shrink-0"
+                className="p-1 hover:bg-[rgba(213,85,85,0.1)] rounded-lg transition-colors flex-shrink-0"
                 aria-label="Close error"
               >
                 <X className="w-4 h-4 text-red-600" />
@@ -517,7 +470,7 @@ export function DemoTextEditor() {
       <div className="fixed bottom-6 right-6 z-50">
         <button
           onClick={() => setShowShortcutsPanel(true)}
-          className="w-12 h-12 bg-slate-900 hover:bg-slate-800 text-white rounded-full shadow-lg transition-all duration-200 flex items-center justify-center hover:scale-110 cursor-pointer"
+          className="w-12 h-12 bg-[rgb(136,153,79)] hover:bg-[rgb(118,132,68)] text-white rounded-full shadow-[0_18px_40px_rgba(136,153,79,0.35)] transition-all duration-200 flex items-center justify-center hover:scale-110 cursor-pointer"
           title="Keyboard Shortcuts"
         >
           <kbd className="text-xs font-semibold">?</kbd>
@@ -531,29 +484,29 @@ export function DemoTextEditor() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
             onClick={handleLinkCancel}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl border border-gray-200"
+              className="bg-[#fffdf3] rounded-2xl p-6 w-full max-w-md mx-4 shadow-[0_26px_60px_rgba(136,153,79,0.22)] border border-[rgba(136,153,79,0.2)]"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-slate-900">Add Link</h3>
+                <h3 className="text-lg font-semibold text-[rgb(72,84,42)]">Add Link</h3>
                 <button
                   onClick={handleLinkCancel}
-                  className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="p-1 hover:bg-[rgba(136,153,79,0.12)] rounded-lg transition-colors"
                 >
-                  <X className="w-5 h-5 text-slate-500" />
+                  <X className="w-5 h-5 text-[rgba(96,108,58,0.75)]" />
                 </button>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-semibold text-[rgb(87,73,55)] mb-2">
                     URL *
                   </label>
                   <input
@@ -561,13 +514,13 @@ export function DemoTextEditor() {
                     value={linkUrl}
                     onChange={(e) => setLinkUrl(e.target.value)}
                     placeholder="https://example.com"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-[rgba(136,153,79,0.28)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(136,153,79,0.35)] focus:border-[rgba(136,153,79,0.55)] bg-white text-[rgb(72,84,42)] placeholder-[rgba(136,153,79,0.6)]"
                     autoFocus
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-semibold text-[rgb(87,73,55)] mb-2">
                     Link Text (optional)
                   </label>
                   <input
@@ -575,27 +528,27 @@ export function DemoTextEditor() {
                     value={linkText}
                     onChange={(e) => setLinkText(e.target.value)}
                     placeholder="Display text for the link"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-[rgba(136,153,79,0.28)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(136,153,79,0.35)] focus:border-[rgba(136,153,79,0.55)] bg-white text-[rgb(72,84,42)] placeholder-[rgba(136,153,79,0.6)]"
                   />
                   {linkText.trim() === '' && (
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="text-xs text-[rgba(96,108,58,0.75)] mt-1">
                       If empty, the URL will be used as the link text
                     </p>
                   )}
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-[rgba(136,153,79,0.18)]">
                 <button
                   onClick={handleLinkCancel}
-                  className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="px-4 py-2 text-sm font-semibold text-[rgb(87,73,55)] hover:bg-[rgba(136,153,79,0.12)] rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleLinkSubmit}
                   disabled={!linkUrl.trim()}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed rounded-lg transition-colors"
+                  className="px-4 py-2 text-sm font-semibold text-white bg-[rgb(136,153,79)] hover:bg-[rgb(118,132,68)] disabled:bg-[rgba(136,153,79,0.4)] disabled:cursor-not-allowed rounded-lg transition-colors shadow-[0_14px_30px_rgba(136,153,79,0.25)]"
                 >
                   Add Link
                 </button>

@@ -148,9 +148,9 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
             <button
               type="button"
               onClick={() => setIsCreatingFolder(true)}
-              className="inline-flex items-center gap-1 text-xs font-medium text-[rgba(96,108,58,0.85)] hover:text-[rgb(72,84,42)] cursor-pointer"
+              className="inline-flex items-center gap-1 text-sm font-medium text-[rgba(96,108,58,0.85)] hover:text-[rgb(72,84,42)] cursor-pointer"
             >
-              <FolderPlus className="w-3 h-3" />
+              <FolderPlus className="w-4 h-4" />
               New
             </button>
           </div>

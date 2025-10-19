@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'motion/react';
-import { DemoTextEditor } from '@/components/editor/demo-text-editor';
+import { TextEditor } from '@/components/editor/text-editor';
 import { ArrowLeft, Save, Share2, MoreHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import { useEditorStore } from '@/lib/store/editor-store';
@@ -134,28 +134,28 @@ function EditorPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f4f0]">
+    <div className="min-h-screen bg-[#fefae0]">
       {/* Header */}
-      <header className="border-b border-black/5 bg-white h-16">
+      <header className="border-b border-[rgba(136,153,79,0.18)] bg-[#f7f3e5] h-16 shadow-[0_12px_30px_rgba(136,153,79,0.12)]">
         <div className="flex items-center justify-between px-6 h-full">
           <div className="flex items-center gap-4">
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-2 rounded-full border border-black/10 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-black/30 hover:text-slate-900 hover:shadow-sm"
+              className="inline-flex items-center gap-2 rounded-full border border-[rgba(136,153,79,0.22)] px-4 py-2 text-sm font-semibold text-[rgb(90,78,60)] transition hover:border-[rgba(136,153,79,0.4)] hover:text-[rgb(72,84,42)] hover:bg-[#fbf5e6] shadow-[0_6px_18px_rgba(136,153,79,0.18)]"
             >
               <ArrowLeft className="h-4 w-4" />
               Back to Dashboard
             </Link>
-            <div className="h-6 w-px bg-black/10" />
+            <div className="h-6 w-px bg-[rgba(136,153,79,0.2)]" />
             <div className="flex items-center gap-3">
               <div>
                 <input
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
                   placeholder="Untitled Document"
-                  className="text-lg font-semibold text-slate-900 bg-transparent border-none focus:outline-none"
+                  className="text-lg font-semibold text-[rgb(72,84,42)] bg-transparent border-none focus:outline-none"
                 />
-                <p className="text-xs font-medium text-slate-500">
+                <p className="text-xs font-medium text-[rgba(96,108,58,0.75)]">
                   {loadError
                     ? loadError
                     : loadingDocument
@@ -174,16 +174,16 @@ function EditorPageContent() {
             <button
               onClick={handleSave}
               disabled={saving || !hasUnsavedChanges}
-              className="inline-flex items-center gap-2 rounded-full border border-black/10 px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-black/30 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 rounded-full border border-[rgba(136,153,79,0.22)] px-5 py-2.5 text-sm font-semibold text-[rgb(90,78,60)] transition hover:border-[rgba(136,153,79,0.45)] hover:text-[rgb(72,84,42)] hover:bg-[#fbf5e6] disabled:opacity-60 disabled:cursor-not-allowed shadow-[0_10px_24px_rgba(136,153,79,0.15)]"
             >
               <Save className={`h-4 w-4 ${saving ? 'animate-spin' : ''}`} />
               {saving ? 'Saving...' : 'Save'}
             </button>
-            <button className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-black shadow-sm">
+            <button className="inline-flex items-center gap-2 rounded-full bg-[rgb(136,153,79)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[rgb(118,132,68)] shadow-[0_12px_32px_rgba(136,153,79,0.28)]">
               <Share2 className="h-4 w-4" />
               Share
             </button>
-            <button className="inline-flex items-center gap-2 rounded-full border border-black/10 px-3 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-black/30 hover:text-slate-900 hover:bg-slate-50">
+            <button className="inline-flex items-center gap-2 rounded-full border border-[rgba(136,153,79,0.22)] px-3 py-2.5 text-sm font-semibold text-[rgb(90,78,60)] transition hover:border-[rgba(136,153,79,0.45)] hover:text-[rgb(72,84,42)] hover:bg-[#fbf5e6]">
               <MoreHorizontal className="h-4 w-4" />
             </button>
           </div>
@@ -196,9 +196,9 @@ function EditorPageContent() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.05 }}
-          className="h-full flex flex-col bg-white"
+          className="h-full flex flex-col bg-[#fefae0]"
         >
-          <DemoTextEditor />
+          <TextEditor />
         </motion.div>
         {loadingDocument && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/70">
@@ -216,7 +216,7 @@ function EditorPageContent() {
 export default function EditorPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#f5f4f0] flex items-center justify-center">
+      <div className="min-h-screen bg-[#fefae0] flex items-center justify-center">
         <div className="flex items-center gap-3 text-sm text-slate-600">
           <span className="h-4 w-4 rounded-full border-2 border-slate-400 border-t-transparent animate-spin" />
           Loading editor...
