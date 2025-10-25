@@ -5,7 +5,7 @@ import type { TextSelection, AISuggestion, EditorState } from "@/types/editor";
 
 export const useEditorStore = create<EditorState>((set, get) => ({
     // Initial state
-    content: "",
+    content: null, // Changed to null to handle JSON content
     title: "Untitled Document",
     documentId: null,
     selection: null,
@@ -16,7 +16,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     hasUnsavedChanges: false,
 
     // Actions
-    setContent: (content: string) => {
+    setContent: (content: any) => { // Changed to any to handle JSON objects
         set({ content, hasUnsavedChanges: true });
     },
 
@@ -45,7 +45,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     },
 
     requestAISuggestion: async (prompt: string) => {
-        const { selection, editorRef } = get();
+        const { selection, editorRef, documentId } = get();
         if (!selection || !editorRef) {
             set({
                 error: "Please select text before requesting AI assistance",
@@ -73,6 +73,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
                     selectedText: selection.text,
                     prompt: prompt,
                     documentContext: documentContext,
+                    documentId: documentId, // Include for Supermemory context
                 }),
                 signal: controller.signal,
             });
@@ -142,13 +143,13 @@ export const useEditorStore = create<EditorState>((set, get) => ({
                 .deleteSelection()
                 .run();
 
-            // Convert markdown to HTML for TipTap
-            const htmlContent = convertMarkdownToHTML(suggestedText);
+            // Convert markdown to JSON for TipTap
+            const jsonContent = convertMarkdownToJson(suggestedText);
 
             editorRef
                 .chain()
                 .focus()
-                .insertContent(htmlContent, {
+                .insertContent(jsonContent, {
                     parseOptions: {
                         preserveWhitespace: "full",
                     },
@@ -187,11 +188,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
                 .run();
 
             // Insert the new content
-            const htmlContent = convertMarkdownToHTML(suggestedText);
+            const jsonContent = convertMarkdownToJson(suggestedText);
             editorRef
                 .chain()
                 .focus()
-                .insertContent(htmlContent, {
+                .insertContent(jsonContent, {
                     parseOptions: {
                         preserveWhitespace: "full",
                     },
@@ -206,55 +207,125 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     },
 }));
 
-// Convert markdown to HTML for TipTap
-function convertMarkdownToHTML(markdown: string): string {
-    let html = markdown;
-
-    // Bold text
-    html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-
-    // Italic text
-    html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-
-    // Headers
-    html = html.replace(/^### (.+)$/gm, "<h3>$1</h3>");
-    html = html.replace(/^## (.+)$/gm, "<h2>$1</h2>");
-    html = html.replace(/^# (.+)$/gm, "<h1>$1</h1>");
-
-    // Unordered lists
-    html = html.replace(/^(\s*)- (.+)$/gm, (match, indent, text) => {
-        const level = indent.length / 2;
-        return `${"  ".repeat(level)}<li>${text}</li>`;
-    });
-
-    // Wrap consecutive list items in <ul> tags
-    html = html.replace(/((?:\s*<li>.*<\/li>\s*)+)/g, "<ul>$1</ul>");
-
-    // Ordered lists
-    html = html.replace(/^(\s*)\d+\. (.+)$/gm, (match, indent, text) => {
-        const level = indent.length / 2;
-        return `${"  ".repeat(level)}<li>${text}</li>`;
-    });
-
-    // Wrap consecutive ordered list items in <ol> tags
-    html = html.replace(/((?:\s*<li>.*<\/li>\s*)+)/g, (match) => {
-        // Check if this was from numbered lists (this is a simplified approach)
-        return match.includes("1.") ? `<ol>${match}</ol>` : `<ul>${match}</ul>`;
-    });
-
-    // Paragraphs (convert double line breaks to paragraphs)
-    html = html.replace(/\n\n+/g, "</p><p>");
-
-    // Wrap content in paragraph tags if it doesn't start with a block element
-    if (!html.match(/^<(h[1-6]|ul|ol|pre|blockquote)/)) {
-        html = `<p>${html}</p>`;
+// Convert markdown to TipTap JSON structure
+function convertMarkdownToJson(markdown: string): any {
+    if (!markdown.trim()) {
+        return { type: 'doc', content: [{ type: 'paragraph', content: [] }] };
     }
 
-    // Clean up extra paragraph tags around block elements
-    html = html.replace(
-        /<p>(<(h[1-6]|ul|ol|pre|blockquote)[^>]*>.*?<\/\2>)<\/p>/g,
-        "$1"
-    );
+    const lines = markdown.split('\n');
+    const content: any[] = [];
+    let currentList: any[] = [];
+    let inList = false;
 
-    return html;
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        
+        if (!line) {
+            if (inList && currentList.length > 0) {
+                content.push({
+                    type: 'bulletList',
+                    content: currentList
+                });
+                currentList = [];
+                inList = false;
+            }
+            continue;
+        }
+
+        // Headers
+        if (line.startsWith('### ')) {
+            content.push({
+                type: 'heading',
+                attrs: { level: 3 },
+                content: [{ type: 'text', text: line.substring(4) }]
+            });
+        } else if (line.startsWith('## ')) {
+            content.push({
+                type: 'heading',
+                attrs: { level: 2 },
+                content: [{ type: 'text', text: line.substring(3) }]
+            });
+        } else if (line.startsWith('# ')) {
+            content.push({
+                type: 'heading',
+                attrs: { level: 1 },
+                content: [{ type: 'text', text: line.substring(2) }]
+            });
+        }
+        // Lists
+        else if (line.startsWith('- ')) {
+            if (!inList) {
+                inList = true;
+                currentList = [];
+            }
+            currentList.push({
+                type: 'listItem',
+                content: [{
+                    type: 'paragraph',
+                    content: parseInlineMarkdown(line.substring(2))
+                }]
+            });
+        }
+        // Regular paragraphs
+        else {
+            if (inList && currentList.length > 0) {
+                content.push({
+                    type: 'bulletList',
+                    content: currentList
+                });
+                currentList = [];
+                inList = false;
+            }
+            content.push({
+                type: 'paragraph',
+                content: parseInlineMarkdown(line)
+            });
+        }
+    }
+
+    // Close any remaining list
+    if (inList && currentList.length > 0) {
+        content.push({
+            type: 'bulletList',
+            content: currentList
+        });
+    }
+
+    return { type: 'doc', content };
+}
+
+// Parse inline markdown (bold, italic, etc.)
+function parseInlineMarkdown(text: string): any[] {
+    const nodes: any[] = [];
+    let currentText = text;
+    let currentIndex = 0;
+
+    // Simple parsing for bold and italic
+    const parts = currentText.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/);
+    
+    for (const part of parts) {
+        if (!part) continue;
+        
+        if (part.startsWith('**') && part.endsWith('**')) {
+            nodes.push({
+                type: 'text',
+                text: part.slice(2, -2),
+                marks: [{ type: 'bold' }]
+            });
+        } else if (part.startsWith('*') && part.endsWith('*')) {
+            nodes.push({
+                type: 'text',
+                text: part.slice(1, -1),
+                marks: [{ type: 'italic' }]
+            });
+        } else {
+            nodes.push({
+                type: 'text',
+                text: part
+            });
+        }
+    }
+
+    return nodes.length > 0 ? nodes : [{ type: 'text', text: currentText }];
 }

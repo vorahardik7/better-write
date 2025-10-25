@@ -20,7 +20,6 @@ import { useRouter } from 'next/navigation';
 interface Document {
   id: string;
   title: string;
-  contentHtml: string;
   contentText: string;
   createdAt: string;
   updatedAt: string;

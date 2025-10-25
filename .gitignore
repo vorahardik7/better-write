@@ -47,3 +47,12 @@ next-env.d.ts
 req.txt
 PROJECT_RECOMMENDATIONS.md
 better-auth_migrations/
+SUPERMEMORY_SETUP.md
+SUPERMEMORY_IMPLEMENTATION.md
+test_rls_security.sql
+IMPLEMENTATION_NOTES.md
+RLS_SECURITY_GUIDE.md
+IMPLEMENT_RLS_NOW.md
+SECURITY_IMPLEMENTATION.md
+src/lib/supermemory/examples.ts
+drizzle

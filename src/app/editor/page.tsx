@@ -35,7 +35,7 @@ function EditorPageContent() {
     const resetDocumentState = () => {
       if (ignore) return;
       setTitle('Untitled Document');
-      setContent('');
+      setContent({ type: 'doc', content: [{ type: 'paragraph', content: [] }] });
       setDocumentId(null);
       setLoadingDocument(false);
       setLoadError(null);

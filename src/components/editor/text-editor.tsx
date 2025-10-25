@@ -10,14 +10,27 @@ import { useEditorStore } from '@/lib/store/editor-store';
 import { AICommandPalette } from './ai-command-palette';
 import { KeyboardShortcutsPanel } from './keyboard-shortcuts-panel';
 import { MousePointer, Bold, Italic, Image as ImageIcon, AlertCircle, X, AlignLeft, AlignCenter, AlignRight, AlignJustify, Undo2, Redo2, Underline as UnderlineIcon, Link2, Link2Off, MoreHorizontal } from 'lucide-react';
+import { 
+  formattingActions, 
+  alignmentActions, 
+  undoRedoActions, 
+  createLinkActions, 
+  linkHelpers,
+  imageActions, 
+  imageHandlers, 
+  createKeyboardShortcutHandlers 
+} from './actions';
 
 export function TextEditor() {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showMobileMore, setShowMobileMore] = useState(false);
-  const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [showShortcutsPanel, setShowShortcutsPanel] = useState(false);
-  const [linkUrl, setLinkUrl] = useState('');
-  const [linkText, setLinkText] = useState('');
+  const [linkState, setLinkState] = useState({
+    showLinkDialog: false,
+    linkUrl: '',
+    linkText: ''
+  });
+  
   const { 
     content, 
     setContent, 
@@ -29,9 +42,9 @@ export function TextEditor() {
   } = useEditorStore();
 
   const editor = useTipTapEditor(
-    content || '<p></p>',
+    content || { type: 'doc', content: [{ type: 'paragraph', content: [] }] },
     ({ editor }) => {
-      setContent(editor.getHTML());
+      setContent(editor.getJSON());
     },
     ({ editor }) => {
       const { from, to } = editor.state.selection;
@@ -57,7 +70,7 @@ export function TextEditor() {
 
   // Update editor content when store content changes (for AI suggestions)
   useEffect(() => {
-    if (editor && editor.getHTML() !== content) {
+    if (editor && content && JSON.stringify(editor.getJSON()) !== JSON.stringify(content)) {
       editor.commands.setContent(content);
     }
   }, [content, editor]);
@@ -68,166 +81,32 @@ export function TextEditor() {
   const readingTimeMin = Math.max(1, Math.ceil(words / 200));
   const selectedChars = selection?.text?.length || 0;
 
-  // Text alignment helper functions
-  const setTextAlignment = useCallback((alignment: 'left' | 'center' | 'right' | 'justify') => {
-    if (!editor) return;
-    try {
-      // Type assertion for TipTap TextAlign extension commands
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (editor.chain().focus() as any).setTextAlign(alignment).run();
-    } catch {
-      console.warn('Text alignment not supported');
-    }
-  }, [editor]);
+  // Create action handlers
+  const linkActions = createLinkActions(editor, linkState, setLinkState);
+  const keyboardHandlers = createKeyboardShortcutHandlers(
+    editor, 
+    selection, 
+    () => setShowCommandPalette(true), 
+    () => setShowCommandPalette(false)
+  );
 
-  const canSetTextAlignment = useCallback((alignment: 'left' | 'center' | 'right' | 'justify') => {
-    if (!editor) return false;
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return (editor.can() as any).setTextAlign(alignment);
-    } catch {
-      return false;
-    }
-  }, [editor]);
-
-  // Toolbar and formatting actions
-  const handleUndo = () => editor?.chain().focus().undo().run();
-  const handleRedo = () => editor?.chain().focus().redo().run();
-  const handleToggleUnderline = () => {
-    if (editor) {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (editor.chain().focus() as any).toggleUnderline().run();
-      } catch {
-        console.warn('Underline not supported');
-      }
-    }
-  };
-  const handleToggleLink = () => {
-    if (!editor) return;
-
-    if (editor.isActive('link')) {
-      editor.chain().focus().unsetLink().run();
-      return;
-    }
-
-    // Get current link attributes if editing existing link
-    const previousUrl = (editor.getAttributes('link')?.href as string | undefined) ?? '';
-    const previousText = editor.state.doc.textBetween(
-      editor.state.selection.from,
-      editor.state.selection.to
-    ) || '';
-
-    setLinkUrl(previousUrl);
-    setLinkText(previousText);
-    setShowLinkDialog(true);
-  };
-
-  const handleLinkSubmit = () => {
-    if (!editor || !linkUrl.trim()) return;
-
-    try {
-      if (linkText.trim()) {
-        // Insert link with custom text
-        editor.chain().focus().insertContent(`<a href="${linkUrl.trim()}">${linkText.trim()}</a>`).run();
-      } else {
-        // Insert link with URL as text
-        editor.chain().focus().insertContent(`<a href="${linkUrl.trim()}">${linkUrl.trim()}</a>`).run();
-      }
-    } catch {
-      console.warn('Link insertion failed');
-    }
-
-    setShowLinkDialog(false);
-    setLinkUrl('');
-    setLinkText('');
-  };
-
-  const handleLinkCancel = () => {
-    setShowLinkDialog(false);
-    setLinkUrl('');
-    setLinkText('');
-  };
-
-  // Paste / Drag image handlers
-  const insertImageFromFile = useCallback((file: File) => {
-    if (!editor) return;
-    if (!file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const src = String(reader.result || '');
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (editor.chain().focus() as any).setImage?.({ src }).run();
-      } catch {
-        editor.chain().focus().insertContent(`<img src="${src}" alt="Image" class="rounded-lg shadow-sm max-w-full h-auto" />`).run();
-      }
-    };
-    reader.readAsDataURL(file);
-  }, [editor]);
-
+  // Image handlers
   const handlePaste = useCallback((e: React.ClipboardEvent<HTMLDivElement>) => {
-    const items = e.clipboardData?.items;
-    if (!items) return;
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      if (item.kind === 'file') {
-        const file = item.getAsFile();
-        if (file) insertImageFromFile(file);
-      }
-    }
-  }, [insertImageFromFile]);
+    if (editor) imageHandlers.handlePaste(editor, e);
+  }, [editor]);
 
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const files = e.dataTransfer?.files;
-    if (!files) return;
-    for (let i = 0; i < files.length; i++) {
-      insertImageFromFile(files[i]);
-    }
-  }, [insertImageFromFile]);
+    if (editor) imageHandlers.handleDrop(editor, e);
+  }, [editor]);
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
+    imageHandlers.handleDragOver(e);
   }, []);
 
   // Handle keyboard shortcuts
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    // Cmd+K or Ctrl+K to open AI command palette
-    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-      e.preventDefault();
-      if (selection) {
-        setShowCommandPalette(true);
-      }
-    }
-    
-    // Text alignment shortcuts
-    if ((e.metaKey || e.ctrlKey) && e.shiftKey && editor) {
-      switch (e.key.toLowerCase()) {
-        case 'l':
-          e.preventDefault();
-          setTextAlignment('left');
-          break;
-        case 'e':
-          e.preventDefault();
-          setTextAlignment('center');
-          break;
-        case 'r':
-          e.preventDefault();
-          setTextAlignment('right');
-          break;
-        case 'j':
-          e.preventDefault();
-          setTextAlignment('justify');
-          break;
-      }
-    }
-    
-    // Escape to close command palette
-    if (e.key === 'Escape') {
-      setShowCommandPalette(false);
-    }
-  }, [selection, editor, setTextAlignment]);
+    keyboardHandlers.handleKeyDown(e);
+  }, [keyboardHandlers]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -235,13 +114,8 @@ export function TextEditor() {
   }, [handleKeyDown]);
 
   // Toolbar actions
-
   const addImage = () => {
-    const url = window.prompt('Enter image URL:');
-    if (url && editor) {
-      // Simple image insertion
-      editor.chain().focus().insertContent(`<img src="${url}" alt="Image" class="rounded-lg shadow-sm max-w-full h-auto" />`).run();
-    }
+    if (editor) imageActions.promptForImageUrl(editor);
   };
 
   if (!editor) {
@@ -269,14 +143,14 @@ export function TextEditor() {
           {/* Undo / Redo */}
           <div className="flex items-center gap-1 border-r border-[rgba(136,153,79,0.2)] pr-3">
             <button
-              onClick={handleUndo}
+              onClick={() => editor && undoRedoActions.undo(editor)}
               className={`${baseToolbarButton} ${inactiveToolbarButton}`}
               aria-label="Undo"
             >
               <Undo2 className="w-4 h-4" />
             </button>
             <button
-              onClick={handleRedo}
+              onClick={() => editor && undoRedoActions.redo(editor)}
               className={`${baseToolbarButton} ${inactiveToolbarButton}`}
               aria-label="Redo"
             >
@@ -287,70 +161,70 @@ export function TextEditor() {
           {/* Text Formatting */}
           <div className="flex items-center gap-1 border-r border-[rgba(136,153,79,0.2)] pr-3">
             <button
-              onClick={() => editor?.chain().focus().toggleBold().run()}
-              className={`${baseToolbarButton} ${editor?.isActive('bold') ? activeToolbarButton : inactiveToolbarButton}`}
+              onClick={() => editor && formattingActions.toggleBold(editor)}
+              className={`${baseToolbarButton} ${formattingActions.isActive.bold(editor) ? activeToolbarButton : inactiveToolbarButton}`}
               aria-label="Bold"
-              aria-pressed={!!editor?.isActive('bold')}
+              aria-pressed={formattingActions.isActive.bold(editor)}
             >
               <Bold className="w-4 h-4" />
             </button>
             <button
-              onClick={() => editor?.chain().focus().toggleItalic().run()}
-              className={`${baseToolbarButton} ${editor?.isActive('italic') ? activeToolbarButton : inactiveToolbarButton}`}
+              onClick={() => editor && formattingActions.toggleItalic(editor)}
+              className={`${baseToolbarButton} ${formattingActions.isActive.italic(editor) ? activeToolbarButton : inactiveToolbarButton}`}
               aria-label="Italic"
-              aria-pressed={!!editor?.isActive('italic')}
+              aria-pressed={formattingActions.isActive.italic(editor)}
             >
               <Italic className="w-4 h-4" />
             </button>
             <button
-              onClick={handleToggleUnderline}
-              className={`${baseToolbarButton} ${editor?.isActive('underline') ? activeToolbarButton : inactiveToolbarButton}`}
+              onClick={() => editor && formattingActions.toggleUnderline(editor)}
+              className={`${baseToolbarButton} ${formattingActions.isActive.underline(editor) ? activeToolbarButton : inactiveToolbarButton}`}
               aria-label="Underline"
-              aria-pressed={!!editor?.isActive('underline')}
+              aria-pressed={formattingActions.isActive.underline(editor)}
             >
               <UnderlineIcon className="w-4 h-4" />
             </button>
             <button
-              onClick={handleToggleLink}
-              className={`${baseToolbarButton} ${editor?.isActive('link') ? activeToolbarButton : inactiveToolbarButton}`}
-              aria-label={editor?.isActive('link') ? 'Remove Link' : 'Add Link'}
-              aria-pressed={!!editor?.isActive('link')}
+              onClick={linkActions.toggleLink}
+              className={`${baseToolbarButton} ${linkHelpers.isActive(editor) ? activeToolbarButton : inactiveToolbarButton}`}
+              aria-label={linkHelpers.isActive(editor) ? 'Remove Link' : 'Add Link'}
+              aria-pressed={linkHelpers.isActive(editor)}
             >
-              {editor?.isActive('link') ? <Link2Off className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
+              {linkHelpers.isActive(editor) ? <Link2Off className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
             </button>
           </div>
 
           {/* Alignment */}
           <div className="flex items-center gap-1 border-r border-[rgba(136,153,79,0.2)] pr-3">
             <button
-              onClick={() => setTextAlignment('left')}
-              className={`${baseToolbarButton} ${editor?.isActive({ textAlign: 'left' }) ? activeToolbarButton : inactiveToolbarButton}`}
-              aria-pressed={!!editor?.isActive({ textAlign: 'left' })}
-              disabled={!canSetTextAlignment('left')}
+              onClick={() => editor && alignmentActions.setTextAlignment(editor, 'left')}
+              className={`${baseToolbarButton} ${alignmentActions.isActive(editor, 'left') ? activeToolbarButton : inactiveToolbarButton}`}
+              aria-pressed={alignmentActions.isActive(editor, 'left')}
+              disabled={!alignmentActions.canSetTextAlignment(editor, 'left')}
             >
               <AlignLeft className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setTextAlignment('center')}
-              className={`${baseToolbarButton} ${editor?.isActive({ textAlign: 'center' }) ? activeToolbarButton : inactiveToolbarButton}`}
-              aria-pressed={!!editor?.isActive({ textAlign: 'center' })}
-              disabled={!canSetTextAlignment('center')}
+              onClick={() => editor && alignmentActions.setTextAlignment(editor, 'center')}
+              className={`${baseToolbarButton} ${alignmentActions.isActive(editor, 'center') ? activeToolbarButton : inactiveToolbarButton}`}
+              aria-pressed={alignmentActions.isActive(editor, 'center')}
+              disabled={!alignmentActions.canSetTextAlignment(editor, 'center')}
             >
               <AlignCenter className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setTextAlignment('right')}
-              className={`${baseToolbarButton} ${editor?.isActive({ textAlign: 'right' }) ? activeToolbarButton : inactiveToolbarButton}`}
-              aria-pressed={!!editor?.isActive({ textAlign: 'right' })}
-              disabled={!canSetTextAlignment('right')}
+              onClick={() => editor && alignmentActions.setTextAlignment(editor, 'right')}
+              className={`${baseToolbarButton} ${alignmentActions.isActive(editor, 'right') ? activeToolbarButton : inactiveToolbarButton}`}
+              aria-pressed={alignmentActions.isActive(editor, 'right')}
+              disabled={!alignmentActions.canSetTextAlignment(editor, 'right')}
             >
               <AlignRight className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setTextAlignment('justify')}
-              className={`${baseToolbarButton} ${editor?.isActive({ textAlign: 'justify' }) ? activeToolbarButton : inactiveToolbarButton}`}
-              aria-pressed={!!editor?.isActive({ textAlign: 'justify' })}
-              disabled={!canSetTextAlignment('justify')}
+              onClick={() => editor && alignmentActions.setTextAlignment(editor, 'justify')}
+              className={`${baseToolbarButton} ${alignmentActions.isActive(editor, 'justify') ? activeToolbarButton : inactiveToolbarButton}`}
+              aria-pressed={alignmentActions.isActive(editor, 'justify')}
+              disabled={!alignmentActions.canSetTextAlignment(editor, 'justify')}
             >
               <AlignJustify className="w-4 h-4" />
             </button>
@@ -479,13 +353,13 @@ export function TextEditor() {
 
       {/* Link Dialog */}
       <AnimatePresence>
-        {showLinkDialog && (
+        {linkState.showLinkDialog && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-            onClick={handleLinkCancel}
+            onClick={linkActions.handleLinkCancel}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -497,7 +371,7 @@ export function TextEditor() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-[rgb(72,84,42)]">Add Link</h3>
                 <button
-                  onClick={handleLinkCancel}
+                  onClick={linkActions.handleLinkCancel}
                   className="p-1 hover:bg-[rgba(136,153,79,0.12)] rounded-lg transition-colors"
                 >
                   <X className="w-5 h-5 text-[rgba(96,108,58,0.75)]" />
@@ -511,8 +385,8 @@ export function TextEditor() {
                   </label>
                   <input
                     type="url"
-                    value={linkUrl}
-                    onChange={(e) => setLinkUrl(e.target.value)}
+                    value={linkState.linkUrl}
+                    onChange={(e) => linkActions.setLinkUrl(e.target.value)}
                     placeholder="https://example.com"
                     className="w-full px-3 py-2 border border-[rgba(136,153,79,0.28)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(136,153,79,0.35)] focus:border-[rgba(136,153,79,0.55)] bg-white text-[rgb(72,84,42)] placeholder-[rgba(136,153,79,0.6)]"
                     autoFocus
@@ -525,12 +399,12 @@ export function TextEditor() {
                   </label>
                   <input
                     type="text"
-                    value={linkText}
-                    onChange={(e) => setLinkText(e.target.value)}
+                    value={linkState.linkText}
+                    onChange={(e) => linkActions.setLinkText(e.target.value)}
                     placeholder="Display text for the link"
                     className="w-full px-3 py-2 border border-[rgba(136,153,79,0.28)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(136,153,79,0.35)] focus:border-[rgba(136,153,79,0.55)] bg-white text-[rgb(72,84,42)] placeholder-[rgba(136,153,79,0.6)]"
                   />
-                  {linkText.trim() === '' && (
+                  {linkState.linkText.trim() === '' && (
                     <p className="text-xs text-[rgba(96,108,58,0.75)] mt-1">
                       If empty, the URL will be used as the link text
                     </p>
@@ -540,14 +414,14 @@ export function TextEditor() {
 
               <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-[rgba(136,153,79,0.18)]">
                 <button
-                  onClick={handleLinkCancel}
+                  onClick={linkActions.handleLinkCancel}
                   className="px-4 py-2 text-sm font-semibold text-[rgb(87,73,55)] hover:bg-[rgba(136,153,79,0.12)] rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={handleLinkSubmit}
-                  disabled={!linkUrl.trim()}
+                  onClick={linkActions.handleLinkSubmit}
+                  disabled={!linkState.linkUrl.trim()}
                   className="px-4 py-2 text-sm font-semibold text-white bg-[rgb(136,153,79)] hover:bg-[rgb(118,132,68)] disabled:bg-[rgba(136,153,79,0.4)] disabled:cursor-not-allowed rounded-lg transition-colors shadow-[0_14px_30px_rgba(136,153,79,0.25)]"
                 >
                   Add Link

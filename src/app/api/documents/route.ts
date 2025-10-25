@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '../../../../auth';
-import { db } from '../../../lib/db';
-import type { TipTapContent, TipTapNode, TipTapMark } from '../../../types/editor';
+import { db, documents, documentVersions } from '../../../lib/db';
+import { syncDocumentToSupermemory } from '../../../lib/supermemory/sync';
+import { 
+  validateDocumentTitle, 
+  logSecurityEvent, 
+  checkRateLimit 
+} from '../../../lib/security';
+import { eq, desc, count, and } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,37 +24,42 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10');
     const offset = (page - 1) * limit;
 
-    // Get user's documents
-    const documents = await db.query(`
-      SELECT 
-        id,
-        title,
-        "contentHtml" as "contentHtml",
-        "contentText" as "contentText",
-        "createdAt" as "createdAt",
-        "updatedAt" as "updatedAt",
-        "lastEditedAt" as "lastEditedAt",
-        "isArchived" as "isArchived",
-        "isPublic" as "isPublic",
-        "wordCount" as "wordCount",
-        "characterCount" as "characterCount"
-      FROM document 
-      WHERE "userId" = $1 AND "isArchived" = false
-      ORDER BY "updatedAt" DESC
-      LIMIT $2 OFFSET $3
-    `, [session.user.id, limit, offset]);
+    // Get user's documents using Drizzle
+    const userDocuments = await db
+      .select({
+        id: documents.id,
+        title: documents.title,
+        contentText: documents.contentText,
+        createdAt: documents.createdAt,
+        updatedAt: documents.updatedAt,
+        lastEditedAt: documents.lastEditedAt,
+        isArchived: documents.isArchived,
+        isPublic: documents.isPublic,
+        wordCount: documents.wordCount,
+        characterCount: documents.characterCount,
+      })
+      .from(documents)
+      .where(and(
+        eq(documents.userId, session.user.id),
+        eq(documents.isArchived, false)
+      ))
+      .orderBy(desc(documents.updatedAt))
+      .limit(limit)
+      .offset(offset);
 
-    // Get total count
-    const countResult = await db.query(`
-      SELECT COUNT(*) as total 
-      FROM document 
-      WHERE "userId" = $1 AND "isArchived" = false
-    `, [session.user.id]);
+    // Get total count using Drizzle
+    const countResult = await db
+      .select({ total: count() })
+      .from(documents)
+      .where(and(
+        eq(documents.userId, session.user.id),
+        eq(documents.isArchived, false)
+      ));
 
-    const total = parseInt(countResult.rows[0].total);
+    const total = countResult[0].total;
 
     return NextResponse.json({
-      documents: documents.rows,
+      documents: userDocuments,
       pagination: {
         page,
         limit,
@@ -73,75 +84,99 @@ export async function POST(request: NextRequest) {
     });
 
     if (!session?.user) {
+      logSecurityEvent('unauthorized_document_creation', { endpoint: '/api/documents' }, undefined, request);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limiting
+    const rateLimit = checkRateLimit(session.user.id, 10, 60000); // 10 document creations per minute
+    if (!rateLimit.allowed) {
+      logSecurityEvent('rate_limit_exceeded', { 
+        userId: session.user.id, 
+        endpoint: '/api/documents' 
+      }, session.user.id, request);
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Please try again later.' },
+        { status: 429 }
+      );
     }
 
     const body = await request.json();
     const { title, content } = body;
 
-    if (!title || !content) {
+    // Input validation using security utilities
+    const validationErrors: string[] = [];
+    
+    const validatedTitle = validateDocumentTitle(title);
+    if (!validatedTitle) {
+      validationErrors.push('Title is required and must be a valid string (max 200 characters)');
+    }
+    
+    if (!content || typeof content !== 'object') {
+      validationErrors.push('Content is required and must be a valid JSON object');
+    }
+    
+    if (validationErrors.length > 0) {
+      logSecurityEvent('validation_failed', { 
+        errors: validationErrors, 
+        endpoint: '/api/documents' 
+      }, session.user.id, request);
       return NextResponse.json(
-        { error: 'Title and content are required' },
+        { error: 'Validation failed', details: validationErrors },
         { status: 400 }
       );
     }
 
-    // Generate content stats
-    const contentText = extractTextFromTipTap(content);
+    // Generate content stats from JSON content
+    const contentText = extractTextFromJson(content);
     const wordCount = contentText.split(/\s+/).filter(word => word.length > 0).length;
     const characterCount = contentText.length;
-    const contentHtml = renderTipTapToHtml(content);
 
     const documentId = crypto.randomUUID();
+    const now = new Date();
 
-    // Create document
-    await db.query(`
-      INSERT INTO document (
-        id, title, content, "contentHtml", "contentText", "userId",
-        "wordCount", "characterCount", "createdAt", "updatedAt", "lastEditedAt"
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-    `, [
-      documentId,
-      title,
-      JSON.stringify(content),
-      contentHtml,
-      contentText,
-      session.user.id,
-      wordCount,
-      characterCount,
-      new Date(),
-      new Date(),
-      new Date()
-    ]);
+    // Create document using Drizzle
+    await db.insert(documents).values({
+      id: documentId,
+      title: validatedTitle!, // We know it's not null due to validation above
+      content: content, // Drizzle handles JSONB automatically
+      contentText: contentText,
+      userId: session.user.id,
+      wordCount: wordCount,
+      characterCount: characterCount,
+      createdAt: now,
+      updatedAt: now,
+      lastEditedAt: now,
+      isArchived: false,
+      isPublic: false,
+    });
 
-    // Create initial version
-    await db.query(`
-      INSERT INTO document_version (
-        id, "documentId", content, "contentHtml", "contentText",
-        "wordCount", "characterCount", "createdAt", "isAutosave"
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-    `, [
-      crypto.randomUUID(),
-      documentId,
-      JSON.stringify(content),
-      contentHtml,
-      contentText,
-      wordCount,
-      characterCount,
-      new Date(),
-      false
-    ]);
+    // Create initial version using Drizzle
+    await db.insert(documentVersions).values({
+      id: crypto.randomUUID(),
+      documentId: documentId,
+      content: content, // Drizzle handles JSONB automatically
+      contentText: contentText,
+      wordCount: wordCount,
+      characterCount: characterCount,
+      createdAt: now,
+      isAutosave: false,
+    });
+
+    // Sync new document to Supermemory (fire-and-forget)
+    syncDocumentToSupermemory(documentId, session.user.id).catch(error => {
+      console.error('Background sync to Supermemory failed:', error);
+    });
 
     return NextResponse.json({
       id: documentId,
-      title,
+      title: validatedTitle,
       content,
-      contentHtml,
       contentText,
       wordCount,
       characterCount,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: now,
+      updatedAt: now
     });
 
   } catch (error) {
@@ -154,75 +189,24 @@ export async function POST(request: NextRequest) {
 }
 
 // Helper functions
-function extractTextFromTipTap(content: TipTapContent): string {
-  if (!content || !content.content) return '';
-
-  function extractText(node: TipTapNode): string {
-    if (node.type === 'text') {
-      return node.text || '';
-    }
-
-    if (node.content) {
+function extractTextFromJson(jsonContent: any): string {
+  if (!jsonContent) return '';
+  
+  // Recursively extract text from TipTap JSON structure
+  function extractText(node: any): string {
+    if (typeof node === 'string') return node;
+    if (typeof node !== 'object' || !node) return '';
+    
+    if (node.text) return node.text;
+    
+    if (node.content && Array.isArray(node.content)) {
       return node.content.map(extractText).join('');
     }
-
+    
     return '';
   }
-
-  return content.content.map(extractText).join(' ');
+  
+  return extractText(jsonContent).trim();
 }
 
-function renderTipTapToHtml(content: TipTapContent): string {
-  // This is a simplified HTML renderer
-  // In production, you might want to use a proper TipTap HTML renderer
-  if (!content || !content.content) return '';
-
-  function renderNode(node: TipTapNode): string {
-    if (node.type === 'text') {
-      const text = node.text || '';
-      if (node.marks) {
-        let processedText = text;
-        node.marks.forEach((mark: TipTapMark) => {
-          switch (mark.type) {
-            case 'bold':
-              processedText = `<strong>${processedText}</strong>`;
-              break;
-            case 'italic':
-              processedText = `<em>${processedText}</em>`;
-              break;
-            case 'underline':
-              processedText = `<u>${processedText}</u>`;
-              break;
-          }
-        });
-        return processedText;
-      }
-      return text;
-    }
-
-    if (node.content) {
-      const innerHtml = node.content.map(renderNode).join('');
-
-      switch (node.type) {
-        case 'paragraph':
-          return `<p>${innerHtml}</p>`;
-        case 'heading':
-          const level = node.attrs?.level || 1;
-          return `<h${level}>${innerHtml}</h${level}>`;
-        case 'bulletList':
-          return `<ul>${innerHtml}</ul>`;
-        case 'orderedList':
-          return `<ol>${innerHtml}</ol>`;
-        case 'listItem':
-          return `<li>${innerHtml}</li>`;
-        default:
-          return innerHtml;
-      }
-    }
-
-    return '';
-  }
-
-  return content.content.map(renderNode).join('');
-}
 

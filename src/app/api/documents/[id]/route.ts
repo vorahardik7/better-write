@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '../../../../../auth';
-import { db } from '../../../../lib/db';
-import type { TipTapContent, TipTapNode, TipTapMark } from '../../../../types/editor';
+import { db, documents, documentVersions } from '../../../../lib/db';
+import { syncDocumentToSupermemory, removeDocumentFromSupermemory } from '../../../../lib/supermemory/sync';
+import { 
+  validateDocumentTitle, 
+  validateDocumentId,
+  logSecurityEvent, 
+  checkRateLimit 
+} from '../../../../lib/security';
+import { eq, and, desc } from 'drizzle-orm';
 
 export async function GET(
   request: NextRequest,
@@ -17,29 +24,31 @@ export async function GET(
     }
 
     const { id } = await params;
-    const document = await db.query(`
-      SELECT 
-        id,
-        title,
-        content,
-        "contentHtml" as "contentHtml",
-        "contentText" as "contentText",
-        "createdAt" as "createdAt",
-        "updatedAt" as "updatedAt",
-        "lastEditedAt" as "lastEditedAt",
-        "isArchived" as "isArchived",
-        "isPublic" as "isPublic",
-        "wordCount" as "wordCount",
-        "characterCount" as "characterCount"
-      FROM document 
-      WHERE id = $1 AND "userId" = $2
-    `, [id, session.user.id]);
+    const document = await db
+      .select()
+      .from(documents)
+      .where(and(eq(documents.id, id), eq(documents.userId, session.user.id)))
+      .limit(1);
 
-    if (document.rows.length === 0) {
+    if (document.length === 0) {
       return NextResponse.json({ error: 'Document not found' }, { status: 404 });
     }
 
-    return NextResponse.json(document.rows[0]);
+    const doc = document[0];
+    
+    // Parse JSON content if it exists, otherwise return empty document
+    let jsonContent;
+    try {
+      jsonContent = typeof doc.content === 'string' ? JSON.parse(doc.content) : doc.content;
+    } catch (error) {
+      console.error('Failed to parse document content:', error);
+      jsonContent = { type: 'doc', content: [{ type: 'paragraph', content: [] }] };
+    }
+
+    return NextResponse.json({
+      ...doc,
+      content: jsonContent
+    });
 
   } catch (error) {
     console.error('Error fetching document:', error);
@@ -60,86 +69,117 @@ export async function PUT(
     });
 
     if (!session?.user) {
+      logSecurityEvent('unauthorized_document_update', { endpoint: '/api/documents/[id]' }, undefined, request);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id } = await params;
+    
+    // Validate document ID
+    if (!validateDocumentId(id)) {
+      logSecurityEvent('invalid_document_id', { documentId: id }, session.user.id, request);
+      return NextResponse.json({ error: 'Invalid document ID' }, { status: 400 });
+    }
+
+    // Rate limiting
+    const rateLimit = checkRateLimit(session.user.id, 50, 60000); // 50 updates per minute
+    if (!rateLimit.allowed) {
+      logSecurityEvent('rate_limit_exceeded', { 
+        userId: session.user.id, 
+        endpoint: '/api/documents/[id]' 
+      }, session.user.id, request);
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Please try again later.' },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { title, content, isAutosave = false } = body;
 
-    if (!title || !content) {
+    // Input validation using security utilities
+    const validationErrors: string[] = [];
+    
+    const validatedTitle = validateDocumentTitle(title);
+    if (!validatedTitle) {
+      validationErrors.push('Title is required and must be a valid string (max 200 characters)');
+    }
+    
+    if (!content || typeof content !== 'object') {
+      validationErrors.push('Content is required and must be a valid JSON object');
+    }
+    
+    if (typeof isAutosave !== 'boolean') {
+      validationErrors.push('isAutosave must be a boolean');
+    }
+    
+    if (validationErrors.length > 0) {
+      logSecurityEvent('validation_failed', { 
+        errors: validationErrors, 
+        endpoint: '/api/documents/[id]' 
+      }, session.user.id, request);
       return NextResponse.json(
-        { error: 'Title and content are required' },
+        { error: 'Validation failed', details: validationErrors },
         { status: 400 }
       );
     }
 
-    // Generate content stats
-    const contentText = extractTextFromTipTap(content);
+    // At this point, validatedTitle is guaranteed to be a string
+    const safeTitle = validatedTitle!;
+
+    // Generate content stats from JSON content
+    const contentText = extractTextFromJson(content);
     const wordCount = contentText.split(/\s+/).filter(word => word.length > 0).length;
     const characterCount = contentText.length;
-    const contentHtml = renderTipTapToHtml(content);
+    
+    // Update document using Drizzle
+    const now = new Date();
+    const result = await db
+      .update(documents)
+      .set({
+        title: safeTitle,
+        content: content, // Drizzle handles JSONB automatically  
+        contentText: contentText,
+        wordCount: wordCount,
+        characterCount: characterCount,
+        updatedAt: now,
+        lastEditedAt: now,
+      })
+      .where(and(eq(documents.id, id), eq(documents.userId, session.user.id)))
+      .returning();
 
-    // Update document
-    const result = await db.query(`
-      UPDATE document 
-      SET 
-        title = $1,
-        content = $2,
-        "contentHtml" = $3,
-        "contentText" = $4,
-        "wordCount" = $5,
-        "characterCount" = $6,
-        "updatedAt" = $7,
-        "lastEditedAt" = $8
-      WHERE id = $9 AND "userId" = $10
-      RETURNING *
-    `, [
-      title,
-      JSON.stringify(content),
-      contentHtml,
-      contentText,
-      wordCount,
-      characterCount,
-      new Date(),
-      new Date(),
-      id,
-      session.user.id
-    ]);
-
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return NextResponse.json({ error: 'Document not found' }, { status: 404 });
     }
 
     // Create version if not autosave
     if (!isAutosave) {
-      await db.query(`
-        INSERT INTO document_version (
-          id, "documentId", content, "contentHtml", "contentText",
-          "wordCount", "characterCount", "createdAt", "isAutosave"
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-      `, [
-        crypto.randomUUID(),
-        id,
-        JSON.stringify(content),
-        contentHtml,
-        contentText,
-        wordCount,
-        characterCount,
-        new Date(),
-        false
-      ]);
+      await db.insert(documentVersions).values({
+        id: crypto.randomUUID(),
+        documentId: id,
+        content: content, // Drizzle handles JSONB automatically
+        contentText: contentText,
+        wordCount: wordCount,
+        characterCount: characterCount,
+        createdAt: now,
+        isAutosave: false,
+      });
+
+      // Sync to Supermemory after manual save (not autosave)
+      // Fire-and-forget to not block response
+      syncDocumentToSupermemory(id, session.user.id).catch(error => {
+        console.error('Background sync to Supermemory failed:', error);
+      });
     }
 
     return NextResponse.json({
       id,
-      title,
+      title: safeTitle,
       content,
-      contentHtml,
       contentText,
       wordCount,
       characterCount,
-      updatedAt: new Date()
+      updatedAt: now
     });
 
   } catch (error) {
@@ -166,16 +206,33 @@ export async function DELETE(
 
     const { id } = await params;
 
-    // Archive document instead of deleting
-    const result = await db.query(`
-      UPDATE document 
-      SET "isArchived" = true, "updatedAt" = $1
-      WHERE id = $2 AND "userId" = $3
-      RETURNING id
-    `, [new Date(), id, session.user.id]);
+    // Get supermemoryDocId before archiving
+    const docResult = await db
+      .select()
+      .from(documents)
+      .where(and(eq(documents.id, id), eq(documents.userId, session.user.id)))
+      .limit(1);
 
-    if (result.rows.length === 0) {
+    // Archive document instead of deleting using Drizzle
+    const now = new Date();
+    const result = await db
+      .update(documents)
+      .set({
+        isArchived: true,
+        updatedAt: now,
+      })
+      .where(and(eq(documents.id, id), eq(documents.userId, session.user.id)))
+      .returning({ id: documents.id });
+
+    if (result.length === 0) {
       return NextResponse.json({ error: 'Document not found' }, { status: 404 });
+    }
+
+    // Delete from Supermemory (fire-and-forget)
+    if (docResult.length > 0 && (docResult[0] as any).supermemoryDocId) {
+      removeDocumentFromSupermemory(id, session.user.id).catch((error: any) => {
+        console.error('Failed to delete from Supermemory:', error);
+      });
     }
 
     return NextResponse.json({ success: true });
@@ -189,74 +246,25 @@ export async function DELETE(
   }
 }
 
-// Helper functions (same as in route.ts)
-function extractTextFromTipTap(content: TipTapContent): string {
-  if (!content || !content.content) return '';
-
-  function extractText(node: TipTapNode): string {
-    if (node.type === 'text') {
-      return node.text || '';
-    }
-
-    if (node.content) {
+// Helper functions
+function extractTextFromJson(jsonContent: any): string {
+  if (!jsonContent) return '';
+  
+  // Recursively extract text from TipTap JSON structure
+  function extractText(node: any): string {
+    if (typeof node === 'string') return node;
+    if (typeof node !== 'object' || !node) return '';
+    
+    if (node.text) return node.text;
+    
+    if (node.content && Array.isArray(node.content)) {
       return node.content.map(extractText).join('');
     }
-
+    
     return '';
   }
-
-  return content.content.map(extractText).join(' ');
+  
+  return extractText(jsonContent).trim();
 }
 
-function renderTipTapToHtml(content: TipTapContent): string {
-  if (!content || !content.content) return '';
-
-  function renderNode(node: TipTapNode): string {
-    if (node.type === 'text') {
-      const text = node.text || '';
-      if (node.marks) {
-        let processedText = text;
-        node.marks.forEach((mark: TipTapMark) => {
-          switch (mark.type) {
-            case 'bold':
-              processedText = `<strong>${processedText}</strong>`;
-              break;
-            case 'italic':
-              processedText = `<em>${processedText}</em>`;
-              break;
-            case 'underline':
-              processedText = `<u>${processedText}</u>`;
-              break;
-          }
-        });
-        return processedText;
-      }
-      return text;
-    }
-
-    if (node.content) {
-      const innerHtml = node.content.map(renderNode).join('');
-
-      switch (node.type) {
-        case 'paragraph':
-          return `<p>${innerHtml}</p>`;
-        case 'heading':
-          const level = node.attrs?.level || 1;
-          return `<h${level}>${innerHtml}</h${level}>`;
-        case 'bulletList':
-          return `<ul>${innerHtml}</ul>`;
-        case 'orderedList':
-          return `<ol>${innerHtml}</ol>`;
-        case 'listItem':
-          return `<li>${innerHtml}</li>`;
-        default:
-          return innerHtml;
-      }
-    }
-
-    return '';
-  }
-
-  return content.content.map(renderNode).join('');
-}
 

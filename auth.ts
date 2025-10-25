@@ -4,7 +4,12 @@ import { Pool } from "pg";
 // Create PostgreSQL connection pool for Supabase
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }, // Required for Supabase
+  ssl: process.env.NODE_ENV === 'production' 
+    ? { 
+        rejectUnauthorized: true,
+        ca: process.env.DATABASE_SSL_CA 
+      } 
+    : { rejectUnauthorized: false }, // Allow self-signed certs in development
 });
 
 export const auth = betterAuth({

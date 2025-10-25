@@ -1,4 +1,5 @@
 import { useEditor, Editor } from '@tiptap/react';
+import type { JSONContent } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import { TextStyle } from '@tiptap/extension-text-style';
 import FontFamily from '@tiptap/extension-font-family';
@@ -9,7 +10,7 @@ import Placeholder from '@tiptap/extension-placeholder';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 
-export const useTipTapEditor = (content: string, onUpdate: (params: { editor: Editor; transaction: unknown; appendedTransactions: unknown[] }) => void, onSelectionUpdate: (params: { editor: Editor; transaction: unknown }) => void) => {
+export const useTipTapEditor = (content: JSONContent | string, onUpdate: (params: { editor: Editor; transaction: unknown; appendedTransactions: unknown[] }) => void, onSelectionUpdate: (params: { editor: Editor; transaction: unknown }) => void) => {
   return useEditor({
     extensions: [
       StarterKit,

@@ -34,7 +34,7 @@ export interface AISuggestion {
 }
 
 export interface EditorState {
-    content: string;
+    content: TipTapContent | null; // Changed to handle JSON content
     title: string;
     documentId: string | null;
     selection: TextSelection | null;
@@ -45,7 +45,7 @@ export interface EditorState {
     hasUnsavedChanges: boolean;
 
     // Actions
-    setContent: (content: string) => void;
+    setContent: (content: TipTapContent | null) => void;
     setTitle: (title: string) => void;
     setDocumentId: (documentId: string | null) => void;
     setSelection: (selection: TextSelection | null) => void;
