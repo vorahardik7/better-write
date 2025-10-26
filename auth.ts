@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth";
+import { nextCookies } from "better-auth/next-js";
 import { Pool } from "pg";
 
 // Create PostgreSQL connection pool for Supabase
@@ -21,4 +22,5 @@ export const auth = betterAuth({
     },
   },
   baseURL: process.env.BETTER_AUTH_URL as string,
+  plugins: [nextCookies()], // Make sure this is the last plugin in the array
 });

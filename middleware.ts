@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
-import { auth } from './auth'
+import { getSessionCookie } from 'better-auth/cookies'
 
 export default async function middleware(req: any) {
   const { nextUrl } = req;
-  const session = await auth.api.getSession({ headers: req.headers });
 
-  const isLoggedIn = !!session;
+  // Check for session cookie existence (fast, no database calls)
+  const sessionCookie = getSessionCookie(req);
+  const isLoggedIn = !!sessionCookie;
 
   if (nextUrl.pathname.startsWith('/dashboard') || nextUrl.pathname.startsWith('/editor')) {
     if (!isLoggedIn) {
@@ -28,7 +29,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - public (static assets)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
   ],
 }
