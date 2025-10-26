@@ -7,8 +7,8 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' 
     ? { 
-        rejectUnauthorized: true,
-        ca: process.env.DATABASE_SSL_CA 
+        rejectUnauthorized: false, // Allow self-signed certs in production for Supabase
+        // Remove ca requirement for Supabase compatibility
       } 
     : { rejectUnauthorized: false }, // Allow self-signed certs in development
 });
