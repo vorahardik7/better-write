@@ -3,12 +3,6 @@ import { generateText } from 'ai';
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '../../../../auth';
 import { getAIContext } from '../../../lib/supermemory/search';
-import { 
-  sanitizeString, 
-  validateDocumentId, 
-  logSecurityEvent, 
-  checkRateLimit 
-} from '../../../lib/security';
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,72 +11,19 @@ export async function POST(req: NextRequest) {
       headers: req.headers,
     });
 
-    // CRITICAL: Add authentication check
     if (!session?.user) {
-      logSecurityEvent('unauthorized_edit_attempt', { endpoint: '/api/edit' }, undefined, req);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Rate limiting
-    const rateLimit = checkRateLimit(session.user.id, 20, 60000); // 20 requests per minute
-    if (!rateLimit.allowed) {
-      logSecurityEvent('rate_limit_exceeded', { 
-        userId: session.user.id, 
-        endpoint: '/api/edit' 
-      }, session.user.id, req);
-      return NextResponse.json(
-        { error: 'Rate limit exceeded. Please try again later.' },
-        { status: 429 }
-      );
-    }
-
-    const { selectedText, prompt, documentContext, documentId } = await req.json();
-
-    // Comprehensive input validation with sanitization
-    const validationErrors: string[] = [];
-    
-    if (!selectedText || typeof selectedText !== 'string') {
-      validationErrors.push('Selected text is required and must be a string');
-    } else if (selectedText.length > 10000) {
-      validationErrors.push('Selected text is too long (max 10,000 characters)');
-    }
-    
-    if (!prompt || typeof prompt !== 'string') {
-      validationErrors.push('Prompt is required and must be a string');
-    } else if (prompt.length > 1000) {
-      validationErrors.push('Prompt is too long (max 1,000 characters)');
-    }
-    
-    if (documentContext && typeof documentContext === 'string' && documentContext.length > 50000) {
-      validationErrors.push('Document context is too long (max 50,000 characters)');
-    }
-    
-    if (documentId && !validateDocumentId(documentId)) {
-      validationErrors.push('Document ID must be a valid UUID');
-    }
-    
-    if (validationErrors.length > 0) {
-      logSecurityEvent('validation_failed', { 
-        errors: validationErrors, 
-        endpoint: '/api/edit' 
-      }, session.user.id, req);
-      return NextResponse.json(
-        { error: 'Validation failed', details: validationErrors },
-        { status: 400 }
-      );
-    }
-
-    // Sanitize inputs
-    const sanitizedSelectedText = sanitizeString(selectedText);
-    const sanitizedPrompt = sanitizeString(prompt);
-    const sanitizedDocumentContext = documentContext ? sanitizeString(documentContext) : '';
+    const body = await req.json();
+    const { selectedText, prompt, documentContext, documentId } = body;
 
     // Get relevant context from Supermemory (if user is authenticated)
     let supermemoryContext: Array<{ content: string; source: string; relevance: number }> = [];
     
     if (session?.user && documentId) {
       try {
-        const contexts = await getAIContext(sanitizedSelectedText, documentId, session.user.id, 3);
+        const contexts = await getAIContext(selectedText, documentId, session.user.id, 3);
         supermemoryContext = contexts.map(ctx => ({
           content: ctx.content,
           source: ctx.source || 'Related document',
@@ -112,11 +53,11 @@ export async function POST(req: NextRequest) {
     - Always return content that preserves natural formatting and spacing`;
 
     // Create the user prompt with context
-    let userPrompt = `Document context: ${sanitizedDocumentContext ? sanitizedDocumentContext.slice(0, 500) + '...' : 'No additional context'}
+    let userPrompt = `Document context: ${documentContext ? documentContext.slice(0, 500) + '...' : 'No additional context'}
 
-    Selected text to edit: "${sanitizedSelectedText}"
+    Selected text to edit: "${selectedText}"
 
-    Instruction: ${sanitizedPrompt}`;
+    Instruction: ${prompt}`;
 
     // Add Supermemory context if available
     if (supermemoryContext.length > 0) {
@@ -149,9 +90,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      originalText: sanitizedSelectedText,
+      originalText: selectedText,
       suggestedText: text.trim().replace(/^["']|["']$/g, ''),
-      prompt: sanitizedPrompt
+      prompt: prompt
     });
 
   } catch (error) {

@@ -2,12 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '../../../../../auth';
 import { db, documents, documentVersions } from '../../../../lib/db';
 import { syncDocumentToSupermemory, removeDocumentFromSupermemory } from '../../../../lib/supermemory/sync';
-import { 
-  validateDocumentTitle, 
-  validateDocumentId,
-  logSecurityEvent, 
-  checkRateLimit 
-} from '../../../../lib/security';
 import { eq, and, desc } from 'drizzle-orm';
 
 export async function GET(
@@ -24,6 +18,8 @@ export async function GET(
     }
 
     const { id } = await params;
+    
+    // Use database connection (RLS handled by Supabase)
     const document = await db
       .select()
       .from(documents)
@@ -69,76 +65,25 @@ export async function PUT(
     });
 
     if (!session?.user) {
-      logSecurityEvent('unauthorized_document_update', { endpoint: '/api/documents/[id]' }, undefined, request);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id } = await params;
-    
-    // Validate document ID
-    if (!validateDocumentId(id)) {
-      logSecurityEvent('invalid_document_id', { documentId: id }, session.user.id, request);
-      return NextResponse.json({ error: 'Invalid document ID' }, { status: 400 });
-    }
-
-    // Rate limiting
-    const rateLimit = checkRateLimit(session.user.id, 50, 60000); // 50 updates per minute
-    if (!rateLimit.allowed) {
-      logSecurityEvent('rate_limit_exceeded', { 
-        userId: session.user.id, 
-        endpoint: '/api/documents/[id]' 
-      }, session.user.id, request);
-      return NextResponse.json(
-        { error: 'Rate limit exceeded. Please try again later.' },
-        { status: 429 }
-      );
-    }
-
     const body = await request.json();
     const { title, content, isAutosave = false } = body;
-
-    // Input validation using security utilities
-    const validationErrors: string[] = [];
-    
-    const validatedTitle = validateDocumentTitle(title);
-    if (!validatedTitle) {
-      validationErrors.push('Title is required and must be a valid string (max 200 characters)');
-    }
-    
-    if (!content || typeof content !== 'object') {
-      validationErrors.push('Content is required and must be a valid JSON object');
-    }
-    
-    if (typeof isAutosave !== 'boolean') {
-      validationErrors.push('isAutosave must be a boolean');
-    }
-    
-    if (validationErrors.length > 0) {
-      logSecurityEvent('validation_failed', { 
-        errors: validationErrors, 
-        endpoint: '/api/documents/[id]' 
-      }, session.user.id, request);
-      return NextResponse.json(
-        { error: 'Validation failed', details: validationErrors },
-        { status: 400 }
-      );
-    }
-
-    // At this point, validatedTitle is guaranteed to be a string
-    const safeTitle = validatedTitle!;
 
     // Generate content stats from JSON content
     const contentText = extractTextFromJson(content);
     const wordCount = contentText.split(/\s+/).filter(word => word.length > 0).length;
     const characterCount = contentText.length;
     
-    // Update document using Drizzle
+    // Use database connection (RLS handled by Supabase)
     const now = new Date();
     const result = await db
       .update(documents)
       .set({
-        title: safeTitle,
-        content: content, // Drizzle handles JSONB automatically  
+        title: title,
+        content: content,
         contentText: contentText,
         wordCount: wordCount,
         characterCount: characterCount,
@@ -157,7 +102,7 @@ export async function PUT(
       await db.insert(documentVersions).values({
         id: crypto.randomUUID(),
         documentId: id,
-        content: content, // Drizzle handles JSONB automatically
+        content: content,
         contentText: contentText,
         wordCount: wordCount,
         characterCount: characterCount,
@@ -174,7 +119,7 @@ export async function PUT(
 
     return NextResponse.json({
       id,
-      title: safeTitle,
+      title: title,
       content,
       contentText,
       wordCount,
@@ -206,6 +151,7 @@ export async function DELETE(
 
     const { id } = await params;
 
+    // Use database connection (RLS handled by Supabase)
     // Get supermemoryDocId before archiving
     const docResult = await db
       .select()

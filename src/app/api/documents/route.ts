@@ -2,11 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '../../../../auth';
 import { db, documents, documentVersions } from '../../../lib/db';
 import { syncDocumentToSupermemory } from '../../../lib/supermemory/sync';
-import { 
-  validateDocumentTitle, 
-  logSecurityEvent, 
-  checkRateLimit 
-} from '../../../lib/security';
 import { eq, desc, count, and } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
@@ -24,7 +19,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10');
     const offset = (page - 1) * limit;
 
-    // Get user's documents using Drizzle
+    // Get user's documents
     const userDocuments = await db
       .select({
         id: documents.id,
@@ -47,7 +42,7 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .offset(offset);
 
-    // Get total count using Drizzle
+    // Get total count
     const countResult = await db
       .select({ total: count() })
       .from(documents)
@@ -84,48 +79,11 @@ export async function POST(request: NextRequest) {
     });
 
     if (!session?.user) {
-      logSecurityEvent('unauthorized_document_creation', { endpoint: '/api/documents' }, undefined, request);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Rate limiting
-    const rateLimit = checkRateLimit(session.user.id, 10, 60000); // 10 document creations per minute
-    if (!rateLimit.allowed) {
-      logSecurityEvent('rate_limit_exceeded', { 
-        userId: session.user.id, 
-        endpoint: '/api/documents' 
-      }, session.user.id, request);
-      return NextResponse.json(
-        { error: 'Rate limit exceeded. Please try again later.' },
-        { status: 429 }
-      );
     }
 
     const body = await request.json();
     const { title, content } = body;
-
-    // Input validation using security utilities
-    const validationErrors: string[] = [];
-    
-    const validatedTitle = validateDocumentTitle(title);
-    if (!validatedTitle) {
-      validationErrors.push('Title is required and must be a valid string (max 200 characters)');
-    }
-    
-    if (!content || typeof content !== 'object') {
-      validationErrors.push('Content is required and must be a valid JSON object');
-    }
-    
-    if (validationErrors.length > 0) {
-      logSecurityEvent('validation_failed', { 
-        errors: validationErrors, 
-        endpoint: '/api/documents' 
-      }, session.user.id, request);
-      return NextResponse.json(
-        { error: 'Validation failed', details: validationErrors },
-        { status: 400 }
-      );
-    }
 
     // Generate content stats from JSON content
     const contentText = extractTextFromJson(content);
@@ -135,11 +93,11 @@ export async function POST(request: NextRequest) {
     const documentId = crypto.randomUUID();
     const now = new Date();
 
-    // Create document using Drizzle
+    // Create document
     await db.insert(documents).values({
       id: documentId,
-      title: validatedTitle!, // We know it's not null due to validation above
-      content: content, // Drizzle handles JSONB automatically
+      title: title,
+      content: content,
       contentText: contentText,
       userId: session.user.id,
       wordCount: wordCount,
@@ -151,11 +109,11 @@ export async function POST(request: NextRequest) {
       isPublic: false,
     });
 
-    // Create initial version using Drizzle
+    // Create initial version
     await db.insert(documentVersions).values({
       id: crypto.randomUUID(),
       documentId: documentId,
-      content: content, // Drizzle handles JSONB automatically
+      content: content,
       contentText: contentText,
       wordCount: wordCount,
       characterCount: characterCount,
@@ -170,7 +128,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       id: documentId,
-      title: validatedTitle,
+      title: title,
       content,
       contentText,
       wordCount,

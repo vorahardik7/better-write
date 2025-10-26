@@ -7,14 +7,14 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' 
     ? { 
-        rejectUnauthorized: false, // Allow self-signed certs in production for Supabase
-        // Remove ca requirement for Supabase compatibility
+      rejectUnauthorized: true, 
+      ca: process.env.DATABASE_CA_CERT, 
       } 
-    : { rejectUnauthorized: false }, // Allow self-signed certs in development
+    : { rejectUnauthorized: false }, 
 });
 
 export const auth = betterAuth({
-  database: pool, // Use PostgreSQL pool as database instance
+  database: pool, 
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
@@ -22,5 +22,5 @@ export const auth = betterAuth({
     },
   },
   baseURL: process.env.BETTER_AUTH_URL as string,
-  plugins: [nextCookies()], // Make sure this is the last plugin in the array
+  plugins: [nextCookies()],
 });

@@ -249,7 +249,7 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
                 Settings
               </button>
               <button
-                className="flex items-center gap-3 rounded-xl px-4 py-2 text-sm font-medium text-white bg-[#6a7b57] hover:bg-[#5a6b47] transition-colors disabled:opacity-70 cursor-pointer"
+                className="flex items-center gap-3 rounded-xl px-4 py-2 text-sm font-medium text-white hover:bg-[rgba(255,255,255,0.12)] transition-colors disabled:opacity-70 cursor-pointer"
                 onClick={handleSignOut}
                 disabled={signOutPending}
               >
