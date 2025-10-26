@@ -11,8 +11,8 @@ const featureCards = [
     title: 'Document library built for productivity',
     description:
       'All docs, starred work, recent edits, shared links, and archive live together—no more hunting through folders or separate tools.',
-    accent: '#ccd5ae',
-    background: 'rgba(255, 250, 224, 0.92)',
+    accent: '#88994f',
+    background: 'rgba(254, 250, 224, 0.95)',
     border: 'rgba(136, 153, 79, 0.18)',
     shadow: 'rgba(204, 213, 174, 0.35)',
     size: 'sm:col-span-2 lg:col-span-5 lg:row-span-2',
@@ -23,10 +23,10 @@ const featureCards = [
     title: 'Ask ⌘K to rewrite, structure, or summarize',
     description:
       'Highlight any section, press ⌘K, and better-write rewrites, expands, compresses, or shifts tone while respecting your document voice.',
-    accent: '#d4a373',
-    background: 'rgba(250, 237, 205, 0.92)',
-    border: 'rgba(212, 163, 115, 0.22)',
-    shadow: 'rgba(212, 163, 115, 0.3)',
+    accent: '#88994f',
+    background: 'rgba(254, 250, 224, 0.95)',
+    border: 'rgba(136, 153, 79, 0.18)',
+    shadow: 'rgba(204, 213, 174, 0.35)',
     size: 'sm:col-span-1 lg:col-span-3 lg:row-span-2',
   },
   {
@@ -36,9 +36,9 @@ const featureCards = [
     description:
       'AI that understands context, tone, and your domain knowledge to provide better writing suggestions and improvements.',
     accent: '#88994f',
-    background: 'rgba(233, 237, 201, 0.92)',
-    border: 'rgba(136, 153, 79, 0.22)',
-    shadow: 'rgba(136, 153, 79, 0.28)',
+    background: 'rgba(254, 250, 224, 0.95)',
+    border: 'rgba(136, 153, 79, 0.18)',
+    shadow: 'rgba(204, 213, 174, 0.35)',
     size: 'sm:col-span-1 lg:col-span-3 lg:row-span-2',
   },
   {
@@ -46,11 +46,11 @@ const featureCards = [
     eyebrow: 'Control',
     title: 'Versioned',
     description:
-      'Every change is captured. Branch ideas, compare revisions, and roll back instantly when experiments don’t land.',
-    accent: '#d4a373',
-    background: 'rgba(204, 213, 174, 0.92)',
-    border: 'rgba(136, 153, 79, 0.26)',
-    shadow: 'rgba(204, 213, 174, 0.3)',
+      'Every change is captured. Branch ideas, compare revisions, and roll back instantly when experiments don\'t land.',
+    accent: '#88994f',
+    background: 'rgba(254, 250, 224, 0.95)',
+    border: 'rgba(136, 153, 79, 0.18)',
+    shadow: 'rgba(204, 213, 174, 0.35)',
     size: 'sm:col-span-1 lg:col-span-2 lg:row-span-2',
   },
   {
@@ -60,9 +60,9 @@ const featureCards = [
     description:
       'Publish to PDF, Markdown, or Word and sync action items into your roadmap so docs and delivery stay aligned.',
     accent: '#88994f',
-    background: 'rgba(245, 247, 239, 0.92)',
-    border: 'rgba(136, 153, 79, 0.2)',
-    shadow: 'rgba(233, 237, 201, 0.28)',
+    background: 'rgba(254, 250, 224, 0.95)',
+    border: 'rgba(136, 153, 79, 0.18)',
+    shadow: 'rgba(204, 213, 174, 0.35)',
     size: 'sm:col-span-1 lg:col-span-3 lg:row-span-2',
   },
 ];
@@ -74,7 +74,7 @@ export function FeaturesSection() {
       className="relative overflow-hidden py-24 sm:py-32"
     >
       <div className="pointer-events-none motion-smooth absolute inset-0" aria-hidden>
-        <div className="absolute -top-24 left-[8%] h-64 w-64 rounded-full bg-[rgba(204,213,174,0.45)] opacity-60 blur-3xl sm:h-80 sm:w-80" />
+        
         <div className="absolute right-[20%] top-[30%] h-72 w-72 rounded-full bg-[rgba(250,237,205,0.4)] opacity-55 blur-3xl" />
         <div className="absolute bottom-[-20%] left-[28%] h-80 w-80 rounded-full bg-[rgba(233,237,201,0.4)] opacity-50 blur-3xl" />
       </div>
