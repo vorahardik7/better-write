@@ -48,24 +48,36 @@ export default function DashboardClient({ session }: DashboardClientProps) {
   };
 
   return (
-    <div className="h-screen bg-[#f5f0de] flex overflow-hidden">
-      <Sidebar
-        navigationItems={navigationItems}
-        activeItem={activeItem}
-        onSelect={handleSelectNavigation}
-        documentCounts={documentCounts}
-      />
+    <div className="h-screen bg-gradient-to-br from-[#fdf9f3] via-[#f8f4e6] to-[#f0ead9] flex overflow-hidden">
+      {/* Unified Frame Design - Sidebar and Header as one continuous element */}
+      <div className="flex flex-col w-80 h-full">
+        {/* Sidebar with lighter theme */}
+        <div className="flex-1 relative">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#4a5a3a] via-[#5a6b47] to-[#6a7b57] rounded-r-3xl shadow-[0_8px_40px_rgba(90,107,71,0.2)]"></div>
+          <div className="relative z-10 h-full">
+            <Sidebar
+              navigationItems={navigationItems}
+              activeItem={activeItem}
+              onSelect={handleSelectNavigation}
+              documentCounts={documentCounts}
+            />
+          </div>
+        </div>
+      </div>
 
+      {/* Main content area - completely open and spacious */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <MainContent
-          activeItem={activeItem}
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          searchQuery={searchQuery}
-          onSearchQueryChange={setSearchQuery}
-          filters={filters}
-          onDocumentCountsChange={setDocumentCounts}
-        />
+        <div className="flex-1 flex flex-col overflow-hidden bg-transparent">
+          <MainContent
+            activeItem={activeItem}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            searchQuery={searchQuery}
+            onSearchQueryChange={setSearchQuery}
+            filters={filters}
+            onDocumentCountsChange={setDocumentCounts}
+          />
+        </div>
       </div>
     </div>
   );

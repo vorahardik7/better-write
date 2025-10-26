@@ -170,8 +170,8 @@ export function MainContent({
 
   return (
     <>
-      {/* Header - Fixed */}
-      <header className="bg-[#fdf7ec] border-b border-[rgba(136,153,79,0.2)] p-6 flex-shrink-0">
+      {/* Header - Clean and minimal */}
+      <header className="bg-transparent p-4 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-[rgb(52,63,29)]">Documents</h1>
@@ -223,8 +223,8 @@ export function MainContent({
         </div>
       </header>
 
-      {/* Document Grid/List - Scrollable */}
-      <div className="flex-1 p-6 overflow-y-auto bg-[#fdf7ec]">
+      {/* Document Grid/List - Completely open and spacious */}
+      <div className="flex-1 p-8 overflow-y-auto bg-gradient-to-br from-[#fdf9f3] via-[#f8f4e6] to-[#f0ead9]">
         <AnimatePresence mode="wait">
           {loading ? (
             <div className="flex items-center justify-center py-16">
@@ -233,22 +233,49 @@ export function MainContent({
           ) : filteredDocuments.length > 0 ? (
             <motion.div
               key={viewMode}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -20 }}
+              transition={{ 
+                duration: 0.25, 
+                ease: [0.4, 0, 0.2, 1],
+                layout: { 
+                  duration: 0.2,
+                  ease: [0.4, 0, 0.2, 1]
+                }
+              }}
+              layout
               className={
                 viewMode === 'grid'
-                  ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
-                  : 'space-y-4'
+                  ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'
+                  : 'space-y-3'
               }
             >
               {filteredDocuments.map((doc) => (
                 <motion.div
                   key={doc.id}
                   layout
-                  className={`group relative rounded-2xl border border-[rgba(214,184,140,0.28)] bg-[#fffbf3] shadow-[0_20px_44px_rgba(214,184,140,0.18)] hover:shadow-[0_28px_56px_rgba(197,161,113,0.26)] hover:border-[rgba(197,161,113,0.42)] transition-all duration-200 cursor-pointer ${
-                    viewMode === 'list' ? 'flex items-center gap-4 p-4' : 'p-6'
+                  initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                  transition={{ 
+                    duration: 0.2, 
+                    ease: [0.4, 0, 0.2, 1],
+                    layout: { 
+                      duration: 0.2,
+                      ease: [0.4, 0, 0.2, 1]
+                    }
+                  }}
+                  whileHover={{ 
+                    y: -2, 
+                    scale: 1.01,
+                    transition: { 
+                      duration: 0.2,
+                      ease: [0.4, 0, 0.2, 1]
+                    } 
+                  }}
+                  className={`group relative rounded-xl border border-[rgba(214,184,140,0.28)] bg-[#fffbf3] shadow-[0_12px_28px_rgba(214,184,140,0.15)] hover:shadow-[0_16px_32px_rgba(197,161,113,0.2)] hover:border-[rgba(197,161,113,0.42)] transition-all duration-200 cursor-pointer ${
+                    viewMode === 'list' ? 'flex items-center gap-4 p-4' : 'p-4'
                   }`}
                   role="button"
                   tabIndex={0}
@@ -263,28 +290,28 @@ export function MainContent({
                   {viewMode === 'grid' ? (
                     <>
                       {/* Grid View */}
-                      <div className="aspect-[4/3] rounded-xl mb-4 flex items-center justify-center bg-[#f9eedc] border border-[rgba(214,184,140,0.32)]">
-                        <FileText className="w-12 h-12 text-[rgb(176,142,99)]" />
+                      <div className="aspect-[3/2] rounded-lg mb-3 flex items-center justify-center bg-[#f9eedc] border border-[rgba(214,184,140,0.32)]">
+                        <FileText className="w-5 h-5 text-[rgb(176,142,99)]" />
                       </div>
 
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
                         <div className="flex items-start justify-between">
-                          <h3 className="font-semibold text-[rgb(63,54,38)] group-hover:text-[rgb(176,142,99)] transition-colors line-clamp-2">
+                          <h3 className="font-semibold text-[rgb(63,54,38)] group-hover:text-[rgb(176,142,99)] transition-colors line-clamp-1 text-sm">
                             {doc.title}
                           </h3>
                         </div>
 
-                        <p className="text-sm text-[rgba(128,108,82,0.8)] line-clamp-2">
-                          {(doc.contentText ?? '').slice(0, 100)}...
+                        <p className="text-xs text-[rgba(128,108,82,0.8)] line-clamp-1">
+                          {(doc.contentText ?? '').slice(0, 60)}...
                         </p>
 
-                        <div className="flex items-center justify-between pt-2">
-                          <div className="flex items-center gap-2">
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#f8eddc] text-[rgb(176,142,99)] border border-[rgba(197,161,113,0.35)]">
+                        <div className="flex items-center justify-between pt-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-[#f8eddc] text-[rgb(176,142,99)] border border-[rgba(197,161,113,0.35)]">
                               {doc.isPublic ? 'Public' : 'Private'}
                             </span>
                             <span className="text-xs text-[rgba(128,108,82,0.65)]">
-                              {doc.wordCount.toLocaleString()} words
+                              {doc.wordCount.toLocaleString()}w
                             </span>
                           </div>
                           <span className="text-xs text-[rgba(128,108,82,0.55)]">
@@ -294,16 +321,16 @@ export function MainContent({
                       </div>
 
                       {/* Hover Actions */}
-                      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="flex items-center gap-1 bg-[#fff7ed] rounded-lg p-1 shadow-sm border border-[rgba(214,184,140,0.32)]">
-                          <button className="p-1.5 hover:bg-[#f8eddc] rounded-md transition-colors cursor-pointer" title="Preview">
-                            <Eye className="w-4 h-4 text-[rgb(87,73,55)]" />
+                      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center gap-0.5 bg-[#fff7ed] rounded-md p-0.5 shadow-sm border border-[rgba(214,184,140,0.32)]">
+                          <button className="p-1 hover:bg-[#f8eddc] rounded transition-colors cursor-pointer" title="Preview">
+                            <Eye className="w-3 h-3 text-[rgb(87,73,55)]" />
                           </button>
-                          <button className="p-1.5 hover:bg-[#f8eddc] rounded-md transition-colors cursor-pointer" title="Edit">
-                            <Edit className="w-4 h-4 text-[rgb(87,73,55)]" />
+                          <button className="p-1 hover:bg-[#f8eddc] rounded transition-colors cursor-pointer" title="Edit">
+                            <Edit className="w-3 h-3 text-[rgb(87,73,55)]" />
                           </button>
-                          <button className="p-1.5 hover:bg-[#f8eddc] rounded-md transition-colors cursor-pointer" title="More options">
-                            <MoreHorizontal className="w-4 h-4 text-[rgb(87,73,55)]" />
+                          <button className="p-1 hover:bg-[#f8eddc] rounded transition-colors cursor-pointer" title="More options">
+                            <MoreHorizontal className="w-3 h-3 text-[rgb(87,73,55)]" />
                           </button>
                         </div>
                       </div>
@@ -311,8 +338,8 @@ export function MainContent({
                   ) : (
                     <>
                       {/* List View */}
-                      <div className="w-12 h-12 bg-[#f9eedc] border border-[rgba(214,184,140,0.32)] rounded-lg flex items-center justify-center flex-shrink-0">
-                        <FileText className="w-6 h-6 text-[rgb(176,142,99)]" />
+                      <div className="w-8 h-8 bg-[#f9eedc] border border-[rgba(214,184,140,0.32)] rounded-lg flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-4 h-4 text-[rgb(176,142,99)]" />
                       </div>
 
                       <div className="flex-1 min-w-0">

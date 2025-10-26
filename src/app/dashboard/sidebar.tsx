@@ -87,7 +87,7 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
   };
 
   return (
-    <aside className="w-80 h-screen flex flex-col overflow-hidden border-r border-[rgba(136,153,79,0.12)] bg-[#f7f3e5]">
+    <aside className="w-80 h-screen flex flex-col overflow-hidden bg-transparent">
 
       {/* Navigation */}
       <nav className="flex-1 px-6 pt-10 pb-4 overflow-hidden">
@@ -115,10 +115,10 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
                   setProfileMenuOpen(false);
                   onSelect(item.id);
                 }}
-                className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
+                className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
                   activeItem === item.id
-                    ? 'bg-[rgb(136,153,79)] text-white shadow-[0_16px_40px_rgba(52,63,29,0.28)]'
-                    : 'text-[rgb(72,84,42)] hover:bg-[rgba(245,247,239,0.55)]'
+                    ? 'bg-[#6a7b57] text-white shadow-[0_8px_24px_rgba(106,123,87,0.4)] border border-[#7a8b67]'
+                    : 'text-[#f0f8e8] hover:bg-[rgba(255,255,255,0.12)] hover:text-white'
                 }`}
               >
                 <span className="flex items-center gap-3 cursor-pointer">
@@ -129,8 +129,8 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
                   {count !== null && (
                     <span className={`text-xs font-medium px-2 py-1 rounded-full ${
                       activeItem === item.id 
-                        ? 'text-white' 
-                        : 'text-[rgb(96,108,58)]'
+                        ? 'text-white bg-white/20' 
+                        : 'text-[#d8e5c8] bg-[rgba(255,255,255,0.15)]'
                     }`}>
                       {count}
                     </span>
@@ -142,15 +142,15 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
           })}
         </div>
 
-        <div className="border-t border-[rgba(136,153,79,0.18)] pt-6 mt-6">
+        <div className="border-t border-[rgba(255,255,255,0.15)] pt-6 mt-6">
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-[rgba(96,108,58,0.7)]">
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-[rgba(240,248,232,0.7)]">
               Folders
             </h4>
             <button
               type="button"
               onClick={() => setIsCreatingFolder(true)}
-              className="inline-flex items-center gap-1 text-sm font-medium text-[rgba(96,108,58,0.85)] hover:text-[rgb(72,84,42)] cursor-pointer"
+              className="inline-flex items-center gap-1 text-sm font-medium text-[#d8e5c8] hover:text-white cursor-pointer"
             >
               <FolderPlus className="w-4 h-4" />
               New
@@ -159,13 +159,13 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
 
           <div className="space-y-2">
             {isCreatingFolder && (
-              <div className="flex items-center gap-2 p-2 border border-[rgba(136,153,79,0.18)] rounded-lg bg-[rgba(245,247,239,0.75)] shadow-[0_8px_18px_rgba(136,153,79,0.12)]">
+              <div className="flex items-center gap-2 p-2 border border-[rgba(255,255,255,0.2)] rounded-lg bg-[rgba(255,255,255,0.12)] shadow-[0_8px_18px_rgba(0,0,0,0.15)]">
                 <input
                   type="text"
                   value={newFolderName}
                   onChange={(e) => setNewFolderName(e.target.value)}
                   placeholder="Folder name"
-                  className="flex-1 text-sm bg-transparent border-none outline-none placeholder-[rgba(96,108,58,0.55)] text-[rgb(72,84,42)]"
+                  className="flex-1 text-sm bg-transparent border-none outline-none placeholder-[rgba(216,229,200,0.7)] text-white"
                   autoFocus
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -179,7 +179,7 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
                 <button
                   type="button"
                   onClick={handleCreateFolder}
-                  className="text-xs font-medium text-[rgb(96,108,58)] hover:text-[rgb(72,84,42)]"
+                  className="text-xs font-medium text-[#d8e5c8] hover:text-white"
                 >
                   Create
                 </button>
@@ -189,7 +189,7 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
                     setIsCreatingFolder(false);
                     setNewFolderName('');
                   }}
-                  className="text-xs font-medium text-[rgba(96,108,58,0.55)] hover:text-[rgb(96,108,58)]"
+                  className="text-xs font-medium text-[rgba(216,229,200,0.7)] hover:text-[#d8e5c8]"
                 >
                   Cancel
                 </button>
@@ -199,7 +199,7 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
             {folders.map((folder) => (
               <div
                 key={folder.id}
-                className="group flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-sm text-[rgb(96,108,58)] hover:bg-[rgba(245,247,239,0.6)] transition"
+                className="group flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-sm text-[#d8e5c8] hover:bg-[rgba(255,255,255,0.12)] hover:text-white transition"
               >
                 <button
                   type="button"
@@ -209,7 +209,7 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
                   <span className="truncate">{folder.name}</span>
                 </button>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-[rgba(96,108,58,0.6)]">{folder.count}</span>
+                  <span className="text-xs font-medium text-[rgba(216,229,200,0.7)]">{folder.count}</span>
                   <button
                     type="button"
                     onClick={() => handleDeleteFolder(folder.id)}
@@ -226,7 +226,7 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
 
       {/* Sidebar Footer */}
       <div
-        className="relative p-6 border-t border-[rgba(136,153,79,0.12)] flex-shrink-0 bg-[#f0ead9]"
+        className="relative p-6 border-t border-[rgba(255,255,255,0.15)] flex-shrink-0 bg-transparent"
         onKeyDown={(event) => {
           if (event.key === 'Escape') {
             setProfileMenuOpen(false);
@@ -235,21 +235,21 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
         data-profile-popover
       >
         {profileMenuOpen && (
-          <div className="absolute bottom-[100px] left-6 right-6 rounded-2xl bg-[#fdf8eb] shadow-[0_18px_40px_rgba(52,63,29,0.22)] border border-[rgba(136,153,79,0.15)] pt-3 pb-2">
+          <div className="absolute bottom-[100px] left-6 right-6 rounded-2xl bg-[#5a6b47] shadow-[0_18px_40px_rgba(0,0,0,0.25)] border border-[rgba(255,255,255,0.15)] pt-3 pb-2">
             <div className="px-5 pb-2 text-left">
-              <p className="text-xs uppercase tracking-[0.2em] text-[rgba(96,108,58,0.65)]">Account</p>
-              <p className="mt-2 text-sm font-semibold text-[rgb(52,63,29)] truncate">{session?.user?.name}</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-[rgba(216,229,200,0.7)]">Account</p>
+              <p className="mt-2 text-sm font-semibold text-white truncate">{session?.user?.name}</p>
             </div>
             <div className="mt-1 flex flex-col gap-1 px-2">
               <button
                 type="button"
-                className="flex items-center gap-3 rounded-xl px-4 py-2 text-sm font-medium text-[rgb(72,84,42)] hover:bg-[#f5f1df] transition-colors cursor-pointer"
+                className="flex items-center gap-3 rounded-xl px-4 py-2 text-sm font-medium text-[#d8e5c8] hover:bg-[rgba(255,255,255,0.12)] hover:text-white transition-colors cursor-pointer"
               >
                 <Settings className="w-4 h-4" />
                 Settings
               </button>
               <button
-                className="flex items-center gap-3 rounded-xl px-4 py-2 text-sm font-medium text-white bg-[rgb(136,153,79)] hover:bg-[rgb(118,132,68)] transition-colors disabled:opacity-70 cursor-pointer"
+                className="flex items-center gap-3 rounded-xl px-4 py-2 text-sm font-medium text-white bg-[#6a7b57] hover:bg-[#5a6b47] transition-colors disabled:opacity-70 cursor-pointer"
                 onClick={handleSignOut}
                 disabled={signOutPending}
               >
@@ -272,17 +272,17 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
         <button
           type="button"
           onClick={() => setProfileMenuOpen((prev) => !prev)}
-          className="flex w-full items-center gap-3 rounded-2xl bg-[#fbf5e6] px-4 py-3 text-left transition-colors hover:bg-[#f5f0de] cursor-pointer"
+          className="flex w-full items-center gap-3 rounded-2xl bg-[rgba(255,255,255,0.12)] px-4 py-3 text-left transition-colors hover:bg-[rgba(255,255,255,0.18)] cursor-pointer"
         >
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[rgb(136,153,79)] text-white font-semibold text-lg shadow-[0_12px_28px_rgba(52,63,29,0.25)]">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[rgba(234, 218, 166, 0.8)] text-white font-semibold text-lg shadow-[0_12px_28px_rgba(0,0,0,0.15)]">
             {session?.user?.name?.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-[rgb(52,63,29)] truncate">{session?.user?.name}</p>
-            <p className="text-xs text-[rgba(96,108,58,0.65)]">Workspace</p>
+            <p className="text-sm font-semibold text-white truncate">{session?.user?.name}</p>
+            <p className="text-xs text-white">Workspace</p>
           </div>
           <ChevronDown
-            className={`w-4 h-4 text-[rgba(96,108,58,0.75)] transition-transform ${profileMenuOpen ? 'rotate-180' : ''}`}
+            className={`w-4 h-4 text-[rgba(216,229,200,0.8)] transition-transform ${profileMenuOpen ? 'rotate-180' : ''}`}
           />
         </button>
       </div>
