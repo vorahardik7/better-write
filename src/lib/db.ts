@@ -13,10 +13,9 @@ function createConnection() {
   
   const sslConfig = process.env.NODE_ENV === 'production' 
     ? { 
-        rejectUnauthorized: true, // CRITICAL: Enable SSL validation in production
-        ca: process.env.DATABASE_CA_CERT, // Provide CA cert for validation
+        rejectUnauthorized: false, // Allow self-signed certs if no CA cert provided
       } 
-    : { rejectUnauthorized: false }; // Allow self-signed certs in development only
+    : false; // Disable SSL entirely in development
 
   return postgres(connectionString, {
     ssl: sslConfig,

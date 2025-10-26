@@ -1,20 +1,16 @@
 import { betterAuth } from "better-auth";
 import { nextCookies } from "better-auth/next-js";
-import { Pool } from "pg";
+import postgres from "postgres";
 
-// Create PostgreSQL connection pool for Supabase
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' 
-    ? { 
-      rejectUnauthorized: true, 
-      ca: process.env.DATABASE_CA_CERT, 
-      } 
-    : { rejectUnauthorized: false }, 
+// Create PostgreSQL connection for Supabase (consistent with main db config)
+const connection = postgres(process.env.DATABASE_URL!, {
+  ssl: {
+    rejectUnauthorized: false,
+  }
 });
 
 export const auth = betterAuth({
-  database: pool, 
+  database: connection, 
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
