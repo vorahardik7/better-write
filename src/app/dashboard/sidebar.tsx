@@ -57,6 +57,8 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
     setSignOutPending(true);
     try {
       await signOut();
+      // Force redirect to home page after sign out
+      window.location.href = '/';
     } catch (error) {
       console.error('Failed to sign out', error);
       setSignOutPending(false);
