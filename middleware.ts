@@ -3,9 +3,17 @@ import { auth } from './auth'
 
 export default async function middleware(req: any) {
   const { nextUrl } = req;
-  const session = await auth.api.getSession({ headers: req.headers });
-
-  const isLoggedIn = !!session;
+  
+  let isLoggedIn = false;
+  
+  try {
+    const session = await auth.api.getSession({ headers: req.headers });
+    isLoggedIn = !!session;
+  } catch (error) {
+    console.error('Middleware auth error:', error);
+    // If auth fails, treat as not logged in
+    isLoggedIn = false;
+  }
 
   // Protect dashboard and editor routes
   if (nextUrl.pathname.startsWith('/dashboard') || nextUrl.pathname.startsWith('/editor')) {
@@ -39,7 +47,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - public (static assets)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
   ],
 }
