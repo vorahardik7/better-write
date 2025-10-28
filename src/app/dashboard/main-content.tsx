@@ -13,6 +13,8 @@ import {
   RefreshCcw,
   Star,
   Trash2,
+  ArrowBigUp,
+  ArrowBigDown,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from '@/lib/auth-client';
@@ -65,7 +67,10 @@ export function MainContent({
     clearCache,
   } = useDocumentStore();
 
-  const [starredIds, setStarredIds] = useState<string[]>([]);
+  // Derive starred IDs from store to keep sidebar counts in sync
+  const starredIds = useMemo(() => {
+    return documents.filter((d) => d.isStarred === true).map((d) => d.id);
+  }, [documents]);
   const [previewDocument, setPreviewDocument] = useState<Document | null>(null);
   const [deleteConfirmDoc, setDeleteConfirmDoc] = useState<Document | null>(null);
 
@@ -97,10 +102,6 @@ export function MainContent({
 
   const filteredDocuments = useMemo(() => {
     return documents
-      .map((doc) => {
-        const isStarred = starredIds.includes(doc.id) || doc.isStarred === true;
-        return { ...doc, isStarred };
-      })
       .filter((doc) => {
         if (activeItem !== 'archive' && doc.isArchived) {
           return false;
@@ -122,6 +123,76 @@ export function MainContent({
       });
   }, [activeItem, documents, filters.sharedOnly, filters.starredOnly, searchQuery, starredIds]);
 
+  // Sorting for list view
+  const [sortKey, setSortKey] = useState<'title' | 'wordCount' | 'updatedAt' | 'createdAt' | 'isPublic'>('updatedAt');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+  // Load persisted sorting preferences
+  useEffect(() => {
+    try {
+      const savedKey = localStorage.getItem('documents_sort_key');
+      const savedDir = localStorage.getItem('documents_sort_dir');
+      if (savedKey === 'title' || savedKey === 'wordCount' || savedKey === 'updatedAt' || savedKey === 'createdAt' || savedKey === 'isPublic') {
+        setSortKey(savedKey);
+      }
+      if (savedDir === 'asc' || savedDir === 'desc') {
+        setSortDir(savedDir);
+      }
+    } catch {}
+  }, []);
+
+  // Persist sorting preferences
+  useEffect(() => {
+    try {
+      localStorage.setItem('documents_sort_key', sortKey);
+      localStorage.setItem('documents_sort_dir', sortDir);
+    } catch {}
+  }, [sortKey, sortDir]);
+
+  const sortedDocuments = useMemo(() => {
+    if (!filteredDocuments.length) return filteredDocuments;
+    const docs = [...filteredDocuments];
+    docs.sort((a, b) => {
+      let av: any;
+      let bv: any;
+      switch (sortKey) {
+        case 'title':
+          av = a.title.toLowerCase();
+          bv = b.title.toLowerCase();
+          break;
+        case 'wordCount':
+          av = a.wordCount;
+          bv = b.wordCount;
+          break;
+        case 'createdAt':
+          av = new Date(a.createdAt).getTime();
+          bv = new Date(b.createdAt).getTime();
+          break;
+        case 'isPublic':
+          av = a.isPublic ? 1 : 0;
+          bv = b.isPublic ? 1 : 0;
+          break;
+        case 'updatedAt':
+        default:
+          av = new Date(a.updatedAt).getTime();
+          bv = new Date(b.updatedAt).getTime();
+          break;
+      }
+      if (av === bv) return 0;
+      return sortDir === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
+    });
+    return docs;
+  }, [filteredDocuments, sortKey, sortDir]);
+
+  const handleSort = (key: typeof sortKey) => {
+    if (sortKey === key) {
+      setSortDir((prevDir) => (prevDir === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('desc');
+    }
+  };
+
   const handleOpenDocument = (id: string) => {
     router.push(`/editor?id=${id}`);
   };
@@ -138,11 +209,8 @@ export function MainContent({
 
   const handleStar = (doc: Document, e: React.MouseEvent) => {
     e.stopPropagation();
-    setStarredIds(prev => 
-      prev.includes(doc.id) 
-        ? prev.filter(id => id !== doc.id)
-        : [...prev, doc.id]
-    );
+    // Update the document in the store so counts reflect immediately
+    useDocumentStore.getState().updateDocument(doc.id, { isStarred: !doc.isStarred });
   };
 
   const handleDeleteClick = (doc: Document, e: React.MouseEvent) => {
@@ -182,6 +250,31 @@ export function MainContent({
     } else {
       return date.toLocaleDateString();
     }
+  };
+
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const isSameDay = date.toDateString() === now.toDateString();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const isYesterday = date.toDateString() === yesterday.toDateString();
+
+    const time = new Intl.DateTimeFormat(undefined, {
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(date);
+
+    if (isSameDay) return `Today • ${time}`;
+    if (isYesterday) return `Yesterday • ${time}`;
+
+    const day = new Intl.DateTimeFormat(undefined, {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+    }).format(date);
+
+    return `${day} • ${time}`;
   };
 
   return (
@@ -284,10 +377,10 @@ export function MainContent({
               className={
                 viewMode === 'grid'
                   ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'
-                  : 'space-y-3'
+                  : 'space-y-3 w-full'
               }
             >
-              {filteredDocuments.map((doc) => (
+              {viewMode === 'grid' && filteredDocuments.map((doc) => (
                 <motion.div
                   key={doc.id}
                   layout
@@ -310,9 +403,7 @@ export function MainContent({
                       ease: [0.4, 0, 0.2, 1]
                     } 
                   }}
-                  className={`group relative rounded-xl border border-[rgba(214,184,140,0.28)] bg-[#fffbf3] shadow-[0_12px_28px_rgba(214,184,140,0.15)] hover:shadow-[0_16px_32px_rgba(197,161,113,0.2)] hover:border-[rgba(197,161,113,0.42)] transition-all duration-200 cursor-pointer ${
-                    viewMode === 'list' ? 'flex items-center gap-4 p-4' : 'p-4'
-                  }`}
+                  className={`group relative rounded-xl border border-[rgba(214,184,140,0.28)] bg-[#fffbf3] shadow-[0_12px_28px_rgba(214,184,140,0.15)] hover:shadow-[0_16px_32px_rgba(197,161,113,0.2)] hover:border-[rgba(197,161,113,0.42)] transition-all duration-200 cursor-pointer p-4`}
                   role="button"
                   tabIndex={0}
                   onClick={() => handleOpenDocument(doc.id)}
@@ -323,7 +414,6 @@ export function MainContent({
                     }
                   }}
                 >
-                  {viewMode === 'grid' ? (
                     <>
                       {/* Grid View */}
                       <div className="aspect-[3/2] rounded-lg mb-3 flex items-center justify-center bg-[#f9eedc] border border-[rgba(214,184,140,0.32)]">
@@ -343,7 +433,7 @@ export function MainContent({
                             >
                               <Star 
                                 className={`w-3 h-3 ${
-                                  starredIds.includes(doc.id) || doc.isStarred 
+                                  doc.isStarred 
                                     ? 'text-yellow-500 fill-yellow-500' 
                                     : 'text-[rgb(87,73,55)]'
                                 }`} 
@@ -391,76 +481,63 @@ export function MainContent({
                         </div>
                       </div>
                     </>
-                  ) : (
-                    <>
-                      {/* List View */}
-                      <div className="w-8 h-8 bg-[#f9eedc] border border-[rgba(214,184,140,0.32)] rounded-lg flex items-center justify-center flex-shrink-0">
-                        <FileText className="w-4 h-4 text-[rgb(176,142,99)]" />
-                      </div>
+                </motion.div>
+              ))}
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-[rgb(63,54,38)] group-hover:text-[rgb(176,142,99)] transition-colors truncate flex-1">
-                            {doc.title}
-                          </h3>
-                          <button
-                            onClick={(e) => handleStar(doc, e)}
-                            className="flex-shrink-0 p-1 hover:bg-[#f8eddc] rounded transition-colors"
-                            title={starredIds.includes(doc.id) ? "Unstar document" : "Star document"}
-                          >
-                            <Star 
-                              className={`w-4 h-4 ${
-                                starredIds.includes(doc.id) || doc.isStarred 
-                                  ? 'text-yellow-500 fill-yellow-500' 
-                                  : 'text-[rgb(87,73,55)]'
-                              }`} 
-                            />
-                          </button>
-                        </div>
-
-                        <p className="text-sm text-[rgba(128,108,82,0.8)] line-clamp-1 mb-2">
-                          {(doc.contentText ?? '').slice(0, 100)}...
-                        </p>
-
-                        <div className="flex items-center gap-4 text-xs text-[rgba(128,108,82,0.65)]">
-                          <span>{doc.wordCount.toLocaleString()} words</span>
-                          <span>•</span>
-                          <span>{formatDate(doc.lastEditedAt)}</span>
-                          <span>•</span>
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-[#f8eddc] text-[rgb(176,142,99)] border border-[rgba(197,161,113,0.35)]">
+              {viewMode === 'list' && (
+                <div className="w-full bg-[#fffbf3] border border-[rgba(214,184,140,0.28)] rounded-xl overflow-hidden">
+                  <div className="grid grid-cols-12 px-4 py-2 bg-[#f8f0df] text-[rgb(90,78,60)] text-xs font-semibold border-b border-[rgba(214,184,140,0.28)]">
+                    <button onClick={() => handleSort('title')} className="col-span-4 text-left cursor-pointer flex items-center gap-1">Title {sortKey==='title' ? (sortDir==='asc' ? <ArrowBigUp className="w-3 h-3" /> : <ArrowBigDown className="w-3 h-3" />) : ''}</button>
+                    <button onClick={() => handleSort('wordCount')} className="col-span-2 text-left cursor-pointer flex items-center gap-1">Words {sortKey==='wordCount' ? (sortDir==='asc' ? <ArrowBigUp className="w-3 h-3" /> : <ArrowBigDown className="w-3 h-3" />) : ''}</button>
+                    <button onClick={() => handleSort('updatedAt')} className="col-span-2 text-left cursor-pointer flex items-center gap-1">Updated {sortKey==='updatedAt' ? (sortDir==='asc' ? <ArrowBigUp className="w-3 h-3" /> : <ArrowBigDown className="w-3 h-3" />) : ''}</button>
+                    <button onClick={() => handleSort('createdAt')} className="col-span-2 text-left cursor-pointer flex items-center gap-1">Created {sortKey==='createdAt' ? (sortDir==='asc' ? <ArrowBigUp className="w-3 h-3" /> : <ArrowBigDown className="w-3 h-3" />) : ''}</button>
+                    <button onClick={() => handleSort('isPublic')} className="col-span-1 text-left cursor-pointer flex items-center gap-1">Visibility {sortKey==='isPublic' ? (sortDir==='asc' ? <ArrowBigUp className="w-3 h-3" /> : <ArrowBigDown className="w-3 h-3" />) : ''}</button>
+                    <div className="col-span-1 text-right">Actions</div>
+                  </div>
+                  <div>
+                    {sortedDocuments.map((doc) => (
+                      <div
+                        key={doc.id}
+                        className="grid grid-cols-12 items-center px-4 py-3 border-b last:border-b-0 border-[rgba(214,184,140,0.2)] hover:bg-[#fffaf1] transition-colors cursor-pointer"
+                        onClick={() => handleOpenDocument(doc.id)}
+                      >
+                        <div className="col-span-4 truncate font-medium text-[rgb(63,54,38)]">{doc.title}</div>
+                        <div className="col-span-2 text-[rgba(128,108,82,0.8)]">{doc.wordCount.toLocaleString()}</div>
+                        <div className="col-span-2 text-[rgba(128,108,82,0.8)]">{formatDateTime(doc.updatedAt)}</div>
+                        <div className="col-span-2 text-[rgba(128,108,82,0.8)]">{formatDateTime(doc.createdAt)}</div>
+                        <div className="col-span-1">
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-[#f8eddc] text-[rgb(176,142,99)] border border-[rgba(197,161,113,0.35)]">
                             {doc.isPublic ? 'Public' : 'Private'}
                           </span>
                         </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#f8eddc] text-[rgb(176,142,99)] border border-[rgba(197,161,113,0.35)]">
-                          {doc.isPublic ? 'Public' : 'Private'}
-                        </span>
-
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                          <div className="flex items-center gap-1">
-                            <button 
-                              onClick={(e) => handlePreview(doc, e)}
-                              className="p-1.5 hover:bg-[#f8eddc] rounded-md transition-colors cursor-pointer" 
-                              title="Preview"
-                            >
-                              <Eye className="w-4 h-4 text-[rgb(87,73,55)]" />
-                            </button>
-                            <button 
-                              onClick={(e) => handleDeleteClick(doc, e)}
-                              className="p-1.5 hover:bg-red-100 rounded-md transition-colors cursor-pointer" 
-                              title="Delete document"
-                            >
-                              <Trash2 className="w-4 h-4 text-red-600" />
-                            </button>
-                          </div>
+                        <div className="col-span-1 flex items-center justify-end gap-2">
+                          <button
+                            onClick={(e) => handleStar(doc, e)}
+                            className="p-1 hover:bg-[#f8eddc] rounded transition-colors cursor-pointer"
+                            title={doc.isStarred ? 'Unstar document' : 'Star document'}
+                          >
+                            <Star className={`w-4 h-4 ${doc.isStarred ? 'text-yellow-500 fill-yellow-500' : 'text-[rgb(87,73,55)]'}`} />
+                          </button>
+                          <button
+                            onClick={(e) => handlePreview(doc, e)}
+                            className="p-1 hover:bg-[#f8eddc] rounded transition-colors cursor-pointer"
+                            title="Preview"
+                          >
+                            <Eye className="w-4 h-4 text-[rgb(87,73,55)]" />
+                          </button>
+                          <button
+                            onClick={(e) => handleDeleteClick(doc, e)}
+                            className="p-1 hover:bg-red-100 rounded transition-colors cursor-pointer"
+                            title="Delete document"
+                          >
+                            <Trash2 className="w-4 h-4 text-red-600" />
+                          </button>
                         </div>
                       </div>
-                    </>
-                  )}
-                </motion.div>
-              ))}
+                    ))}
+                  </div>
+                </div>
+              )}
             </motion.div>
           ) : (
             <motion.div

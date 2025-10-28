@@ -11,7 +11,14 @@ interface DashboardClientProps {
 
 export default function DashboardClient({ session }: DashboardClientProps) {
   const [activeItem, setActiveItem] = useState('all-docs');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  // Per-tab view modes so switching one tab doesn't change others
+  const [viewModes, setViewModes] = useState<Record<string, 'grid' | 'list'>>({
+    'all-docs': 'grid',
+    'starred': 'grid',
+    'recent': 'grid',
+    'shared': 'grid',
+    'archive': 'list', // default archive to list view
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
     starredOnly: false,
@@ -42,9 +49,12 @@ export default function DashboardClient({ session }: DashboardClientProps) {
       sharedOnly: itemId === 'shared',
     }));
 
-    if (itemId === 'archive') {
-      setViewMode('list');
-    }
+    // Do not globally change view mode; archive has its own default in viewModes
+  };
+
+  const currentViewMode = viewModes[activeItem] ?? 'grid';
+  const handleViewModeChange = (mode: 'grid' | 'list') => {
+    setViewModes((prev) => ({ ...prev, [activeItem]: mode }));
   };
 
   return (
@@ -70,8 +80,8 @@ export default function DashboardClient({ session }: DashboardClientProps) {
         <div className="flex-1 flex flex-col overflow-hidden bg-transparent">
           <MainContent
             activeItem={activeItem}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
+            viewMode={currentViewMode}
+            onViewModeChange={handleViewModeChange}
             searchQuery={searchQuery}
             onSearchQueryChange={setSearchQuery}
             filters={filters}
