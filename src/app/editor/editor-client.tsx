@@ -6,6 +6,7 @@ import { ArrowLeft, Save, Share2, MoreHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import { useEditorStore } from '@/lib/store/editor-store';
 import { useAutosave } from '@/hooks/use-autosave';
+import { useDocumentOperations } from '@/hooks/use-document-operations';
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
@@ -24,10 +25,13 @@ function EditorPageContent({ session }: EditorPageClientProps) {
     hasUnsavedChanges,
   } = useEditorStore();
 
+  const { saveDocumentFromEditor, createDocumentFromEditor } = useDocumentOperations();
+
   // session is passed as prop from server component
   const [saving, setSaving] = useState(false);
   const [loadingDocument, setLoadingDocument] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const documentIdParam = searchParams?.get('id') ?? null;
 
@@ -84,53 +88,32 @@ function EditorPageContent({ session }: EditorPageClientProps) {
 
   useAutosave({ documentId: documentId ?? undefined });
 
+  const handleTitleChange = (newTitle: string) => {
+    setTitle(newTitle);
+  };
+
+  const handleContentChange = (newContent: any) => {
+    setContent(newContent);
+  };
+
   const handleSave = async () => {
     if (saving) return;
     if (!session?.user) return;
 
+    setSaving(true);
+    setSaveError(null);
+
     try {
-      setSaving(true);
-      setLoadError(null);
-      if (!documentId) {
-        const response = await fetch('/api/documents', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            title,
-            content,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to create document');
-        }
-
-        const data = await response.json();
-        setDocumentId(data.id);
+      if (documentId) {
+        // Update existing document
+        await saveDocumentFromEditor();
       } else {
-        const response = await fetch(`/api/documents/${documentId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            title,
-            content,
-            isAutosave: false,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to update document');
-        }
+        // Create new document
+        await createDocumentFromEditor();
       }
-
-      useEditorStore.getState().setHasUnsavedChanges(false);
     } catch (error) {
-      console.error(error);
-      setLoadError('Failed to save document. Please try again.');
+      console.error('Save failed:', error);
+      setSaveError(error instanceof Error ? error.message : 'Failed to save document');
     } finally {
       setSaving(false);
     }
@@ -161,6 +144,8 @@ function EditorPageContent({ session }: EditorPageClientProps) {
                 <p className="text-xs font-medium text-[rgba(96,108,58,0.75)]">
                   {loadError
                     ? loadError
+                    : saveError
+                    ? saveError
                     : loadingDocument
                     ? 'Loading document...'
                     : saving

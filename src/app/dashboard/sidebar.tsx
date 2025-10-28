@@ -129,8 +129,8 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
                   {count !== null && (
                     <span className={`text-xs font-medium px-2 py-1 rounded-full ${
                       activeItem === item.id 
-                        ? 'text-white bg-white/20' 
-                        : 'text-[#d8e5c8] bg-[rgba(255,255,255,0.15)]'
+                        ? 'text-white' 
+                        : 'text-[#d8e5c8]'
                     }`}>
                       {count}
                     </span>

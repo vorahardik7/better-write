@@ -8,28 +8,18 @@ import {
   List,
   Plus,
   Eye,
-  MoreHorizontal,
   FileText,
-  Edit,
   Loader2,
+  RefreshCcw,
+  Star,
+  Trash2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
-
-interface Document {
-  id: string;
-  title: string;
-  contentText: string;
-  createdAt: string;
-  updatedAt: string;
-  lastEditedAt: string;
-  isArchived: boolean;
-  isPublic: boolean;
-  wordCount: number;
-  characterCount: number;
-  isStarred?: boolean;
-}
+import { useDocumentStore, type Document } from '@/lib/store/document-store';
+import { DocumentPreviewModal } from '@/components/document-preview-modal';
+import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialog';
 
 interface MainContentProps {
   initialDocuments?: Document[];
@@ -63,58 +53,41 @@ export function MainContent({
   onDocumentCountsChange,
 }: MainContentProps) {
   const { data: session } = useSession();
-  const [documents, setDocuments] = useState<Document[]>(initialDocuments);
-  const [loading, setLoading] = useState(false);
-  const [starredIds, setStarredIds] = useState<string[]>([]);
   const router = useRouter();
+  
+  // Use document store instead of local state
+  const {
+    documents,
+    loading,
+    error,
+    fetchDocuments,
+    getDocumentCounts,
+    clearCache,
+  } = useDocumentStore();
+
+  const [starredIds, setStarredIds] = useState<string[]>([]);
+  const [previewDocument, setPreviewDocument] = useState<Document | null>(null);
+  const [deleteConfirmDoc, setDeleteConfirmDoc] = useState<Document | null>(null);
 
   // Fetch documents on component mount
   useEffect(() => {
-    if (!session?.user || initialDocuments.length > 0) {
+    if (!session?.user) {
       return;
     }
 
-    const controller = new AbortController();
+    // If we have initial documents, set them in the store
+    if (initialDocuments.length > 0) {
+      useDocumentStore.getState().setDocuments(initialDocuments);
+    } else {
+      // Fetch documents from API
+      fetchDocuments();
+    }
+  }, [session?.user, initialDocuments.length, fetchDocuments]);
 
-    const fetchDocuments = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch('/api/documents', {
-          signal: controller.signal,
-        });
-        if (!response.ok) {
-          throw new Error('Failed to fetch documents');
-        }
-        const data = await response.json();
-        setDocuments(data.documents || []);
-      } catch (error) {
-        if (!controller.signal.aborted) {
-          console.error('Failed to fetch documents:', error);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDocuments();
-
-    return () => {
-      controller.abort();
-    };
-  }, [initialDocuments.length, session?.user]);
-
+  // Get document counts from store
   const documentCounts = useMemo(() => {
-    const now = new Date();
-    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-    return {
-      all: documents.length,
-      starred: documents.filter(doc => doc.isStarred || starredIds.includes(doc.id)).length,
-      recent: documents.filter(doc => new Date(doc.lastEditedAt) > oneWeekAgo).length,
-      shared: documents.filter(doc => doc.isPublic).length,
-      archive: documents.filter(doc => doc.isArchived).length,
-    };
-  }, [documents, starredIds]);
+    return getDocumentCounts();
+  }, [documents, getDocumentCounts]);
 
   // Notify parent of document counts
   useEffect(() => {
@@ -153,6 +126,49 @@ export function MainContent({
     router.push(`/editor?id=${id}`);
   };
 
+  const handleRefresh = () => {
+    clearCache();
+    fetchDocuments(true); // Force refresh
+  };
+
+  const handlePreview = (doc: Document, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPreviewDocument(doc);
+  };
+
+  const handleStar = (doc: Document, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setStarredIds(prev => 
+      prev.includes(doc.id) 
+        ? prev.filter(id => id !== doc.id)
+        : [...prev, doc.id]
+    );
+  };
+
+  const handleDeleteClick = (doc: Document, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDeleteConfirmDoc(doc);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirmDoc) return;
+    
+    try {
+      const response = await fetch(`/api/documents/${deleteConfirmDoc.id}`, {
+        method: 'DELETE',
+      });
+      
+      if (response.ok) {
+        // Remove from store
+        useDocumentStore.getState().removeDocument(deleteConfirmDoc.id);
+        setDeleteConfirmDoc(null);
+      } else {
+        console.error('Failed to delete document');
+      }
+    } catch (error) {
+      console.error('Error deleting document:', error);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -175,7 +191,17 @@ export function MainContent({
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-[rgb(52,63,29)]">Documents</h1>
-
+            {error && (
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-sm text-red-600">{error}</span>
+                <button
+                  onClick={handleRefresh}
+                  className="text-sm text-blue-600 hover:text-blue-800 underline"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-3">
@@ -211,10 +237,20 @@ export function MainContent({
               </button>
             </div>
 
+            {/* Refresh Button */}
+            <button
+              onClick={handleRefresh}
+              disabled={loading}
+              className="p-2 rounded-xl bg-[#f8f0df] hover:bg-[#f0ead9] text-[rgb(136,153,79)] transition-colors disabled:opacity-50 cursor-pointer"
+              title="Refresh documents"
+            >
+              <RefreshCcw className={`w-6 h-6 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+
             {/* New Document Button */}
             <Link
               href="/editor"
-              className="inline-flex items-center gap-2 bg-[rgb(136,153,79)] hover:bg-[rgb(118,132,68)] text-white px-4 py-2 rounded-xl font-semibold transition-colors shadow-[0_12px_30px_rgba(136,153,79,0.3)]"
+              className="inline-flex items-center gap-2 bg-[rgb(136,153,79)] hover:bg-[rgb(118,132,68)] text-white px-4 py-2 rounded-xl font-semibold transition-colors shadow-[0_12px_30px_rgba(136,153,79,0.3)] cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               New Document
@@ -296,9 +332,24 @@ export function MainContent({
 
                       <div className="space-y-1.5">
                         <div className="flex items-start justify-between">
-                          <h3 className="font-semibold text-[rgb(63,54,38)] group-hover:text-[rgb(176,142,99)] transition-colors line-clamp-1 text-sm">
-                            {doc.title}
-                          </h3>
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <h3 className="font-semibold text-[rgb(63,54,38)] group-hover:text-[rgb(176,142,99)] transition-colors line-clamp-1 text-sm flex-1">
+                              {doc.title}
+                            </h3>
+                            <button
+                              onClick={(e) => handleStar(doc, e)}
+                              className="flex-shrink-0 p-1 hover:bg-[#f8eddc] rounded transition-colors"
+                              title={starredIds.includes(doc.id) ? "Unstar document" : "Star document"}
+                            >
+                              <Star 
+                                className={`w-3 h-3 ${
+                                  starredIds.includes(doc.id) || doc.isStarred 
+                                    ? 'text-yellow-500 fill-yellow-500' 
+                                    : 'text-[rgb(87,73,55)]'
+                                }`} 
+                              />
+                            </button>
+                          </div>
                         </div>
 
                         <p className="text-xs text-[rgba(128,108,82,0.8)] line-clamp-1">
@@ -323,14 +374,19 @@ export function MainContent({
                       {/* Hover Actions */}
                       <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
                         <div className="flex items-center gap-0.5 bg-[#fff7ed] rounded-md p-0.5 shadow-sm border border-[rgba(214,184,140,0.32)]">
-                          <button className="p-1 hover:bg-[#f8eddc] rounded transition-colors cursor-pointer" title="Preview">
+                          <button 
+                            onClick={(e) => handlePreview(doc, e)}
+                            className="p-1 hover:bg-[#f8eddc] rounded transition-colors cursor-pointer" 
+                            title="Preview"
+                          >
                             <Eye className="w-3 h-3 text-[rgb(87,73,55)]" />
                           </button>
-                          <button className="p-1 hover:bg-[#f8eddc] rounded transition-colors cursor-pointer" title="Edit">
-                            <Edit className="w-3 h-3 text-[rgb(87,73,55)]" />
-                          </button>
-                          <button className="p-1 hover:bg-[#f8eddc] rounded transition-colors cursor-pointer" title="More options">
-                            <MoreHorizontal className="w-3 h-3 text-[rgb(87,73,55)]" />
+                          <button 
+                            onClick={(e) => handleDeleteClick(doc, e)}
+                            className="p-1 hover:bg-red-100 rounded transition-colors cursor-pointer" 
+                            title="Delete document"
+                          >
+                            <Trash2 className="w-3 h-3 text-red-600" />
                           </button>
                         </div>
                       </div>
@@ -344,9 +400,22 @@ export function MainContent({
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-[rgb(63,54,38)] group-hover:text-[rgb(176,142,99)] transition-colors truncate">
+                          <h3 className="font-semibold text-[rgb(63,54,38)] group-hover:text-[rgb(176,142,99)] transition-colors truncate flex-1">
                             {doc.title}
                           </h3>
+                          <button
+                            onClick={(e) => handleStar(doc, e)}
+                            className="flex-shrink-0 p-1 hover:bg-[#f8eddc] rounded transition-colors"
+                            title={starredIds.includes(doc.id) ? "Unstar document" : "Star document"}
+                          >
+                            <Star 
+                              className={`w-4 h-4 ${
+                                starredIds.includes(doc.id) || doc.isStarred 
+                                  ? 'text-yellow-500 fill-yellow-500' 
+                                  : 'text-[rgb(87,73,55)]'
+                              }`} 
+                            />
+                          </button>
                         </div>
 
                         <p className="text-sm text-[rgba(128,108,82,0.8)] line-clamp-1 mb-2">
@@ -371,11 +440,19 @@ export function MainContent({
 
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                           <div className="flex items-center gap-1">
-                            <button className="p-1.5 hover:bg-[#f8eddc] rounded-md transition-colors cursor-pointer" title="Edit">
-                              <Edit className="w-4 h-4 text-[rgb(87,73,55)]" />
+                            <button 
+                              onClick={(e) => handlePreview(doc, e)}
+                              className="p-1.5 hover:bg-[#f8eddc] rounded-md transition-colors cursor-pointer" 
+                              title="Preview"
+                            >
+                              <Eye className="w-4 h-4 text-[rgb(87,73,55)]" />
                             </button>
-                            <button className="p-1.5 hover:bg-[#f8eddc] rounded-md transition-colors cursor-pointer" title="More options">
-                              <MoreHorizontal className="w-4 h-4 text-[rgb(87,73,55)]" />
+                            <button 
+                              onClick={(e) => handleDeleteClick(doc, e)}
+                              className="p-1.5 hover:bg-red-100 rounded-md transition-colors cursor-pointer" 
+                              title="Delete document"
+                            >
+                              <Trash2 className="w-4 h-4 text-red-600" />
                             </button>
                           </div>
                         </div>
@@ -414,7 +491,24 @@ export function MainContent({
           )}
         </AnimatePresence>
       </div>
+
+      {/* Preview Modal */}
+      <DocumentPreviewModal
+        document={previewDocument}
+        starredIds={starredIds}
+        onClose={() => setPreviewDocument(null)}
+        onStar={handleStar}
+        onOpenDocument={handleOpenDocument}
+        onDeleteClick={handleDeleteClick}
+        formatDate={formatDate}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        document={deleteConfirmDoc}
+        onClose={() => setDeleteConfirmDoc(null)}
+        onConfirm={handleDeleteConfirm}
+      />
     </>
   );
 }
-

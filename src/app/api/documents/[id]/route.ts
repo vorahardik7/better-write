@@ -41,10 +41,27 @@ export async function GET(
       jsonContent = { type: 'doc', content: [{ type: 'paragraph', content: [] }] };
     }
 
-    return NextResponse.json({
+    // Generate ETag for cache validation
+    const etag = `"${doc.id}-${new Date(doc.updatedAt).getTime()}"`;
+
+    // Check if client has cached version
+    const ifNoneMatch = request.headers.get('if-none-match');
+    if (ifNoneMatch === etag) {
+      return new NextResponse(null, { status: 304 });
+    }
+
+    const response = NextResponse.json({
       ...doc,
       content: jsonContent
     });
+
+    // Set caching headers
+    response.headers.set('Cache-Control', 'private, max-age=60, stale-while-revalidate=30');
+    response.headers.set('ETag', etag);
+    response.headers.set('Last-Modified', new Date(doc.updatedAt).toUTCString());
+    response.headers.set('Vary', 'Authorization');
+
+    return response;
 
   } catch (error) {
     console.error('Error fetching document:', error);
@@ -117,7 +134,7 @@ export async function PUT(
       });
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       id,
       title: title,
       content,
@@ -126,6 +143,12 @@ export async function PUT(
       characterCount,
       updatedAt: now
     });
+
+    // Set cache invalidation headers
+    response.headers.set('Cache-Control', 'no-cache');
+    response.headers.set('X-Cache-Invalidated', 'true');
+
+    return response;
 
   } catch (error) {
     console.error('Error updating document:', error);
@@ -181,7 +204,13 @@ export async function DELETE(
       });
     }
 
-    return NextResponse.json({ success: true });
+    const response = NextResponse.json({ success: true });
+    
+    // Set cache invalidation headers
+    response.headers.set('Cache-Control', 'no-cache');
+    response.headers.set('X-Cache-Invalidated', 'true');
+
+    return response;
 
   } catch (error) {
     console.error('Error deleting document:', error);

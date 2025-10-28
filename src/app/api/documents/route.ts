@@ -53,7 +53,24 @@ export async function GET(request: NextRequest) {
 
     const total = countResult[0].total;
 
-    return NextResponse.json({
+    // Generate ETag for cache validation
+    const generateETag = (docs: typeof userDocuments) => {
+      if (docs.length === 0) return '"empty"';
+      const latestUpdate = Math.max(
+        ...docs.map(doc => new Date(doc.updatedAt).getTime())
+      );
+      return `"${docs.length}-${latestUpdate}"`;
+    };
+
+    const etag = generateETag(userDocuments);
+
+    // Check if client has cached version
+    const ifNoneMatch = request.headers.get('if-none-match');
+    if (ifNoneMatch === etag) {
+      return new NextResponse(null, { status: 304 });
+    }
+
+    const response = NextResponse.json({
       documents: userDocuments,
       pagination: {
         page,
@@ -62,6 +79,14 @@ export async function GET(request: NextRequest) {
         pages: Math.ceil(total / limit)
       }
     });
+
+    // Set caching headers
+    response.headers.set('Cache-Control', 'private, max-age=300, stale-while-revalidate=60');
+    response.headers.set('ETag', etag);
+    response.headers.set('Last-Modified', new Date().toUTCString());
+    response.headers.set('Vary', 'Authorization');
+
+    return response;
 
   } catch (error) {
     console.error('Error fetching documents:', error);
@@ -126,16 +151,26 @@ export async function POST(request: NextRequest) {
       console.error('Background sync to Supermemory failed:', error);
     });
 
-    return NextResponse.json({
+    const newDocument = {
       id: documentId,
       title: title,
-      content,
       contentText,
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString(),
+      lastEditedAt: now.toISOString(),
+      isArchived: false,
+      isPublic: false,
       wordCount,
       characterCount,
-      createdAt: now,
-      updatedAt: now
-    });
+    };
+
+    const response = NextResponse.json(newDocument);
+
+    // Set cache invalidation headers
+    response.headers.set('Cache-Control', 'no-cache');
+    response.headers.set('X-Cache-Invalidated', 'true');
+
+    return response;
 
   } catch (error) {
     console.error('Error creating document:', error);
