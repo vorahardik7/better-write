@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
       .select({
         id: documents.id,
         title: documents.title,
+        content: documents.content,
         contentText: documents.contentText,
         createdAt: documents.createdAt,
         updatedAt: documents.updatedAt,
@@ -154,6 +155,7 @@ export async function POST(request: NextRequest) {
     const newDocument = {
       id: documentId,
       title: title,
+      content: content,
       contentText,
       createdAt: now.toISOString(),
       updatedAt: now.toISOString(),

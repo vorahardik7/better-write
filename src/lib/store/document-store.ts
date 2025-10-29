@@ -11,6 +11,7 @@ export interface Document {
   id: string;
   title: string;
   contentText: string;
+  content?: any; // TipTap JSON content for rich formatting
   createdAt: string;
   updatedAt: string;
   lastEditedAt: string;
