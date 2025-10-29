@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '../../../../../auth';
 import { db, documents, documentVersions } from '../../../../lib/db';
 import { syncDocumentToSupermemory, removeDocumentFromSupermemory } from '../../../../lib/supermemory/sync';
+import { calculateContentMetrics } from '../../../../lib/content-utils';
+import { checkDocumentUpdateLimits, updateLimitsAfterDocumentUpdate, updateLimitsAfterDocumentDeletion } from '../../../../lib/user-limits';
+import { withUserContext } from '../../../../lib/db-context';
 import { eq, and, desc } from 'drizzle-orm';
 
 export async function GET(
@@ -19,18 +22,22 @@ export async function GET(
 
     const { id } = await params;
     
-    // Use database connection (RLS handled by Supabase)
-    const document = await db
-      .select()
-      .from(documents)
-      .where(and(eq(documents.id, id), eq(documents.userId, session.user.id)))
-      .limit(1);
+    // Use RLS context for secure document access
+    const result = await withUserContext(session.user.id, async () => {
+      const document = await db
+        .select()
+        .from(documents)
+        .where(eq(documents.id, id))
+        .limit(1);
 
-    if (document.length === 0) {
+      return document[0];
+    });
+
+    if (!result) {
       return NextResponse.json({ error: 'Document not found' }, { status: 404 });
     }
 
-    const doc = document[0];
+    const doc = result;
     
     // Parse JSON content if it exists, otherwise return empty document
     let jsonContent;
@@ -89,46 +96,105 @@ export async function PUT(
     const body = await request.json();
     const { title, content, isAutosave = false } = body;
 
-    // Generate content stats from JSON content
-    const contentText = extractTextFromJson(content);
-    const wordCount = contentText.split(/\s+/).filter(word => word.length > 0).length;
-    const characterCount = contentText.length;
-    
-    // Use database connection (RLS handled by Supabase)
-    const now = new Date();
-    const result = await db
-      .update(documents)
-      .set({
-        title: title,
-        content: content,
-        contentText: contentText,
-        wordCount: wordCount,
-        characterCount: characterCount,
-        updatedAt: now,
-        lastEditedAt: now,
-      })
-      .where(and(eq(documents.id, id), eq(documents.userId, session.user.id)))
-      .returning();
+    // Validate input
+    if (!title || !content) {
+      return NextResponse.json(
+        { error: 'Title and content are required' },
+        { status: 400 }
+      );
+    }
 
-    if (result.length === 0) {
+    if (title.length > 255) {
+      return NextResponse.json(
+        { error: 'Title must be 255 characters or less' },
+        { status: 400 }
+      );
+    }
+
+    // Calculate new content metrics
+    const metrics = calculateContentMetrics(content);
+
+    // Check update limits
+    const limitCheck = await checkDocumentUpdateLimits(session.user.id, content, id);
+    
+    if (!limitCheck.canUpdateDocument) {
+      return NextResponse.json(
+        { 
+          error: 'Document update limit exceeded',
+          details: limitCheck.errors,
+          limits: {
+            maxSizePerDocument: limitCheck.maxStoragePerDocument,
+            maxPagesPerDocument: limitCheck.maxPagesPerDocument,
+          }
+        },
+        { status: 403 }
+      );
+    }
+
+    const now = new Date();
+
+    // Use RLS context and transaction for data integrity
+    const result = await withUserContext(session.user.id, async () => {
+      // Get current document to check old size
+      const currentDoc = await db
+        .select({
+          contentSizeBytes: documents.contentSizeBytes,
+        })
+        .from(documents)
+        .where(eq(documents.id, id))
+        .limit(1);
+
+      if (currentDoc.length === 0) {
+        throw new Error('Document not found');
+      }
+
+      const oldSizeBytes = currentDoc[0].contentSizeBytes || 0;
+
+      // Update document
+      const [updatedDoc] = await db
+        .update(documents)
+        .set({
+          title: title,
+          content: content,
+          contentText: metrics.contentText,
+          wordCount: metrics.wordCount,
+          characterCount: metrics.characterCount,
+          pageCount: metrics.pageCount,
+          contentSizeBytes: metrics.contentSizeBytes,
+          updatedAt: now,
+          lastEditedAt: now,
+        })
+        .where(eq(documents.id, id))
+        .returning();
+
+      // Create version if not autosave
+      if (!isAutosave) {
+        await db.insert(documentVersions).values({
+          id: crypto.randomUUID(),
+          documentId: id,
+          content: content,
+          contentText: metrics.contentText,
+          wordCount: metrics.wordCount,
+          characterCount: metrics.characterCount,
+          pageCount: metrics.pageCount,
+          contentSizeBytes: metrics.contentSizeBytes,
+          createdAt: now,
+          isAutosave: false,
+        });
+      }
+
+      return { updatedDoc, oldSizeBytes };
+    });
+
+    if (!result.updatedDoc) {
       return NextResponse.json({ error: 'Document not found' }, { status: 404 });
     }
 
-    // Create version if not autosave
-    if (!isAutosave) {
-      await db.insert(documentVersions).values({
-        id: crypto.randomUUID(),
-        documentId: id,
-        content: content,
-        contentText: contentText,
-        wordCount: wordCount,
-        characterCount: characterCount,
-        createdAt: now,
-        isAutosave: false,
-      });
+    // Update user limits after successful update
+    await updateLimitsAfterDocumentUpdate(session.user.id, result.oldSizeBytes, metrics.contentSizeBytes);
 
-      // Sync to Supermemory after manual save (not autosave)
-      // Fire-and-forget to not block response
+    // Sync to Supermemory after manual save (not autosave)
+    if (!isAutosave) {
       syncDocumentToSupermemory(id, session.user.id).catch(error => {
         console.error('Background sync to Supermemory failed:', error);
       });
@@ -138,9 +204,11 @@ export async function PUT(
       id,
       title: title,
       content,
-      contentText,
-      wordCount,
-      characterCount,
+      contentText: metrics.contentText,
+      wordCount: metrics.wordCount,
+      characterCount: metrics.characterCount,
+      pageCount: metrics.pageCount,
+      contentSizeBytes: metrics.contentSizeBytes,
       updatedAt: now
     });
 
@@ -174,31 +242,48 @@ export async function DELETE(
 
     const { id } = await params;
 
-    // Use database connection (RLS handled by Supabase)
-    // Get supermemoryDocId before archiving
-    const docResult = await db
-      .select()
-      .from(documents)
-      .where(and(eq(documents.id, id), eq(documents.userId, session.user.id)))
-      .limit(1);
+    // Use RLS context for secure document access
+    const result = await withUserContext(session.user.id, async () => {
+      // Get document details before archiving
+      const docResult = await db
+        .select({
+          id: documents.id,
+          contentSizeBytes: documents.contentSizeBytes,
+          supermemoryDocId: documents.supermemoryDocId,
+        })
+        .from(documents)
+        .where(eq(documents.id, id))
+        .limit(1);
 
-    // Archive document instead of deleting using Drizzle
-    const now = new Date();
-    const result = await db
-      .update(documents)
-      .set({
-        isArchived: true,
-        updatedAt: now,
-      })
-      .where(and(eq(documents.id, id), eq(documents.userId, session.user.id)))
-      .returning({ id: documents.id });
+      if (docResult.length === 0) {
+        throw new Error('Document not found');
+      }
 
-    if (result.length === 0) {
-      return NextResponse.json({ error: 'Document not found' }, { status: 404 });
-    }
+      const doc = docResult[0];
+
+      // Archive document instead of deleting
+      const now = new Date();
+      const updateResult = await db
+        .update(documents)
+        .set({
+          isArchived: true,
+          updatedAt: now,
+        })
+        .where(eq(documents.id, id))
+        .returning({ id: documents.id });
+
+      if (updateResult.length === 0) {
+        throw new Error('Document not found');
+      }
+
+      return { doc, updateResult };
+    });
+
+    // Update user limits after archiving
+    await updateLimitsAfterDocumentDeletion(session.user.id, result.doc.contentSizeBytes || 0);
 
     // Delete from Supermemory (fire-and-forget)
-    if (docResult.length > 0 && (docResult[0] as any).supermemoryDocId) {
+    if (result.doc.supermemoryDocId) {
       removeDocumentFromSupermemory(id, session.user.id).catch((error: any) => {
         console.error('Failed to delete from Supermemory:', error);
       });
@@ -221,25 +306,5 @@ export async function DELETE(
   }
 }
 
-// Helper functions
-function extractTextFromJson(jsonContent: any): string {
-  if (!jsonContent) return '';
-  
-  // Recursively extract text from TipTap JSON structure
-  function extractText(node: any): string {
-    if (typeof node === 'string') return node;
-    if (typeof node !== 'object' || !node) return '';
-    
-    if (node.text) return node.text;
-    
-    if (node.content && Array.isArray(node.content)) {
-      return node.content.map(extractText).join('');
-    }
-    
-    return '';
-  }
-  
-  return extractText(jsonContent).trim();
-}
 
 

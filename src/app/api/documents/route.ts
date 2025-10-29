@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '../../../../auth';
 import { db, documents, documentVersions } from '../../../lib/db';
 import { syncDocumentToSupermemory } from '../../../lib/supermemory/sync';
+import { calculateContentMetrics } from '../../../lib/content-utils';
+import { checkDocumentCreationLimits, updateLimitsAfterDocumentCreation } from '../../../lib/user-limits';
+import { withUserContext } from '../../../lib/db-context';
 import { eq, desc, count, and } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
@@ -19,40 +22,44 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10');
     const offset = (page - 1) * limit;
 
-    // Get user's documents
-    const userDocuments = await db
-      .select({
-        id: documents.id,
-        title: documents.title,
-        content: documents.content,
-        contentText: documents.contentText,
-        createdAt: documents.createdAt,
-        updatedAt: documents.updatedAt,
-        lastEditedAt: documents.lastEditedAt,
-        isArchived: documents.isArchived,
-        isPublic: documents.isPublic,
-        wordCount: documents.wordCount,
-        characterCount: documents.characterCount,
-      })
-      .from(documents)
-      .where(and(
-        eq(documents.userId, session.user.id),
-        eq(documents.isArchived, false)
-      ))
-      .orderBy(desc(documents.updatedAt))
-      .limit(limit)
-      .offset(offset);
+    // Use RLS context for secure document access
+    const result = await withUserContext(session.user.id, async () => {
+      // Get user's documents (RLS will automatically filter)
+      const userDocuments = await db
+        .select({
+          id: documents.id,
+          title: documents.title,
+          content: documents.content,
+          contentText: documents.contentText,
+          createdAt: documents.createdAt,
+          updatedAt: documents.updatedAt,
+          lastEditedAt: documents.lastEditedAt,
+          isArchived: documents.isArchived,
+          isPublic: documents.isPublic,
+          wordCount: documents.wordCount,
+          characterCount: documents.characterCount,
+          pageCount: documents.pageCount,
+          contentSizeBytes: documents.contentSizeBytes,
+        })
+        .from(documents)
+        .where(eq(documents.isArchived, false))
+        .orderBy(desc(documents.updatedAt))
+        .limit(limit)
+        .offset(offset);
 
-    // Get total count
-    const countResult = await db
-      .select({ total: count() })
-      .from(documents)
-      .where(and(
-        eq(documents.userId, session.user.id),
-        eq(documents.isArchived, false)
-      ));
+      // Get total count
+      const countResult = await db
+        .select({ total: count() })
+        .from(documents)
+        .where(eq(documents.isArchived, false));
 
-    const total = countResult[0].total;
+      return {
+        documents: userDocuments,
+        total: countResult[0].total,
+      };
+    });
+
+    const { documents: userDocuments, total } = result;
 
     // Generate ETag for cache validation
     const generateETag = (docs: typeof userDocuments) => {
@@ -111,41 +118,88 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { title, content } = body;
 
-    // Generate content stats from JSON content
-    const contentText = extractTextFromJson(content);
-    const wordCount = contentText.split(/\s+/).filter(word => word.length > 0).length;
-    const characterCount = contentText.length;
+    // Validate input
+    if (!title || !content) {
+      return NextResponse.json(
+        { error: 'Title and content are required' },
+        { status: 400 }
+      );
+    }
+
+    if (title.length > 255) {
+      return NextResponse.json(
+        { error: 'Title must be 255 characters or less' },
+        { status: 400 }
+      );
+    }
+
+    // Calculate content metrics
+    const metrics = calculateContentMetrics(content);
+
+    // Check user limits
+    const limitCheck = await checkDocumentCreationLimits(session.user.id, content);
+    
+    if (!limitCheck.canCreateDocument) {
+      return NextResponse.json(
+        { 
+          error: 'Document creation limit exceeded',
+          details: limitCheck.errors,
+          limits: {
+            currentDocuments: limitCheck.currentDocumentCount,
+            maxDocuments: limitCheck.maxDocuments,
+            maxSizePerDocument: limitCheck.maxStoragePerDocument,
+            maxPagesPerDocument: limitCheck.maxPagesPerDocument,
+          }
+        },
+        { status: 403 }
+      );
+    }
 
     const documentId = crypto.randomUUID();
     const now = new Date();
 
-    // Create document
-    await db.insert(documents).values({
-      id: documentId,
-      title: title,
-      content: content,
-      contentText: contentText,
-      userId: session.user.id,
-      wordCount: wordCount,
-      characterCount: characterCount,
-      createdAt: now,
-      updatedAt: now,
-      lastEditedAt: now,
-      isArchived: false,
-      isPublic: false,
+    // Use RLS context and transaction for data integrity
+    const result = await withUserContext(session.user.id, async () => {
+      return await db.transaction(async (tx) => {
+        // Create document
+        const [newDoc] = await tx.insert(documents).values({
+          id: documentId,
+          title: title,
+          content: content,
+          contentText: metrics.contentText,
+          userId: session.user.id,
+          wordCount: metrics.wordCount,
+          characterCount: metrics.characterCount,
+          pageCount: metrics.pageCount,
+          contentSizeBytes: metrics.contentSizeBytes,
+          createdAt: now,
+          updatedAt: now,
+          lastEditedAt: now,
+          isArchived: false,
+          isPublic: false,
+          syncStatus: 'pending',
+        }).returning();
+
+        // Create initial version
+        await tx.insert(documentVersions).values({
+          id: crypto.randomUUID(),
+          documentId: documentId,
+          content: content,
+          contentText: metrics.contentText,
+          wordCount: metrics.wordCount,
+          characterCount: metrics.characterCount,
+          pageCount: metrics.pageCount,
+          contentSizeBytes: metrics.contentSizeBytes,
+          createdAt: now,
+          isAutosave: false,
+        });
+
+        return newDoc;
+      });
     });
 
-    // Create initial version
-    await db.insert(documentVersions).values({
-      id: crypto.randomUUID(),
-      documentId: documentId,
-      content: content,
-      contentText: contentText,
-      wordCount: wordCount,
-      characterCount: characterCount,
-      createdAt: now,
-      isAutosave: false,
-    });
+    // Update user limits after successful creation
+    await updateLimitsAfterDocumentCreation(session.user.id, metrics.contentSizeBytes);
 
     // Sync new document to Supermemory (fire-and-forget)
     syncDocumentToSupermemory(documentId, session.user.id).catch(error => {
@@ -156,14 +210,16 @@ export async function POST(request: NextRequest) {
       id: documentId,
       title: title,
       content: content,
-      contentText,
+      contentText: metrics.contentText,
       createdAt: now.toISOString(),
       updatedAt: now.toISOString(),
       lastEditedAt: now.toISOString(),
       isArchived: false,
       isPublic: false,
-      wordCount,
-      characterCount,
+      wordCount: metrics.wordCount,
+      characterCount: metrics.characterCount,
+      pageCount: metrics.pageCount,
+      contentSizeBytes: metrics.contentSizeBytes,
     };
 
     const response = NextResponse.json(newDocument);
@@ -183,25 +239,5 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Helper functions
-function extractTextFromJson(jsonContent: any): string {
-  if (!jsonContent) return '';
-  
-  // Recursively extract text from TipTap JSON structure
-  function extractText(node: any): string {
-    if (typeof node === 'string') return node;
-    if (typeof node !== 'object' || !node) return '';
-    
-    if (node.text) return node.text;
-    
-    if (node.content && Array.isArray(node.content)) {
-      return node.content.map(extractText).join('');
-    }
-    
-    return '';
-  }
-  
-  return extractText(jsonContent).trim();
-}
 
 
