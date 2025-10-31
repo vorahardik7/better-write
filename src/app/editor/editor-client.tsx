@@ -9,6 +9,7 @@ import { useAutosave } from '@/hooks/use-autosave';
 import { useDocumentOperations } from '@/hooks/use-document-operations';
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { validateContentLimits, calculateContentMetrics } from '@/lib/content-utils';
 
 interface EditorPageClientProps {
   session: any; // You can type this properly based on your session type
@@ -32,6 +33,8 @@ function EditorPageContent({ session }: EditorPageClientProps) {
   const [loadingDocument, setLoadingDocument] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [limits, setLimits] = useState<{ maxDocumentSizeBytes: number; maxDocumentPages: number } | null>(null);
+  const [limitErrors, setLimitErrors] = useState<string[]>([]);
   const searchParams = useSearchParams();
   const documentIdParam = searchParams?.get('id') ?? null;
 
@@ -86,6 +89,26 @@ function EditorPageContent({ session }: EditorPageClientProps) {
     };
   }, [documentIdParam, setTitle, setContent, setDocumentId]);
 
+  // Fetch user limits for live validation
+  useEffect(() => {
+    let ignore = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/user-limits', { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (ignore) return;
+        setLimits({
+          maxDocumentSizeBytes: data?.limits?.maxDocumentSizeBytes ?? 1048576,
+          maxDocumentPages: data?.limits?.maxDocumentPages ?? 10,
+        });
+      } catch {}
+    })();
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
   useAutosave({ documentId: documentId ?? undefined });
 
   const handleTitleChange = (newTitle: string) => {
@@ -94,11 +117,27 @@ function EditorPageContent({ session }: EditorPageClientProps) {
 
   const handleContentChange = (newContent: any) => {
     setContent(newContent);
+    // Keep validation internal; do not render bottom banners
+    if (limits) {
+      const result = validateContentLimits(
+        newContent,
+        limits.maxDocumentSizeBytes,
+        limits.maxDocumentPages
+      );
+      setLimitErrors(result.isValid ? [] : result.errors);
+    } else {
+      const result = validateContentLimits(newContent);
+      setLimitErrors(result.isValid ? [] : result.errors);
+    }
   };
 
   const handleSave = async () => {
     if (saving) return;
     if (!session?.user) return;
+    if (limitErrors.length > 0) {
+      setSaveError(limitErrors.join('\n'));
+      return;
+    }
 
     setSaving(true);
     setSaveError(null);

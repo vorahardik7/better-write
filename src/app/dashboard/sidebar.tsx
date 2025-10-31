@@ -36,6 +36,12 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
   const { data: session } = useSession();
   const [signOutPending, setSignOutPending] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [userLimits, setUserLimits] = useState<{
+    limits: { maxDocuments: number; maxDocumentSizeBytes: number; maxDocumentPages: number };
+    usage: { documentCount: number; documentLimitRemaining: number };
+    remaining: { documents: number; storagePerDocument: number; pagesPerDocument: number };
+  } | null>(null);
+  const [limitsLoading, setLimitsLoading] = useState(false);
 
   useEffect(() => {
     if (!profileMenuOpen) return;
@@ -51,6 +57,28 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
     document.addEventListener('mousedown', handleClickAway);
     return () => document.removeEventListener('mousedown', handleClickAway);
   }, [profileMenuOpen]);
+
+  // Fetch user limits for display in the sidebar
+  useEffect(() => {
+    let ignore = false;
+    (async () => {
+      try {
+        setLimitsLoading(true);
+        const res = await fetch('/api/user-limits', { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (ignore) return;
+        setUserLimits(data);
+      } catch {
+        // silently ignore; keep UI minimal
+      } finally {
+        if (!ignore) setLimitsLoading(false);
+      }
+    })();
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const handleSignOut = async () => {
     if (signOutPending) return;
@@ -234,6 +262,35 @@ export function Sidebar({ navigationItems, activeItem, onSelect, documentCounts 
         }}
         data-profile-popover
       >
+        {/* Limits summary - documents progress bar */}
+        <div className="mb-4">
+          <div className="rounded-xl bg-[rgba(255,255,255,0.12)] border border-[rgba(255,255,255,0.18)] px-4 py-3 text-[11px] text-[#e8f3db] shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]">
+            {limitsLoading ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Loading limits...
+              </div>
+            ) : userLimits ? (
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span>Documents</span>
+                  <span className="font-semibold">
+                    {userLimits.usage.documentCount}/{userLimits.limits.maxDocuments}
+                  </span>
+                </div>
+                <div className="w-full h-2 rounded-full bg-[rgba(255,255,255,0.14)] overflow-hidden">
+                  <div
+                    className="h-full bg-[#e8f3db]"
+                    style={{ width: `${Math.min(100, Math.round(((userLimits.usage.documentCount || 0) / Math.max(1, userLimits.limits.maxDocuments)) * 100))}%` }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="text-[10px] text:[rgba(232,243,219,0.8)]">Limits unavailable</div>
+            )}
+          </div>
+        </div>
+
         {profileMenuOpen && (
           <div className="absolute bottom-[100px] left-6 right-6 rounded-2xl bg-[#5a6b47] shadow-[0_18px_40px_rgba(0,0,0,0.25)] border border-[rgba(255,255,255,0.15)] pt-3 pb-2">
             <div className="px-5 pb-2 text-left">

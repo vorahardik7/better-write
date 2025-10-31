@@ -9,6 +9,7 @@ import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
+// Paid Pages extension removed to keep OSS-only setup
 
 export const useTipTapEditor = (content: JSONContent | string, onUpdate: (params: { editor: Editor; transaction: unknown; appendedTransactions: unknown[] }) => void, onSelectionUpdate: (params: { editor: Editor; transaction: unknown }) => void) => {
   return useEditor({
@@ -17,6 +18,7 @@ export const useTipTapEditor = (content: JSONContent | string, onUpdate: (params
       TextStyle,
       FontFamily,
       Color,
+      // Pagination-like UI handled in our editor-canvas (no paid extensions needed)
       TextAlign.configure({
         types: ['paragraph'],
         alignments: ['left', 'center', 'right', 'justify'],

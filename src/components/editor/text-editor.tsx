@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { EditorContent } from '@tiptap/react';
+import { EditorCanvas } from './editor-canvas';
 
 import { useTipTapEditor } from '@/lib/tiptap-config';
+import { calculateContentMetrics } from '@/lib/content-utils';
 
 import { useEditorStore } from '@/lib/store/editor-store';
 import { AICommandPalette } from './ai-command-palette';
@@ -118,6 +120,11 @@ export function TextEditor() {
     if (editor) imageActions.promptForImageUrl(editor);
   };
 
+  // Page metrics and scroll tracking (must be before any early returns to keep hook order stable)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [pageFormat, setPageFormat] = useState<'Letter' | 'A4' | 'Legal'>('Letter');
+
   if (!editor) {
     return (
       <div className="h-full flex items-center justify-center bg-[#fefae0] text-[rgb(87,73,55)]">
@@ -130,6 +137,7 @@ export function TextEditor() {
   const activeToolbarButton = 'bg-[rgb(136,153,79)] border-[rgb(136,153,79)] text-white shadow-[0_12px_28px_rgba(136,153,79,0.24)]';
   const inactiveToolbarButton = 'bg-[#fbf7ec] border-[rgba(136,153,79,0.3)] text-[rgb(90,78,60)] hover:bg-[#fefae2] hover:border-[rgba(136,153,79,0.45)]';
 
+
   return (
     <div className="h-full flex flex-col">
       {/* Formatting Toolbar */}
@@ -137,7 +145,7 @@ export function TextEditor() {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
-        className="flex items-center justify-between px-6 py-3 bg-[#f7f3e5] border-b border-[rgba(136,153,79,0.15)] backdrop-blur-sm overflow-x-auto shadow-[0_8px_26px_rgba(136,153,79,0.12)]"
+        className="grid grid-cols-3 items-center px-6 py-3 bg-[#f7f3e5] border-b border-[rgba(136,153,79,0.15)] backdrop-blur-sm overflow-x-auto shadow-[0_8px_26px_rgba(136,153,79,0.12)]"
       >
         <div className="flex items-center gap-2">
           {/* Undo / Redo */}
@@ -264,8 +272,27 @@ export function TextEditor() {
 
         </div>
 
+        {/* Center - Page Count and Format */}
+        <div className="flex items-center justify-center">
+          <div className="flex items-center gap-2">
+            <select
+              value={pageFormat}
+              onChange={(e) => setPageFormat(e.target.value as 'Letter' | 'A4' | 'Legal')}
+              className="text-xs font-semibold text-[rgb(72,84,42)] bg-[#fbf5e6] border border-[rgba(136,153,79,0.2)] rounded-md px-2 py-1 focus:outline-none"
+              aria-label="Page format"
+            >
+              <option value="Letter">Letter</option>
+              <option value="A4">A4</option>
+              <option value="Legal">Legal</option>
+            </select>
+            <div className="px-3 py-1.5 rounded-full text-xs font-semibold text-[rgb(72,84,42)] bg-[#fbf5e6] border border-[rgba(136,153,79,0.2)]">
+              Page {currentPage}/{totalPages}
+            </div>
+          </div>
+        </div>
+
         {/* Document Stats - Right Side */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-end gap-4">
           <div className="flex items-center gap-2 text-xs text-[rgb(87,73,55)] bg-[#fbf5e6] px-3 py-1.5 rounded-full border border-[rgba(136,153,79,0.2)]">
             <MousePointer className="w-3 h-3 text-[rgb(136,153,79)]" />
             <span className="font-medium">Select text and press</span>
@@ -290,20 +317,15 @@ export function TextEditor() {
       </motion.div>
 
       {/* Rich Text Editor */}
-      <div className="flex-1 relative bg-[#fefae0] overflow-auto" onPaste={handlePaste} onDrop={handleDrop} onDragOver={handleDragOver}>
-        <div className="max-w-4xl mx-auto px-8 py-12 h-full">
-          <div className="bg-[#fffdf3] rounded-2xl shadow-[0_24px_56px_rgba(136,153,79,0.22)] border border-[rgba(136,153,79,0.22)] min-h-[calc(100vh-16rem)] p-12">
-            <EditorContent 
-              editor={editor}
-              className="prose prose-lg max-w-none focus:outline-none [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-[600px]"
-              style={{
-                fontFamily: 'var(--font-sans)',
-              }}
-            />
-          </div>
-        </div>
-        
-      </div>
+      <EditorCanvas
+        editor={editor}
+        contentJson={editor.getJSON()}
+        onPageMetrics={(cur, total) => {
+          setCurrentPage(cur);
+          setTotalPages(total);
+        }}
+        pageFormat={pageFormat}
+      />
 
       {/* AI Command Palette */}
       <AICommandPalette

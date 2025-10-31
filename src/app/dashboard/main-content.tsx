@@ -20,8 +20,7 @@ import Link from 'next/link';
 import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { useDocumentStore, type Document } from '@/lib/store/document-store';
-import { DocumentPreviewModal } from '@/components/document-preview-modal';
-import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialog';
+import { DocumentsView } from './documents-view';
 
 interface MainContentProps {
   initialDocuments?: Document[];
@@ -56,6 +55,12 @@ export function MainContent({
 }: MainContentProps) {
   const { data: session } = useSession();
   const router = useRouter();
+  const [userLimits, setUserLimits] = useState<{
+    limits: { maxDocuments: number; maxDocumentSizeBytes: number; maxDocumentPages: number };
+    usage: { documentCount: number; storageUsed: number; averageDocumentSize: number; documentLimitRemaining: number; storageLimitRemaining: number };
+    remaining: { documents: number; storagePerDocument: number; pagesPerDocument: number };
+  } | null>(null);
+  const [limitsError, setLimitsError] = useState<string | null>(null);
   
   // Use document store instead of local state
   const {
@@ -87,6 +92,20 @@ export function MainContent({
       // Fetch documents from API
       fetchDocuments();
     }
+    // Fetch user limits for UI controls
+    (async () => {
+      try {
+        setLimitsError(null);
+        const res = await fetch('/api/user-limits', { cache: 'no-store' });
+        if (!res.ok) {
+          throw new Error('Failed to fetch user limits');
+        }
+        const data = await res.json();
+        setUserLimits(data);
+      } catch (err) {
+        setLimitsError('Unable to load usage limits.');
+      }
+    })();
   }, [session?.user, initialDocuments.length, fetchDocuments]);
 
   // Get document counts from store
@@ -334,257 +353,57 @@ export function MainContent({
             <button
               onClick={handleRefresh}
               disabled={loading}
-              className="p-2 rounded-xl bg-[#f8f0df] hover:bg-[#f0ead9] text-[rgb(136,153,79)] transition-colors disabled:opacity-50 cursor-pointer"
+              className="p-2 rounded-xl hover:bg-[#f0ead9] text-[rgb(136,153,79)] transition-colors disabled:opacity-50 cursor-pointer"
               title="Refresh documents"
             >
               <RefreshCcw className={`w-6 h-6 ${loading ? 'animate-spin' : ''}`} />
             </button>
 
             {/* New Document Button */}
-            <Link
-              href="/editor"
-              className="inline-flex items-center gap-2 bg-[rgb(136,153,79)] hover:bg-[rgb(118,132,68)] text-white px-4 py-2 rounded-xl font-semibold transition-colors shadow-[0_12px_30px_rgba(136,153,79,0.3)] cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              New Document
-            </Link>
+            <div className="flex flex-col items-end">
+              <Link
+                href={userLimits && userLimits.remaining.documents <= 0 ? '#' : '/editor'}
+                aria-disabled={userLimits ? userLimits.remaining.documents <= 0 : false}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-colors shadow-[0_12px_30px_rgba(136,153,79,0.3)] ${
+                  userLimits && userLimits.remaining.documents <= 0
+                    ? 'bg:[rgba(136,153,79,0.4)] text-white cursor-not-allowed'
+                    : 'bg-[rgb(136,153,79)] hover:bg-[rgb(118,132,68)] text-white cursor-pointer'
+                }`}
+                onClick={(e) => {
+                  if (userLimits && userLimits.remaining.documents <= 0) {
+                    e.preventDefault();
+                  }
+                }}
+              >
+                <Plus className="w-4 h-4" />
+                New Document
+              </Link>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Document Grid/List - Completely open and spacious */}
-      <div className="flex-1 p-8 overflow-y-auto bg-gradient-to-br from-[#fdf9f3] via-[#f8f4e6] to-[#f0ead9]">
-        <AnimatePresence mode="wait">
-          {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="w-8 h-8 text-[rgba(197,161,113,0.8)] animate-spin" />
-            </div>
-          ) : filteredDocuments.length > 0 ? (
-            <motion.div
-              key={viewMode}
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -20 }}
-              transition={{ 
-                duration: 0.25, 
-                ease: [0.4, 0, 0.2, 1],
-                layout: { 
-                  duration: 0.2,
-                  ease: [0.4, 0, 0.2, 1]
-                }
-              }}
-              layout
-              className={
-                viewMode === 'grid'
-                  ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'
-                  : 'space-y-3 w-full'
-              }
-            >
-              {viewMode === 'grid' && filteredDocuments.map((doc) => (
-                <motion.div
-                  key={doc.id}
-                  layout
-                  initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.98 }}
-                  transition={{ 
-                    duration: 0.2, 
-                    ease: [0.4, 0, 0.2, 1],
-                    layout: { 
-                      duration: 0.2,
-                      ease: [0.4, 0, 0.2, 1]
-                    }
-                  }}
-                  whileHover={{ 
-                    y: -2, 
-                    scale: 1.01,
-                    transition: { 
-                      duration: 0.2,
-                      ease: [0.4, 0, 0.2, 1]
-                    } 
-                  }}
-                  className={`group relative rounded-xl border border-[rgba(214,184,140,0.28)] bg-[#fffbf3] shadow-[0_12px_28px_rgba(214,184,140,0.15)] hover:shadow-[0_16px_32px_rgba(197,161,113,0.2)] hover:border-[rgba(197,161,113,0.42)] transition-all duration-200 cursor-pointer p-4`}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => handleOpenDocument(doc.id)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault();
-                      handleOpenDocument(doc.id);
-                    }
-                  }}
-                >
-                    <>
-                      {/* Grid View */}
-                      <div className="aspect-[3/2] rounded-lg mb-3 flex items-center justify-center bg-[#f9eedc] border border-[rgba(214,184,140,0.32)]">
-                        <FileText className="w-5 h-5 text-[rgb(176,142,99)]" />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
-                            <h3 className="font-semibold text-[rgb(63,54,38)] group-hover:text-[rgb(176,142,99)] transition-colors line-clamp-1 text-sm flex-1">
-                              {doc.title}
-                            </h3>
-                            <button
-                              onClick={(e) => handleStar(doc, e)}
-                              className="flex-shrink-0 p-1 hover:bg-[#f8eddc] rounded transition-colors"
-                              title={starredIds.includes(doc.id) ? "Unstar document" : "Star document"}
-                            >
-                              <Star 
-                                className={`w-3 h-3 ${
-                                  doc.isStarred 
-                                    ? 'text-yellow-500 fill-yellow-500' 
-                                    : 'text-[rgb(87,73,55)]'
-                                }`} 
-                              />
-                            </button>
-                          </div>
-                        </div>
-
-                        <p className="text-xs text-[rgba(128,108,82,0.8)] line-clamp-1">
-                          {(doc.contentText ?? '').slice(0, 60)}...
-                        </p>
-
-                        <div className="flex items-center justify-between pt-1">
-                          <div className="flex items-center gap-1.5">
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-[#f8eddc] text-[rgb(176,142,99)] border border-[rgba(197,161,113,0.35)]">
-                              {doc.isPublic ? 'Public' : 'Private'}
-                            </span>
-                            <span className="text-xs text-[rgba(128,108,82,0.65)]">
-                              {doc.wordCount.toLocaleString()}w
-                            </span>
-                          </div>
-                          <span className="text-xs text-[rgba(128,108,82,0.55)]">
-                            {formatDate(doc.lastEditedAt)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Hover Actions */}
-                      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="flex items-center gap-0.5 bg-[#fff7ed] rounded-md p-0.5 shadow-sm border border-[rgba(214,184,140,0.32)]">
-                          <button 
-                            onClick={(e) => handlePreview(doc, e)}
-                            className="p-1 hover:bg-[#f8eddc] rounded transition-colors cursor-pointer" 
-                            title="Preview"
-                          >
-                            <Eye className="w-3 h-3 text-[rgb(87,73,55)]" />
-                          </button>
-                          <button 
-                            onClick={(e) => handleDeleteClick(doc, e)}
-                            className="p-1 hover:bg-red-100 rounded transition-colors cursor-pointer" 
-                            title="Delete document"
-                          >
-                            <Trash2 className="w-3 h-3 text-red-600" />
-                          </button>
-                        </div>
-                      </div>
-                    </>
-                </motion.div>
-              ))}
-
-              {viewMode === 'list' && (
-                <div className="w-full bg-[#fffbf3] border border-[rgba(214,184,140,0.28)] rounded-xl overflow-hidden">
-                  <div className="grid grid-cols-12 px-4 py-2 bg-[#f8f0df] text-[rgb(90,78,60)] text-xs font-semibold border-b border-[rgba(214,184,140,0.28)]">
-                    <button onClick={() => handleSort('title')} className="col-span-4 text-left cursor-pointer flex items-center gap-1">Title {sortKey==='title' ? (sortDir==='asc' ? <ArrowBigUp className="w-3 h-3" /> : <ArrowBigDown className="w-3 h-3" />) : ''}</button>
-                    <button onClick={() => handleSort('wordCount')} className="col-span-2 text-left cursor-pointer flex items-center gap-1">Words {sortKey==='wordCount' ? (sortDir==='asc' ? <ArrowBigUp className="w-3 h-3" /> : <ArrowBigDown className="w-3 h-3" />) : ''}</button>
-                    <button onClick={() => handleSort('updatedAt')} className="col-span-2 text-left cursor-pointer flex items-center gap-1">Updated {sortKey==='updatedAt' ? (sortDir==='asc' ? <ArrowBigUp className="w-3 h-3" /> : <ArrowBigDown className="w-3 h-3" />) : ''}</button>
-                    <button onClick={() => handleSort('createdAt')} className="col-span-2 text-left cursor-pointer flex items-center gap-1">Created {sortKey==='createdAt' ? (sortDir==='asc' ? <ArrowBigUp className="w-3 h-3" /> : <ArrowBigDown className="w-3 h-3" />) : ''}</button>
-                    <button onClick={() => handleSort('isPublic')} className="col-span-1 text-left cursor-pointer flex items-center gap-1">Visibility {sortKey==='isPublic' ? (sortDir==='asc' ? <ArrowBigUp className="w-3 h-3" /> : <ArrowBigDown className="w-3 h-3" />) : ''}</button>
-                    <div className="col-span-1 text-right">Actions</div>
-                  </div>
-                  <div>
-                    {sortedDocuments.map((doc) => (
-                      <div
-                        key={doc.id}
-                        className="grid grid-cols-12 items-center px-4 py-3 border-b last:border-b-0 border-[rgba(214,184,140,0.2)] hover:bg-[#fffaf1] transition-colors cursor-pointer"
-                        onClick={() => handleOpenDocument(doc.id)}
-                      >
-                        <div className="col-span-4 truncate font-medium text-[rgb(63,54,38)]">{doc.title}</div>
-                        <div className="col-span-2 text-[rgba(128,108,82,0.8)]">{doc.wordCount.toLocaleString()}</div>
-                        <div className="col-span-2 text-[rgba(128,108,82,0.8)]">{formatDateTime(doc.updatedAt)}</div>
-                        <div className="col-span-2 text-[rgba(128,108,82,0.8)]">{formatDateTime(doc.createdAt)}</div>
-                        <div className="col-span-1">
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-[#f8eddc] text-[rgb(176,142,99)] border border-[rgba(197,161,113,0.35)]">
-                            {doc.isPublic ? 'Public' : 'Private'}
-                          </span>
-                        </div>
-                        <div className="col-span-1 flex items-center justify-end gap-2">
-                          <button
-                            onClick={(e) => handleStar(doc, e)}
-                            className="p-1 hover:bg-[#f8eddc] rounded transition-colors cursor-pointer"
-                            title={doc.isStarred ? 'Unstar document' : 'Star document'}
-                          >
-                            <Star className={`w-4 h-4 ${doc.isStarred ? 'text-yellow-500 fill-yellow-500' : 'text-[rgb(87,73,55)]'}`} />
-                          </button>
-                          <button
-                            onClick={(e) => handlePreview(doc, e)}
-                            className="p-1 hover:bg-[#f8eddc] rounded transition-colors cursor-pointer"
-                            title="Preview"
-                          >
-                            <Eye className="w-4 h-4 text-[rgb(87,73,55)]" />
-                          </button>
-                          <button
-                            onClick={(e) => handleDeleteClick(doc, e)}
-                            className="p-1 hover:bg-red-100 rounded transition-colors cursor-pointer"
-                            title="Delete document"
-                          >
-                            <Trash2 className="w-4 h-4 text-red-600" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </motion.div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex flex-col items-center justify-center py-16"
-            >
-              <div className="w-16 h-16 bg-[#fff9ef] border border-[rgba(214,184,140,0.32)] rounded-full flex items-center justify-center mb-4 shadow-[0_14px_40px_rgba(197,161,113,0.2)]">
-                <Search className="w-8 h-8 text-[rgb(176,142,99)]" />
-              </div>
-              <h3 className="text-lg font-semibold text-[rgb(63,54,38)] mb-2">No documents found</h3>
-              <p className="text-sm text-[rgba(128,108,82,0.7)] text-center max-w-md">
-                {searchQuery
-                  ? `No documents match "${searchQuery}". Try a different search term.`
-                  : 'Create your first document to get started with AI-powered writing.'
-                }
-              </p>
-              {!searchQuery && (
-                <Link
-                  href="/editor"
-                  className="mt-4 inline-flex items-center gap-2 bg-[rgb(197,161,113)] hover:bg-[rgb(176,142,99)] text-white px-4 py-2 rounded-xl font-semibold transition-colors shadow-[0_12px_30px_rgba(197,161,113,0.3)]"
-                >
-                  <Plus className="w-4 h-4" />
-                  Create Document
-                </Link>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Preview Modal */}
-      <DocumentPreviewModal
-        document={previewDocument}
+      <DocumentsView
+        loading={loading}
+        error={error}
+        viewMode={viewMode}
+        filteredDocuments={filteredDocuments}
+        sortedDocuments={sortedDocuments}
         starredIds={starredIds}
-        onClose={() => setPreviewDocument(null)}
-        onStar={handleStar}
+        sortKey={sortKey}
+        sortDir={sortDir}
+        onSort={handleSort}
         onOpenDocument={handleOpenDocument}
+        onPreview={handlePreview}
+        onStar={handleStar}
         onDeleteClick={handleDeleteClick}
+        previewDocument={previewDocument}
+        deleteConfirmDoc={deleteConfirmDoc}
+        onClosePreview={() => setPreviewDocument(null)}
+        onConfirmDelete={handleDeleteConfirm}
         formatDate={formatDate}
-      />
-
-      {/* Delete Confirmation Dialog */}
-      <DeleteConfirmationDialog
-        document={deleteConfirmDoc}
-        onClose={() => setDeleteConfirmDoc(null)}
-        onConfirm={handleDeleteConfirm}
+        formatDateTime={formatDateTime}
+        onRetry={handleRefresh}
       />
     </>
   );

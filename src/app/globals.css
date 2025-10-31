@@ -162,3 +162,25 @@ body {
   z-index: 1;
 }
 
+/* Editor global tweaks to prevent overflow */
+.ProseMirror {
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.ProseMirror img,
+.ProseMirror video,
+.ProseMirror table,
+.ProseMirror pre,
+.ProseMirror code,
+.ProseMirror iframe {
+  max-width: 100%;
+  height: auto;
+}
+.ProseMirror table {
+  table-layout: fixed;
+}
+.ProseMirror pre {
+  white-space: pre-wrap;
+}
+
